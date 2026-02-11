@@ -1,7 +1,8 @@
 source "https://rubygems.org"
 
-ruby "4.0.1"
+ruby "3.4.4"
 
+gem "zeitwerk"
 gem "thor"
 gem "sequel"
 gem "pg"
