@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Adept
+module Autodidact
   module Ingest
     class TextIngestor
       def call(path:, start_line: nil, end_line: nil)

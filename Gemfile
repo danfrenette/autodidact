@@ -1,13 +1,8 @@
+# frozen_string_literal: true
+
 source "https://rubygems.org"
 
-ruby "3.4.4"
-
-gem "zeitwerk"
-gem "thor"
-gem "sequel"
-gem "pg"
-gem "ruby-openai"
-gem "dotenv"
+gemspec
 
 group :development, :test do
   gem "rspec"

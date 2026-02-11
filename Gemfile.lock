@@ -1,3 +1,14 @@
+PATH
+  remote: .
+  specs:
+    autodidact (0.1.0)
+      dotenv
+      pg
+      ruby-openai
+      sequel
+      thor
+      zeitwerk
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -103,17 +114,9 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
-  dotenv
-  pg
+  autodidact!
   rspec
-  ruby-openai
-  sequel
   standard
-  thor
-  zeitwerk
-
-RUBY VERSION
-   ruby 3.4.4p34
 
 BUNDLED WITH
    2.6.7
