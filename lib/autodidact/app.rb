@@ -3,7 +3,14 @@
 module Autodidact
   class App
     def call
-      puts "Autodidact is ready. TUI flow coming next."
+      router = Transport::Router.new
+      router.register("ping", Commands::Ping.new)
+
+      Transport::Server.new(
+        input: $stdin,
+        output: $stdout,
+        router: router
+      ).call
     end
   end
 end
