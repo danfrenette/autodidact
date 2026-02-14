@@ -11,6 +11,8 @@ module Autodidact
       }.freeze
 
       def call(params:, notify:)
+        Autodidact::Debug.remote_pry(binding)
+
         path = params.fetch(:path)
 
         raise ArgumentError, "File not found: #{path}" unless File.exist?(path)
