@@ -1,5 +1,5 @@
 {
-  "name": "autodidact-tui",
+  "name": "tui",
   "module": "src/index.tsx",
   "type": "module",
   "private": true,
@@ -7,15 +7,14 @@
     "dev": "bun run --watch src/index.tsx"
   },
   "devDependencies": {
-    "@types/bun": "latest",
-    "@types/react": "^19.2.14"
+    "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
-    "@opentui/core": "^0.1.69",
-    "@opentui/react": "^0.1.69",
-    "react": "^19.2.3"
+    "@opentui/core": "^0.1.79",
+    "@opentui/react": "^0.1.79",
+    "react": "^19.2.4"
   }
 }
