@@ -1,12 +1,10 @@
-import { useCallback, useState } from "react"
+import { useState, useCallback } from "react"
 
 type Props = {
-  sourceType: string
   onSubmit: (path: string) => void
-  onBack: () => void
 }
 
-export function FileInput({ sourceType, onSubmit, onBack }: Props) {
+export function FileInput({ onSubmit }: Props) {
   const [path, setPath] = useState("")
   const [error, setError] = useState<string | null>(null)
 
@@ -21,22 +19,21 @@ export function FileInput({ sourceType, onSubmit, onBack }: Props) {
 
   return (
     <box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1}>
-      <text style={{ marginBottom: 1 }}>
-        Enter path to your <strong>{sourceType}</strong> file
-      </text>
+      <text style={{ marginBottom: 1 }}>Enter path to a file you want to learn from</text>
 
       <box border title="file path" style={{ width: 60, height: 3 }}>
-        <input
-          placeholder={`/path/to/file.${sourceType === "pdf" ? "pdf" : "txt"}`}
-          onInput={setPath}
-          onSubmit={handleSubmit}
-          focused
-        />
+        <input placeholder="/path/to/file" onInput={setPath} onSubmit={handleSubmit} focused />
       </box>
 
-      {error && <text fg="red" style={{ marginTop: 1 }}>{error}</text>}
+      {error && (
+        <text fg="red" style={{ marginTop: 1 }}>
+          {error}
+        </text>
+      )}
 
-      <text fg="#666666" style={{ marginTop: 1 }}>Enter to submit | Esc to go back</text>
+      <text fg="#666666" style={{ marginTop: 1 }}>
+        Supports: .txt, .md, .pdf
+      </text>
     </box>
   )
 }

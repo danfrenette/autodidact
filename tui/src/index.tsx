@@ -2,48 +2,58 @@ import { createCliRenderer } from "@opentui/core"
 import { createRoot, useKeyboard, useRenderer } from "@opentui/react"
 import { useState, useCallback } from "react"
 import { Backend } from "./backend.ts"
-import { MainMenu } from "./screens/main-menu.tsx"
 import { FileInput } from "./screens/file-input.tsx"
 
 const backend = new Backend()
 
-type Screen = { name: "menu" } | { name: "file-input"; sourceType: string }
+type SourceInfo = {
+  source_type: string
+  path: string
+  metadata: Record<string, unknown>
+}
+
+type Screen = { name: "file-input" } | { name: "detected"; source: SourceInfo }
 
 function App() {
   const renderer = useRenderer()
-  const [screen, setScreen] = useState<Screen>({ name: "menu" })
+  const [screen, setScreen] = useState<Screen>({ name: "file-input" })
+  const [error, setError] = useState<string | null>(null)
 
   useKeyboard((key) => {
     if (key.name === "escape") {
-      if (screen.name === "menu") {
+      if (screen.name === "file-input") {
         renderer?.destroy()
         backend.shutdown()
         process.exit(0)
       }
-      setScreen({ name: "menu" })
+      setScreen({ name: "file-input" })
+      setError(null)
     }
   })
 
-  const handleSourceSelect = useCallback((sourceType: string) => {
-    setScreen({ name: "file-input", sourceType })
-  }, [])
-
   const handleFileSubmit = useCallback((path: string) => {
-    // TODO: next screen — section selection
-    backend.request("ping", { path }).then((result) => {
-      // placeholder: just log for now
-    })
-  }, [])
-
-  const handleBack = useCallback(() => {
-    setScreen({ name: "menu" })
+    setError(null)
+    backend
+      .request("detect_source", { path })
+      .then((result) => {
+        setScreen({ name: "detected", source: result as unknown as SourceInfo })
+      })
+      .catch((err: Error) => {
+        setError(err.message)
+      })
   }, [])
 
   switch (screen.name) {
-    case "menu":
-      return <MainMenu onSelect={handleSourceSelect} />
     case "file-input":
-      return <FileInput sourceType={screen.sourceType} onSubmit={handleFileSubmit} onBack={handleBack} />
+      return <FileInput onSubmit={handleFileSubmit} />
+    case "detected":
+      return (
+        <box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1}>
+          <box border title={screen.source.source_type} style={{ width: 60, padding: 1 }}>
+            <text>{screen.source.path}</text>
+          </box>
+        </box>
+      )
   }
 }
 
