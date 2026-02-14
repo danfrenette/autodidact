@@ -1,0 +1,22 @@
+# frozen_string_literal: true
+
+module Autodidact
+  Result = Data.define(:payload, :error)
+
+  class ApplicationService
+    def self.call(params:, notify:)
+      service = new
+      service.call(params: params, notify: notify)
+    rescue => e
+      service.failure(e)
+    end
+
+    def success(payload:)
+      Result.new(payload: payload, error: nil)
+    end
+
+    def failure(error)
+      Result.new(payload: nil, error: {message: error.message})
+    end
+  end
+end

@@ -4,8 +4,8 @@ module Autodidact
   class App
     def call
       router = Transport::Router.new
-      router.register("ping", Commands::Ping.new)
-      router.register("detect_source", Commands::DetectSource.new)
+      router.register("ping", Services::Ping)
+      router.register("detect_source", Services::DetectSource)
 
       Transport::Server.new(
         input: $stdin,

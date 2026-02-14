@@ -21,15 +21,14 @@ module Autodidact
         return if line.empty?
 
         message = Message.from_json(line)
-        command = @router.resolve(message.method_name)
         notifier = build_notifier(message.id)
 
-        result = command.call(params: message.params, notify: notifier)
-        @writer.result(id: message.id, data: result)
-      rescue ArgumentError => e
-        @writer.error(id: message&.id, message: e.message)
-      rescue => e
-        @writer.error(id: message&.id, message: e.message)
+        result = @router.resolve(message.method_name).call(
+          params: message.params,
+          notify: notifier
+        )
+
+        @writer.result(id: message.id, data: result.to_h)
       end
 
       def build_notifier(request_id)
