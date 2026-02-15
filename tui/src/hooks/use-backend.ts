@@ -2,10 +2,10 @@ import { useContext } from "react";
 import { BackendContext } from "../providers/backend-provider.tsx";
 
 export function useBackend() {
-  const backend = useContext(BackendContext);
-  if (!backend) {
+  const context = useContext(BackendContext);
+  if (!context) {
     throw new Error("useBackend must be used within a BackendProvider");
   }
 
-  return backend;
+  return context;
 }
