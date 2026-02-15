@@ -8,6 +8,10 @@ module Autodidact
     @root ||= Pathname.new(File.expand_path("..", __dir__))
   end
 
+  def self.config
+    @config ||= Configuration.new
+  end
+
   def self.loader
     @loader ||= Zeitwerk::Loader.for_gem.tap(&:setup)
   end
