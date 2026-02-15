@@ -1,6 +1,4 @@
-import { useState, useCallback, useRef } from "react";
-import type { InputRenderable } from "@opentui/core";
-import { usePaste } from "../hooks/use-paste.ts";
+import { useState, useCallback } from "react";
 
 type Props = {
   onSubmit: (path: string) => void;
@@ -10,13 +8,6 @@ type Props = {
 export function FileInput({ onSubmit, error: backendError }: Props) {
   const [path, setPath] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
-  const inputRef = useRef<InputRenderable>(null);
-
-  usePaste(
-    useCallback((text: string) => {
-      inputRef.current?.insertText(text);
-    }, []),
-  );
 
   const error = validationError ?? backendError;
 
@@ -35,7 +26,6 @@ export function FileInput({ onSubmit, error: backendError }: Props) {
 
       <box border title="file path" style={{ width: 60, height: 3 }}>
         <input
-          ref={inputRef}
           placeholder="/path/to/file"
           onInput={setPath}
           onSubmit={handleSubmit}
