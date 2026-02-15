@@ -1,15 +1,15 @@
 import { createCliRenderer } from "@opentui/core";
 import { createRoot, useKeyboard, useRenderer } from "@opentui/react";
 import { useState, useCallback } from "react";
-import { Backend } from "./backend.ts";
+import { useBackend } from "./hooks/use-backend.ts";
+import { BackendProvider } from "./providers/backend-provider.tsx";
 import { FileInput } from "./screens/file-input.tsx";
 import type { SourceInfo } from "./requests/detect-source/index.ts";
-
-const backend = new Backend();
 
 type Screen = { name: "file-input" } | { name: "detected"; source: SourceInfo };
 
 function App() {
+  const backend = useBackend();
   const renderer = useRenderer();
   const [screen, setScreen] = useState<Screen>({ name: "file-input" });
   const [error, setError] = useState<string | null>(null);
@@ -55,4 +55,8 @@ function App() {
 const renderer = await createCliRenderer({
   exitOnCtrlC: true,
 });
-createRoot(renderer).render(<App />);
+createRoot(renderer).render(
+  <BackendProvider>
+    <App />
+  </BackendProvider>,
+);
