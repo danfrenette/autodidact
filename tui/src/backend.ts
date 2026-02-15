@@ -8,6 +8,8 @@ import type {
 import * as pingRequest from "./requests/ping/index.ts";
 import * as detectSourceRequest from "./requests/detect-source/index.ts";
 import type { SourceInfo } from "./requests/detect-source/index.ts";
+import * as analyzeSourceRequest from "./requests/analyze-source/index.ts";
+import type { AnalysisResult } from "./requests/analyze-source/index.ts";
 
 type PendingRequest = {
   resolve: (response: ServiceResult) => void;
@@ -46,6 +48,12 @@ export class Backend {
     const result = await this.send(detectSourceRequest.method, { path });
     const wire = detectSourceRequest.decode(result);
     return detectSourceRequest.toSourceInfo(wire);
+  }
+
+  async analyzeSource(path: string): Promise<AnalysisResult> {
+    const result = await this.send(analyzeSourceRequest.method, { path });
+    const wire = analyzeSourceRequest.decode(result);
+    return analyzeSourceRequest.toAnalysisResult(wire);
   }
 
   subscribe(handler: NotificationHandler) {
