@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module Autodidact
-  module Services
-    class Ping < ApplicationService
+  module Commands
+    class Ping < ApplicationCommand
       def call(params:, notify:)
         success(payload: {status: "ok", version: Autodidact::VERSION})
       end

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module Autodidact
-  module Services
-    class DetectSource < ApplicationService
+  module Commands
+    class DetectSource < ApplicationCommand
       class FileNotFound < StandardError; end
       class UnsupportedFileType < StandardError; end
 

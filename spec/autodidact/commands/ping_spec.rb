@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Autodidact::Services::Ping do
+RSpec.describe Autodidact::Commands::Ping do
   let(:notify) { proc {} }
 
   it "returns a success result with status and version" do

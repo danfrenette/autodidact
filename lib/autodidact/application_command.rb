@@ -3,12 +3,12 @@
 module Autodidact
   Result = Data.define(:payload, :error)
 
-  class ApplicationService
+  class ApplicationCommand
     def self.call(params:, notify:)
-      service = new
-      service.call(params: params, notify: notify)
+      command = new
+      command.call(params: params, notify: notify)
     rescue => e
-      service.failure(e)
+      command.failure(e)
     end
 
     def success(payload:)

@@ -4,7 +4,7 @@ require "spec_helper"
 require "tempfile"
 require "tmpdir"
 
-RSpec.describe Autodidact::Services::DetectSource do
+RSpec.describe Autodidact::Commands::DetectSource do
   let(:notify) { proc {} }
 
   describe "with a valid text file" do

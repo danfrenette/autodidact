@@ -17,7 +17,7 @@ module Autodidact
 
     def start_server
       initialize_router
-      register_services
+      register_commands
 
       Transport::Server.new(
         input: $stdin,
@@ -30,10 +30,10 @@ module Autodidact
       @router ||= Transport::Router.new
     end
 
-    def register_services
-      router.register("ping", Services::Ping)
-      router.register("detect_source", Services::DetectSource)
-      router.register("analyze_source", Services::AnalyzeSource)
+    def register_commands
+      router.register("ping", Commands::Ping)
+      router.register("detect_source", Commands::DetectSource)
+      router.register("analyze_source", Commands::AnalyzeSource)
     end
   end
 end

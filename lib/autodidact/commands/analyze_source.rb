@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module Autodidact
-  module Services
-    class AnalyzeSource < ApplicationService
+  module Commands
+    class AnalyzeSource < ApplicationCommand
       class PdfNotImplemented < StandardError; end
 
       def call(params:, notify:)
@@ -21,7 +21,7 @@ module Autodidact
 
       def detect_source(params, notify)
         notify.call(stage: "detect_source")
-        result = Services::DetectSource.call(params: params, notify: notify)
+        result = Commands::DetectSource.call(params: params, notify: notify)
         raise StandardError, result.error[:message] if result.error
 
         result.payload
