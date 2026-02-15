@@ -3,14 +3,9 @@ import { createRoot, useKeyboard, useRenderer } from "@opentui/react";
 import { useState, useCallback } from "react";
 import { Backend } from "./backend.ts";
 import { FileInput } from "./screens/file-input.tsx";
+import type { SourceInfo } from "./requests/detect-source/index.ts";
 
 const backend = new Backend();
-
-type SourceInfo = {
-  source_type: string;
-  path: string;
-  metadata: Record<string, unknown>;
-};
 
 type Screen = { name: "file-input" } | { name: "detected"; source: SourceInfo };
 
@@ -31,25 +26,25 @@ function App() {
     }
   });
 
-  const handleFileSubmit = useCallback((path: string) => {
+  const handleFileSubmit = useCallback(async (path: string) => {
     setError(null);
-    backend
-      .request("detect_source", { path })
-      .then((result) => {
-        setScreen({ name: "detected", source: result as unknown as SourceInfo });
-      })
-      .catch((err: Error) => {
-        setError(err.message);
-      });
+
+    try {
+      const source = await backend.detectSource(path);
+      setScreen({ name: "detected", source });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      setError(message);
+    }
   }, []);
 
   switch (screen.name) {
     case "file-input":
-      return <FileInput onSubmit={handleFileSubmit} />;
+      return <FileInput onSubmit={handleFileSubmit} error={error} />;
     case "detected":
       return (
         <box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1}>
-          <box border title={screen.source.source_type} style={{ width: 60, padding: 1 }}>
+          <box border title={screen.source.sourceType} style={{ width: 60, padding: 1 }}>
             <text>{screen.source.path}</text>
           </box>
         </box>

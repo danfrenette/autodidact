@@ -4,11 +4,12 @@ import { usePaste } from "../hooks/use-paste.ts";
 
 type Props = {
   onSubmit: (path: string) => void;
+  error: string | null;
 };
 
-export function FileInput({ onSubmit }: Props) {
+export function FileInput({ onSubmit, error: backendError }: Props) {
   const [path, setPath] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const inputRef = useRef<InputRenderable>(null);
 
   usePaste(
@@ -17,12 +18,14 @@ export function FileInput({ onSubmit }: Props) {
     }, []),
   );
 
+  const error = validationError ?? backendError;
+
   const handleSubmit = useCallback(() => {
     if (path.trim().length === 0) {
-      setError("Please enter a file path");
+      setValidationError("Please enter a file path");
       return;
     }
-    setError(null);
+    setValidationError(null);
     onSubmit(path.trim());
   }, [path, onSubmit]);
 
