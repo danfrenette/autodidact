@@ -1,18 +1,18 @@
 import { createContext, useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import type { ReactNode } from "react";
 import { Backend } from "../backend.ts";
-import type { SourceInfo } from "../requests/detect-source/index.ts";
+import type { AnalysisResult } from "../requests/analyze-source/index.ts";
 
 type FileInputState =
   | { name: "file-input"; status: "idle"; error: null }
   | { name: "file-input"; status: "submitting"; requestId: number; error: null }
   | { name: "file-input"; status: "error"; error: string };
 
-export type AppFlowState = FileInputState | { name: "detected"; source: SourceInfo };
+export type AppFlowState = FileInputState | { name: "analyzed"; result: AnalysisResult };
 
 type Action =
   | { type: "submit"; requestId: number }
-  | { type: "success"; requestId: number; source: SourceInfo }
+  | { type: "success"; requestId: number; result: AnalysisResult }
   | { type: "failure"; requestId: number; message: string }
   | { type: "reset" };
 
@@ -33,7 +33,7 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
         return state;
       }
 
-      return { name: "detected", source: action.source };
+      return { name: "analyzed", result: action.result };
     case "failure":
       if (!isActiveRequest(state, action.requestId)) {
         return state;
@@ -47,7 +47,7 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
 
 export type BackendContextValue = {
   state: AppFlowState;
-  detectSource: (path: string) => Promise<void>;
+  analyzeSource: (path: string) => Promise<void>;
   resetToFileInput: () => void;
   shutdown: () => Promise<void>;
 };
@@ -67,19 +67,19 @@ export function BackendProvider({ children }: Props) {
   });
   const activeRequestId = useRef(0);
 
-  const detectSource = useCallback(
+  const analyzeSource = useCallback(
     async (path: string) => {
       const requestId = activeRequestId.current + 1;
       activeRequestId.current = requestId;
       dispatch({ type: "submit", requestId });
 
       try {
-        const source = await backend.detectSource(path);
+        const result = await backend.analyzeSource(path);
         if (activeRequestId.current !== requestId) {
           return;
         }
 
-        dispatch({ type: "success", requestId, source });
+        dispatch({ type: "success", requestId, result });
       } catch (error) {
         if (activeRequestId.current !== requestId) {
           return;
@@ -110,8 +110,8 @@ export function BackendProvider({ children }: Props) {
   }, [backend]);
 
   const value = useMemo(
-    () => ({ state, detectSource, resetToFileInput, shutdown }),
-    [state, detectSource, resetToFileInput, shutdown],
+    () => ({ state, analyzeSource, resetToFileInput, shutdown }),
+    [state, analyzeSource, resetToFileInput, shutdown],
   );
 
   return <BackendContext.Provider value={value}>{children}</BackendContext.Provider>;

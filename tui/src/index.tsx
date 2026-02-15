@@ -6,7 +6,7 @@ import { BackendProvider } from "./providers/backend-provider.tsx";
 import { FileInput } from "./screens/file-input.tsx";
 
 function App() {
-  const { state, detectSource, resetToFileInput, shutdown } = useBackend();
+  const { state, analyzeSource, resetToFileInput, shutdown } = useBackend();
   const renderer = useRenderer();
 
   useKeyboard((key) => {
@@ -21,8 +21,8 @@ function App() {
   });
 
   const handleFileSubmit = useCallback(async (path: string) => {
-    await detectSource(path);
-  }, [detectSource]);
+    await analyzeSource(path);
+  }, [analyzeSource]);
 
   switch (state.name) {
     case "file-input":
@@ -32,11 +32,11 @@ function App() {
           error={state.status === "error" ? state.error : null}
         />
       );
-    case "detected":
+    case "analyzed":
       return (
         <box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1}>
-          <box border title={state.source.sourceType} style={{ width: 60, padding: 1 }}>
-            <text>{state.source.path}</text>
+          <box border title="Note created" style={{ width: 60, padding: 1 }}>
+            <text>{state.result.notePath}</text>
           </box>
         </box>
       );
