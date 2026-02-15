@@ -14,7 +14,7 @@ module Autodidact
       }.freeze
 
       def call(params:, notify:)
-        path = params.fetch(:path)
+        path = normalize_path(params.fetch(:path))
         validate_path!(path)
         source_type = detect_type!(path)
 
@@ -27,8 +27,12 @@ module Autodidact
 
       private
 
+      def normalize_path(path)
+        File.expand_path(path)
+      end
+
       def validate_path!(path)
-        raise FileNotFound, "File not found: #{path}" unless File.exist?(path)
+        raise FileNotFound, "File not found: #{path}" unless File.file?(path)
       end
 
       def detect_type!(path)

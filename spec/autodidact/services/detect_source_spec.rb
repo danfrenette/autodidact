@@ -2,6 +2,7 @@
 
 require "spec_helper"
 require "tempfile"
+require "tmpdir"
 
 RSpec.describe Autodidact::Services::DetectSource do
   let(:notify) { proc {} }
@@ -50,6 +51,27 @@ RSpec.describe Autodidact::Services::DetectSource do
 
       expect(result.payload).to be_nil
       expect(result.error[:message]).to include("File not found")
+    end
+  end
+
+  describe "with a relative path" do
+    it "expands to an absolute path" do
+      Dir.mktmpdir do |dir|
+        source_path = File.join(dir, "sample.txt")
+        File.write(source_path, "line one\n")
+
+        Dir.chdir(dir) do
+          expanded_path = File.expand_path("sample.txt")
+          result = described_class.call(params: {path: "sample.txt"}, notify: notify)
+
+          expect(result.error).to be_nil
+          expect(result.payload).to eq(
+            path: expanded_path,
+            source_type: "text",
+            metadata: {line_count: 1}
+          )
+        end
+      end
     end
   end
 
