@@ -10,6 +10,13 @@ import * as detectSourceRequest from "./requests/detect-source/index.ts";
 import type { SourceInfo } from "./requests/detect-source/index.ts";
 import * as analyzeSourceRequest from "./requests/analyze-source/index.ts";
 import type { AnalysisResult } from "./requests/analyze-source/index.ts";
+import * as setupStatusRequest from "./requests/setup-status/index.ts";
+import type { SetupStatus } from "./requests/setup-status/index.ts";
+import * as updateConfigRequest from "./requests/update-config/index.ts";
+import type {
+  ConfigParams,
+  UpdateConfigResult,
+} from "./requests/update-config/index.ts";
 
 type PendingRequest = {
   resolve: (response: ServiceResult) => void;
@@ -54,6 +61,19 @@ export class Backend {
     const result = await this.send(analyzeSourceRequest.method, { path });
     const wire = analyzeSourceRequest.decode(result);
     return analyzeSourceRequest.toAnalysisResult(wire);
+  }
+
+  async setupStatus(): Promise<SetupStatus> {
+    const result = await this.send(setupStatusRequest.method, {});
+    const wire = setupStatusRequest.decode(result);
+    return setupStatusRequest.toSetupStatus(wire);
+  }
+
+  async updateConfig(params: ConfigParams): Promise<UpdateConfigResult> {
+    const wireParams = updateConfigRequest.toWireParams(params);
+    const result = await this.send(updateConfigRequest.method, wireParams);
+    const wire = updateConfigRequest.decode(result);
+    return updateConfigRequest.toUpdateConfigResult(wire);
   }
 
   subscribe(handler: NotificationHandler) {
