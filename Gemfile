@@ -8,6 +8,7 @@ group :development, :test do
   gem "drb"
   gem "pry"
   gem "pry-remote"
+  gem "climate_control"
   gem "rspec"
   gem "standard"
 end

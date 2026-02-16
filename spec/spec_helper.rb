@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "autodidact"
+require "climate_control"
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
