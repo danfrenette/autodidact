@@ -12,6 +12,10 @@ module Autodidact
     @config ||= Configuration.new
   end
 
+  def self.reset_config!
+    @config = nil
+  end
+
   def self.loader
     @loader ||= Zeitwerk::Loader.for_gem.tap(&:setup)
   end

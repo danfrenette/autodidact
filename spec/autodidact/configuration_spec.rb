@@ -26,11 +26,8 @@ RSpec.describe Autodidact::Configuration do
       end
     end
 
-    it "raises ConfigurationError when missing everywhere" do
-      expect { config.openai_access_token }.to raise_error(
-        Autodidact::Configuration::ConfigurationError,
-        "OPENAI_ACCESS_TOKEN is not set"
-      )
+    it "returns nil when missing everywhere" do
+      expect(config.openai_access_token).to be_nil
     end
   end
 
@@ -62,11 +59,8 @@ RSpec.describe Autodidact::Configuration do
       expect(config.obsidian_vault_path).to eq("/vault")
     end
 
-    it "raises ConfigurationError when missing everywhere" do
-      expect { config.obsidian_vault_path }.to raise_error(
-        Autodidact::Configuration::ConfigurationError,
-        "OBSIDIAN_VAULT_PATH is not set"
-      )
+    it "returns nil when missing everywhere" do
+      expect(config.obsidian_vault_path).to be_nil
     end
   end
 
@@ -77,11 +71,8 @@ RSpec.describe Autodidact::Configuration do
       expect(config.database_url).to eq("postgres://localhost/test")
     end
 
-    it "raises ConfigurationError when missing everywhere" do
-      expect { config.database_url }.to raise_error(
-        Autodidact::Configuration::ConfigurationError,
-        "DATABASE_URL is not set"
-      )
+    it "returns nil when missing everywhere" do
+      expect(config.database_url).to be_nil
     end
   end
 

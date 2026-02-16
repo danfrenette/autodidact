@@ -3,28 +3,34 @@
 module Autodidact
   module Config
     class Validator
+      Status = Data.define(:missing_fields) do
+        def ready?
+          missing_fields.empty?
+        end
+      end
+
       REQUIRED_FIELDS = %i[
         database_url
         obsidian_vault_path
         openai_access_token
       ].freeze
 
-      def self.call(data:)
-        new(data: data).call
+      def self.call(config:)
+        new(config: config).call
       end
 
-      def initialize(data:)
-        @data = data
+      def initialize(config:)
+        @config_data = config.to_h
       end
 
       def call
-        missing = REQUIRED_FIELDS.select { |key| blank?(data[key]) }
-        {ready: missing.empty?, missing_fields: missing}
+        missing = REQUIRED_FIELDS.select { |key| blank?(config_data[key]) }
+        Status.new(missing_fields: missing)
       end
 
       private
 
-      attr_reader :data
+      attr_reader :config_data
 
       def blank?(value)
         value.nil? || value.to_s.strip.empty?

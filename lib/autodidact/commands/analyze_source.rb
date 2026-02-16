@@ -6,6 +6,8 @@ module Autodidact
       class PdfNotImplemented < StandardError; end
 
       def call(params:, notify:)
+        raise "Configuration is incomplete. Run setup first." unless Autodidact.config.ready?
+
         source = detect_source(params, notify)
         raise PdfNotImplemented, "PDF sources are not yet implemented" if source[:source_type] == "pdf"
 
