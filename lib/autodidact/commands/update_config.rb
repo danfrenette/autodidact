@@ -22,7 +22,9 @@ module Autodidact
       private
 
       def config_payload(params)
-        Config::Store.read_config.merge(params.slice(*CONFIG_KEYS))
+        Configuration::DEFAULTS
+          .merge(Config::Store.read_config)
+          .merge(params.slice(*CONFIG_KEYS))
       end
 
       def secrets_payload(params)

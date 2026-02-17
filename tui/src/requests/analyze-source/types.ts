@@ -6,7 +6,7 @@ export const paramsSchema = z.object({
 
 export const resultSchema = z.object({
   note_path: z.string(),
-  source_blob_id: z.number(),
+  source_blob_id: z.string(),
 });
 
 export type Params = z.infer<typeof paramsSchema>;
@@ -15,5 +15,5 @@ export type ResultWire = z.infer<typeof resultSchema>;
 
 export type AnalysisResult = {
   notePath: string;
-  sourceBlobId: number;
+  sourceBlobId: string;
 };

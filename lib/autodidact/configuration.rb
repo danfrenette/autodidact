@@ -3,7 +3,7 @@
 module Autodidact
   class Configuration
     DEFAULTS = {
-      database_url: "postgres://localhost:5432/postgres",
+      database_url: "postgres://localhost:5432/autodidact",
       openai_model: "gpt-4o-mini"
     }.freeze
 

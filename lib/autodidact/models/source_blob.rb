@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+require "sequel"
+
 module Autodidact
   module Models
-    class SourceBlob < Sequel::Model(:source_blobs)
+    class SourceBlob < ::Sequel::Model(:source_blobs)
       plugin :validation_helpers
       plugin :timestamps, update_on_create: true
 

@@ -71,8 +71,8 @@ RSpec.describe Autodidact::Configuration do
       expect(config.database_url).to eq("postgres://localhost/test")
     end
 
-    it "defaults to local postgres on 5432" do
-      expect(config.database_url).to eq("postgres://localhost:5432/postgres")
+    it "defaults to local autodidact database on 5432" do
+      expect(config.database_url).to eq("postgres://localhost:5432/autodidact")
     end
   end
 
