@@ -55,7 +55,7 @@ RSpec.describe Autodidact::Commands::SetupStatus do
       expect(result.error).to be_nil
       expect(result.payload[:status]).to eq("needs_setup")
       expect(result.payload[:missing_fields]).to contain_exactly(
-        :database_url, :obsidian_vault_path, :openai_access_token
+        :obsidian_vault_path, :openai_access_token
       )
     end
   end

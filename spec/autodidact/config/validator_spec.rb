@@ -26,7 +26,7 @@ RSpec.describe Autodidact::Config::Validator do
 
       expect(result).not_to be_ready
       expect(result.missing_fields).to contain_exactly(
-        :database_url, :obsidian_vault_path, :openai_access_token
+        :obsidian_vault_path, :openai_access_token
       )
     end
 
@@ -41,7 +41,7 @@ RSpec.describe Autodidact::Config::Validator do
 
       expect(result).not_to be_ready
       expect(result.missing_fields).to contain_exactly(
-        :database_url, :obsidian_vault_path, :openai_access_token
+        :obsidian_vault_path, :openai_access_token
       )
     end
 

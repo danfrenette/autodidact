@@ -11,7 +11,6 @@ export function decode(result: ServiceResult) {
 
 export function toWireParams(params: ConfigParams): Record<string, unknown> {
   return {
-    database_url: params.databaseUrl,
     obsidian_vault_path: params.obsidianVaultPath,
     openai_access_token: params.openaiAccessToken,
     openai_model: params.openaiModel,

@@ -19,5 +19,6 @@ export function toSetupStatus(wire: ReturnType<typeof decode>): SetupStatus {
       openaiAccessToken: wire.prefill.openai_access_token,
       openaiModel: wire.prefill.openai_model,
     },
+    modelOptions: wire.model_options,
   };
 }

@@ -15,6 +15,7 @@ Gem::Specification.new do |spec|
   spec.executables = ["autodidact"]
 
   spec.add_dependency "dotenv"
+  spec.add_dependency "faraday"
   spec.add_dependency "pg"
   spec.add_dependency "ruby-openai"
   spec.add_dependency "sequel"

@@ -7,8 +7,8 @@ module Autodidact
       SECRET_KEYS = %i[openai_access_token].freeze
 
       def call(params:, notify:)
-        Config::Store.write_config(params.slice(*CONFIG_KEYS))
-        Config::Store.write_secrets(params.slice(*SECRET_KEYS))
+        Config::Store.write_config(config_payload(params))
+        Config::Store.write_secrets(secrets_payload(params))
         Autodidact.reset_config!
 
         status = Config::Validator.call(config: Autodidact.config)
@@ -17,6 +17,16 @@ module Autodidact
           status: status.ready? ? "ready" : "needs_setup",
           missing_fields: status.missing_fields
         })
+      end
+
+      private
+
+      def config_payload(params)
+        Config::Store.read_config.merge(params.slice(*CONFIG_KEYS))
+      end
+
+      def secrets_payload(params)
+        Config::Store.read_secrets.merge(params.slice(*SECRET_KEYS))
       end
     end
   end

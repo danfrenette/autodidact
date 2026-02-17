@@ -8,9 +8,9 @@ import type { ConfigParams } from "../requests/update-config/index.ts";
 export type SetupPrefill = SetupStatus["prefill"];
 
 type SetupState =
-  | { name: "setup-form"; prefill: SetupPrefill; missingFields: string[]; error: null }
-  | { name: "setup-saving"; prefill: SetupPrefill; missingFields: string[]; error: null }
-  | { name: "setup-error"; prefill: SetupPrefill; missingFields: string[]; error: string };
+  | { name: "setup-form"; prefill: SetupPrefill; missingFields: string[]; modelOptions: string[]; error: null }
+  | { name: "setup-saving"; prefill: SetupPrefill; missingFields: string[]; modelOptions: string[]; error: null }
+  | { name: "setup-error"; prefill: SetupPrefill; missingFields: string[]; modelOptions: string[]; error: string };
 
 type FileInputState =
   | { name: "file-input"; status: "idle"; error: null }
@@ -48,13 +48,25 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
         return state;
       }
 
-      return { name: "setup-saving", prefill: state.prefill, missingFields: state.missingFields, error: null };
+      return {
+        name: "setup-saving",
+        prefill: state.prefill,
+        missingFields: state.missingFields,
+        modelOptions: state.modelOptions,
+        error: null,
+      };
     case "setup-save-failed":
       if (state.name !== "setup-saving") {
         return state;
       }
 
-      return { name: "setup-error", prefill: state.prefill, missingFields: state.missingFields, error: action.message };
+      return {
+        name: "setup-error",
+        prefill: state.prefill,
+        missingFields: state.missingFields,
+        modelOptions: state.modelOptions,
+        error: action.message,
+      };
     case "submit":
       return { name: "file-input", status: "submitting", requestId: action.requestId, error: null };
     case "success":

@@ -34,6 +34,7 @@ function App() {
       return (
         <Setup
           prefill={state.prefill}
+          modelOptions={state.modelOptions}
           saving={state.name === "setup-saving"}
           error={state.name === "setup-error" ? state.error : null}
           onSubmit={updateConfig}
@@ -63,7 +64,13 @@ const status = await backend.setupStatus();
 const initialState: AppFlowState =
   status.status === "ready"
     ? { name: "file-input", status: "idle", error: null }
-    : { name: "setup-form", prefill: status.prefill, missingFields: status.missingFields, error: null };
+    : {
+      name: "setup-form",
+      prefill: status.prefill,
+      missingFields: status.missingFields,
+      modelOptions: status.modelOptions,
+      error: null,
+    };
 
 const renderer = await createCliRenderer({
   exitOnCtrlC: true,

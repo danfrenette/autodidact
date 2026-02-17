@@ -3,6 +3,7 @@ PATH
   specs:
     autodidact (0.1.0)
       dotenv
+      faraday
       pg
       ruby-openai
       sequel

@@ -5,65 +5,162 @@ import type { ConfigParams } from "../requests/update-config/index.ts";
 
 type Props = {
   prefill: SetupPrefill;
+  modelOptions: string[];
   saving: boolean;
   error: string | null;
   onSubmit: (params: ConfigParams) => void;
 };
 
-const FIELDS = ["databaseUrl", "obsidianVaultPath", "openaiAccessToken", "openaiModel"] as const;
+const CUSTOM_MODEL_VALUE = "__custom__";
 
-type FieldName = (typeof FIELDS)[number];
+type SetupField = "obsidianVaultPath" | "openaiAccessToken" | "openaiModel" | "customModel";
 
-const LABELS: Record<FieldName, string> = {
-  databaseUrl: "Database URL",
-  obsidianVaultPath: "Obsidian vault path",
-  openaiAccessToken: "OpenAI access token",
-  openaiModel: "OpenAI model",
-};
+const FALLBACK_MODELS = ["gpt-4.1", "gpt-4.1-mini", "gpt-4o-mini", "o4-mini"];
 
-export function Setup({ prefill, saving, error, onSubmit }: Props) {
-  const [values, setValues] = useState<Record<FieldName, string>>({
-    databaseUrl: prefill.databaseUrl ?? "",
-    obsidianVaultPath: prefill.obsidianVaultPath ?? "",
-    openaiAccessToken: prefill.openaiAccessToken ?? "",
-    openaiModel: prefill.openaiModel ?? "gpt-4o-mini",
-  });
+export function Setup({ prefill, modelOptions, saving, error: backendError, onSubmit }: Props) {
+  const availableModels = modelOptions.length > 0 ? modelOptions : FALLBACK_MODELS;
+  const prefillModel = prefill.openaiModel;
+  const prefillIsCustom = !availableModels.includes(prefillModel);
+
+  const [obsidianVaultPath, setObsidianVaultPath] = useState(prefill.obsidianVaultPath ?? "");
+  const [openaiAccessToken, setOpenaiAccessToken] = useState(prefill.openaiAccessToken ?? "");
+  const [selectedModel, setSelectedModel] = useState(prefillIsCustom ? CUSTOM_MODEL_VALUE : prefillModel);
+  const [customModel, setCustomModel] = useState(prefillIsCustom ? prefillModel : "");
+  const [validationError, setValidationError] = useState<string | null>(null);
   const [focusIndex, setFocusIndex] = useState(0);
 
-  const handleFieldChange = useCallback((field: FieldName, value: string) => {
-    setValues((prev) => ({ ...prev, [field]: value }));
-  }, []);
+  const showCustomModel = selectedModel === CUSTOM_MODEL_VALUE;
+  const fields: SetupField[] = showCustomModel
+    ? ["obsidianVaultPath", "openaiAccessToken", "openaiModel", "customModel"]
+    : ["obsidianVaultPath", "openaiAccessToken", "openaiModel"];
+
+  const error = validationError ?? backendError;
+
+  const clearValidationError = useCallback(() => {
+    if (validationError !== null) {
+      setValidationError(null);
+    }
+  }, [validationError]);
 
   const handleSubmit = useCallback(() => {
+    if (obsidianVaultPath.trim().length === 0) {
+      setValidationError("Please enter your Obsidian vault path");
+      return;
+    }
+
+    if (openaiAccessToken.trim().length === 0) {
+      setValidationError("Please enter your OpenAI access token");
+      return;
+    }
+
+    const model = selectedModel === CUSTOM_MODEL_VALUE ? customModel.trim() : selectedModel;
+    if (model.length === 0) {
+      setValidationError("Please choose an OpenAI model");
+      return;
+    }
+
+    setValidationError(null);
+
     onSubmit({
-      databaseUrl: values.databaseUrl,
-      obsidianVaultPath: values.obsidianVaultPath,
-      openaiAccessToken: values.openaiAccessToken,
-      openaiModel: values.openaiModel,
+      obsidianVaultPath: obsidianVaultPath.trim(),
+      openaiAccessToken: openaiAccessToken.trim(),
+      openaiModel: model,
     });
-  }, [values, onSubmit]);
+  }, [customModel, obsidianVaultPath, onSubmit, openaiAccessToken, selectedModel]);
+
+  const focusByField = useCallback((field: SetupField) => {
+    setFocusIndex(fields.indexOf(field));
+  }, [fields]);
 
   useKeyboard((key) => {
     if (key.name === "tab") {
-      setFocusIndex((prev) => (prev + 1) % FIELDS.length);
+      setFocusIndex((prev) => (prev + 1) % fields.length);
     }
   });
+
+  const modelValues = [...availableModels, CUSTOM_MODEL_VALUE];
+  const modelSelectOptions = modelValues.map((model) => ({
+    name: model === CUSTOM_MODEL_VALUE ? "Custom..." : model,
+    description: "",
+  }));
+
+  const selectedModelIndex = modelValues.findIndex((value) => value === selectedModel);
 
   return (
     <box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1}>
       <text style={{ marginBottom: 1 }}>Autodidact Setup</text>
 
-      {FIELDS.map((field, index) => (
-        <box key={field} border title={LABELS[field]} style={{ width: 60, height: 3, marginBottom: 1 }}>
+      <box border title="Obsidian vault path" style={{ width: 80, height: 3, marginBottom: 1 }}>
+        <input
+          placeholder="/path/to/vault"
+          value={obsidianVaultPath}
+          onInput={(value) => {
+            clearValidationError();
+            setObsidianVaultPath(value);
+          }}
+          onSubmit={() => focusByField("openaiAccessToken")}
+          focused={fields[focusIndex] === "obsidianVaultPath"}
+        />
+      </box>
+
+      <box border title="OpenAI access token" style={{ width: 80, height: 3, marginBottom: 1 }}>
+        <input
+          placeholder="sk-..."
+          value={openaiAccessToken}
+          onInput={(value) => {
+            clearValidationError();
+            setOpenaiAccessToken(value);
+          }}
+          onSubmit={handleSubmit}
+          focused={fields[focusIndex] === "openaiAccessToken"}
+        />
+      </box>
+
+      <box border title="OpenAI model" style={{ width: 80, height: 9, marginBottom: 1 }}>
+        <select
+          options={modelSelectOptions}
+          height={7}
+          showScrollIndicator
+          selectedIndex={selectedModelIndex === -1 ? 0 : selectedModelIndex}
+          showDescription={false}
+          onChange={(index) => {
+            const value = modelValues[index];
+            if (value) {
+              clearValidationError();
+              setSelectedModel(value);
+            }
+          }}
+          onSelect={(index) => {
+            const value = modelValues[index];
+            if (!value) {
+              return;
+            }
+
+            setSelectedModel(value);
+            if (value === CUSTOM_MODEL_VALUE) {
+              focusByField("customModel");
+            } else {
+              handleSubmit();
+            }
+          }}
+          focused={fields[focusIndex] === "openaiModel"}
+        />
+      </box>
+
+      {showCustomModel && (
+        <box border title="Custom model" style={{ width: 80, height: 3, marginBottom: 1 }}>
           <input
-            placeholder={LABELS[field]}
-            value={values[field]}
-            onInput={(v) => handleFieldChange(field, v)}
-            onSubmit={index === FIELDS.length - 1 ? handleSubmit : () => setFocusIndex(index + 1)}
-            focused={focusIndex === index}
+            placeholder="Enter model id"
+            value={customModel}
+            onInput={(value) => {
+              clearValidationError();
+              setCustomModel(value);
+            }}
+            onSubmit={handleSubmit}
+            focused={fields[focusIndex] === "customModel"}
           />
         </box>
-      ))}
+      )}
 
       {error && (
         <text fg="red" style={{ marginTop: 1 }}>
@@ -78,7 +175,7 @@ export function Setup({ prefill, saving, error, onSubmit }: Props) {
       )}
 
       <text fg="#666666" style={{ marginTop: 1 }}>
-        Tab to move between fields, Enter to submit
+        Tab to move focus, arrows to pick model, Enter to confirm
       </text>
     </box>
   );

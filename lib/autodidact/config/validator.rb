@@ -10,7 +10,6 @@ module Autodidact
       end
 
       REQUIRED_FIELDS = %i[
-        database_url
         obsidian_vault_path
         openai_access_token
       ].freeze
