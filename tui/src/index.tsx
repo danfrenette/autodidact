@@ -9,17 +9,17 @@ import { FileInput } from "./screens/file-input.tsx";
 import { Setup } from "./screens/setup.tsx";
 
 function App() {
-  const { state, analyzeSource, updateConfig, resetToFileInput, shutdown } = useBackend();
+  const { state, analyzeSource, updateConfig, shutdown } = useBackend();
   const renderer = useRenderer();
 
+  const handleExit = useCallback(() => {
+    renderer?.destroy();
+    void shutdown();
+  }, [renderer, shutdown]);
+
   useKeyboard((key) => {
-    if (key.name === "escape") {
-      if (state.name === "file-input") {
-        renderer?.destroy();
-        void shutdown();
-      } else if (state.name === "analyzed") {
-        resetToFileInput();
-      }
+    if (key.name === "escape" && state.name === "file-input") {
+      handleExit();
     }
   });
 
@@ -44,16 +44,9 @@ function App() {
       return (
         <FileInput
           onSubmit={handleFileSubmit}
+          lastResult={state.lastResult}
           error={state.status === "error" ? state.error : null}
         />
-      );
-    case "analyzed":
-      return (
-        <box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1}>
-          <box border title="Note created" style={{ width: 60, padding: 1 }}>
-            <text>{state.result.notePath}</text>
-          </box>
-        </box>
       );
   }
 }
@@ -63,7 +56,7 @@ const status = await backend.setupStatus();
 
 const initialState: AppFlowState =
   status.status === "ready"
-    ? { name: "file-input", status: "idle", error: null }
+    ? { name: "file-input", status: "idle", lastResult: null, error: null }
     : {
       name: "setup-form",
       prefill: status.prefill,

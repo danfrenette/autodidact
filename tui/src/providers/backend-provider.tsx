@@ -13,14 +13,13 @@ type SetupState =
   | { name: "setup-error"; prefill: SetupPrefill; missingFields: string[]; modelOptions: string[]; error: string };
 
 type FileInputState =
-  | { name: "file-input"; status: "idle"; error: null }
-  | { name: "file-input"; status: "submitting"; requestId: number; error: null }
-  | { name: "file-input"; status: "error"; error: string };
+  | { name: "file-input"; status: "idle"; lastResult: AnalysisResult | null; error: null }
+  | { name: "file-input"; status: "submitting"; lastResult: AnalysisResult | null; requestId: number; error: null }
+  | { name: "file-input"; status: "error"; lastResult: AnalysisResult | null; error: string };
 
 export type AppFlowState =
   | SetupState
-  | FileInputState
-  | { name: "analyzed"; result: AnalysisResult };
+  | FileInputState;
 
 type Action =
   | { type: "setup-ready" }
@@ -28,8 +27,7 @@ type Action =
   | { type: "setup-save-failed"; message: string }
   | { type: "submit"; requestId: number }
   | { type: "success"; requestId: number; result: AnalysisResult }
-  | { type: "failure"; requestId: number; message: string }
-  | { type: "reset" };
+  | { type: "failure"; requestId: number; message: string };
 
 function isActiveRequest(state: AppFlowState, requestId: number): boolean {
   return (
@@ -39,10 +37,14 @@ function isActiveRequest(state: AppFlowState, requestId: number): boolean {
   );
 }
 
+function lastResultFrom(state: AppFlowState): AnalysisResult | null {
+  return state.name === "file-input" ? state.lastResult : null;
+}
+
 function reducer(state: AppFlowState, action: Action): AppFlowState {
   switch (action.type) {
     case "setup-ready":
-      return { name: "file-input", status: "idle", error: null };
+      return { name: "file-input", status: "idle", lastResult: null, error: null };
     case "setup-save":
       if (state.name !== "setup-form" && state.name !== "setup-error") {
         return state;
@@ -68,21 +70,25 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
         error: action.message,
       };
     case "submit":
-      return { name: "file-input", status: "submitting", requestId: action.requestId, error: null };
+      return {
+        name: "file-input",
+        status: "submitting",
+        lastResult: lastResultFrom(state),
+        requestId: action.requestId,
+        error: null,
+      };
     case "success":
       if (!isActiveRequest(state, action.requestId)) {
         return state;
       }
 
-      return { name: "analyzed", result: action.result };
+      return { name: "file-input", status: "idle", lastResult: action.result, error: null };
     case "failure":
       if (!isActiveRequest(state, action.requestId)) {
         return state;
       }
 
-      return { name: "file-input", status: "error", error: action.message };
-    case "reset":
-      return { name: "file-input", status: "idle", error: null };
+      return { name: "file-input", status: "error", lastResult: lastResultFrom(state), error: action.message };
   }
 }
 
@@ -90,7 +96,6 @@ export type BackendContextValue = {
   state: AppFlowState;
   analyzeSource: (path: string) => Promise<void>;
   updateConfig: (params: ConfigParams) => Promise<void>;
-  resetToFileInput: () => void;
   shutdown: () => Promise<void>;
 };
 
@@ -151,11 +156,6 @@ export function BackendProvider({ backend, initialState, children }: Props) {
     [backend],
   );
 
-  const resetToFileInput = useCallback(() => {
-    activeRequestId.current += 1;
-    dispatch({ type: "reset" });
-  }, []);
-
   const shutdown = useCallback(async () => {
     activeRequestId.current += 1;
     await backend.shutdown();
@@ -169,8 +169,8 @@ export function BackendProvider({ backend, initialState, children }: Props) {
   }, [backend]);
 
   const value = useMemo(
-    () => ({ state, analyzeSource, updateConfig, resetToFileInput, shutdown }),
-    [state, analyzeSource, updateConfig, resetToFileInput, shutdown],
+    () => ({ state, analyzeSource, updateConfig, shutdown }),
+    [state, analyzeSource, updateConfig, shutdown],
   );
 
   return <BackendContext.Provider value={value}>{children}</BackendContext.Provider>;

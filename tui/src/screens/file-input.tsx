@@ -1,11 +1,17 @@
 import { useState, useCallback } from "react";
+import type { AnalysisResult } from "../requests/analyze-source/index.ts";
 
 type Props = {
   onSubmit: (path: string) => void;
+  lastResult: AnalysisResult | null;
   error: string | null;
 };
 
-export function FileInput({ onSubmit, error: backendError }: Props) {
+function obsidianUri(notePath: string): string {
+  return `obsidian://open?path=${encodeURIComponent(notePath)}`;
+}
+
+export function FileInput({ onSubmit, lastResult, error: backendError }: Props) {
   const [path, setPath] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
 
@@ -22,6 +28,14 @@ export function FileInput({ onSubmit, error: backendError }: Props) {
 
   return (
     <box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1}>
+      {lastResult && (
+        <box border style={{ width: 60, padding: 1, marginBottom: 1 }} borderColor="green">
+          <text>
+            Note created: <a href={obsidianUri(lastResult.notePath)}>{lastResult.notePath}</a>
+          </text>
+        </box>
+      )}
+
       <text style={{ marginBottom: 1 }}>Enter path to a file you want to learn from</text>
 
       <box border title="file path" style={{ width: 60, height: 3 }}>
