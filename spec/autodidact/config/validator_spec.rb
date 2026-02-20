@@ -3,59 +3,142 @@
 require "spec_helper"
 
 RSpec.describe Autodidact::Config::Validator do
+  let(:database_url) { "postgres://localhost/test" }
+  let(:obsidian_vault_path) { "/vault" }
+  let(:openai_access_token) { "sk-test" }
+  let(:openai_model) { "gpt-4o-mini" }
+  let(:provider) { "openai" }
+
+  let(:config) do
+    instance_double(
+      Autodidact::Configuration,
+      to_h: {
+        database_url: database_url,
+        obsidian_vault_path: obsidian_vault_path,
+        openai_access_token: openai_access_token,
+        openai_model: openai_model,
+        provider: provider
+      }
+    )
+  end
+
   describe ".call" do
-    def build_config(data)
-      instance_double(Autodidact::Configuration, to_h: data)
+    context "with openai provider (default)" do
+      it "returns ready when vault path and access token are present" do
+        result = described_class.call(config: config)
+
+        expect(result).to be_ready
+        expect(result.missing_fields).to be_empty
+      end
+
+      context "when vault path is missing" do
+        let(:obsidian_vault_path) { nil }
+
+        it "returns not ready" do
+          result = described_class.call(config: config)
+
+          expect(result).not_to be_ready
+          expect(result.missing_fields).to include(:obsidian_vault_path)
+        end
+      end
+
+      context "when access token is missing" do
+        let(:openai_access_token) { nil }
+
+        it "returns not ready" do
+          result = described_class.call(config: config)
+
+          expect(result).not_to be_ready
+          expect(result.missing_fields).to include(:openai_access_token)
+        end
+      end
+
+      context "when both are missing" do
+        let(:obsidian_vault_path) { nil }
+        let(:openai_access_token) { nil }
+
+        it "returns not ready with both fields listed" do
+          result = described_class.call(config: config)
+
+          expect(result).not_to be_ready
+          expect(result.missing_fields).to contain_exactly(:obsidian_vault_path, :openai_access_token)
+        end
+      end
     end
 
-    it "returns ready when all required fields present" do
-      config = build_config(
-        database_url: "postgres://localhost/test",
-        obsidian_vault_path: "/vault",
-        openai_access_token: "sk-test"
-      )
+    context "with dev provider" do
+      let(:provider) { "dev" }
+      let(:openai_access_token) { nil }
 
-      result = described_class.call(config: config)
+      it "returns ready when only vault path is present" do
+        result = described_class.call(config: config)
 
-      expect(result).to be_ready
-      expect(result.missing_fields).to be_empty
+        expect(result).to be_ready
+        expect(result.missing_fields).to be_empty
+      end
+
+      context "when vault path is missing" do
+        let(:obsidian_vault_path) { nil }
+
+        it "returns not ready" do
+          result = described_class.call(config: config)
+
+          expect(result).not_to be_ready
+          expect(result.missing_fields).to contain_exactly(:obsidian_vault_path)
+        end
+      end
+
+      it "ignores access token requirement" do
+        result = described_class.call(config: config)
+
+        expect(result.missing_fields).not_to include(:openai_access_token)
+      end
     end
 
-    it "returns not ready with missing fields listed" do
-      result = described_class.call(config: build_config({}))
+    context "with unknown provider" do
+      let(:provider) { "unknown" }
+      let(:obsidian_vault_path) { nil }
+      let(:openai_access_token) { nil }
 
-      expect(result).not_to be_ready
-      expect(result.missing_fields).to contain_exactly(
-        :obsidian_vault_path, :openai_access_token
-      )
+      it "returns ready (no required fields)" do
+        result = described_class.call(config: config)
+
+        expect(result).to be_ready
+        expect(result.missing_fields).to be_empty
+      end
     end
 
-    it "treats blank strings as missing" do
-      config = build_config(
-        database_url: "  ",
-        obsidian_vault_path: "",
-        openai_access_token: nil
-      )
+    context "with blank string values" do
+      let(:obsidian_vault_path) { "   " }
+      let(:openai_access_token) { "" }
 
-      result = described_class.call(config: config)
+      it "treats blank strings as missing" do
+        result = described_class.call(config: config)
 
-      expect(result).not_to be_ready
-      expect(result.missing_fields).to contain_exactly(
-        :obsidian_vault_path, :openai_access_token
-      )
+        expect(result).not_to be_ready
+        expect(result.missing_fields).to contain_exactly(:obsidian_vault_path, :openai_access_token)
+      end
     end
 
-    it "ignores extra fields" do
-      config = build_config(
-        database_url: "postgres://localhost/test",
-        obsidian_vault_path: "/vault",
-        openai_access_token: "sk-test",
-        openai_model: "gpt-4o"
-      )
+    context "when provider is nil (falls back to default)" do
+      let(:provider) { nil }
 
-      result = described_class.call(config: config)
+      it "uses openai requirements" do
+        result = described_class.call(config: config)
 
-      expect(result).to be_ready
+        expect(result).to be_ready
+      end
+
+      context "and access token is missing" do
+        let(:openai_access_token) { nil }
+
+        it "requires access token" do
+          result = described_class.call(config: config)
+
+          expect(result).not_to be_ready
+          expect(result.missing_fields).to include(:openai_access_token)
+        end
+      end
     end
   end
 end

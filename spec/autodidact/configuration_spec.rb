@@ -52,6 +52,27 @@ RSpec.describe Autodidact::Configuration do
     end
   end
 
+  describe "#provider" do
+    it "defaults to openai" do
+      expect(config.provider).to eq("openai")
+    end
+
+    it "reads from config file" do
+      allow(Autodidact::Config::Store).to receive(:read_config).and_return(provider: "dev")
+
+      expect(config.provider).to eq("dev")
+    end
+
+    it "prefers ENV over config file" do
+      allow(Autodidact::Config::Store).to receive(:read_config).and_return(provider: "dev")
+
+      ClimateControl.modify(AUTODIDACT_PROVIDER: "openai") do
+        config = described_class.new
+        expect(config.provider).to eq("openai")
+      end
+    end
+  end
+
   describe "#obsidian_vault_path" do
     it "returns path from config file" do
       allow(Autodidact::Config::Store).to receive(:read_config).and_return(obsidian_vault_path: "/vault")
@@ -77,7 +98,7 @@ RSpec.describe Autodidact::Configuration do
   end
 
   describe "#ready?" do
-    it "returns true when all required fields present" do
+    it "returns true when all required fields present for openai" do
       allow(Autodidact::Config::Store).to receive(:read_config).and_return(
         database_url: "postgres://localhost/test",
         obsidian_vault_path: "/vault"
@@ -85,6 +106,17 @@ RSpec.describe Autodidact::Configuration do
       allow(Autodidact::Config::Store).to receive(:read_secrets).and_return(
         openai_access_token: "sk-test"
       )
+
+      expect(config.ready?).to be true
+    end
+
+    it "returns true for dev provider without access token" do
+      allow(Autodidact::Config::Store).to receive(:read_config).and_return(
+        database_url: "postgres://localhost/test",
+        obsidian_vault_path: "/vault",
+        provider: "dev"
+      )
+      allow(Autodidact::Config::Store).to receive(:read_secrets).and_return({})
 
       expect(config.ready?).to be true
     end
