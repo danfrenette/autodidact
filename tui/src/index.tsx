@@ -45,6 +45,8 @@ function App() {
         <FileInput
           onSubmit={handleFileSubmit}
           lastResult={state.lastResult}
+          submitting={state.status === "submitting"}
+          stage={state.status === "submitting" ? state.stage : null}
           error={state.status === "error" ? state.error : null}
         />
       );

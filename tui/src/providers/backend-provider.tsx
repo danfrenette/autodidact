@@ -14,7 +14,7 @@ type SetupState =
 
 type FileInputState =
   | { name: "file-input"; status: "idle"; lastResult: AnalysisResult | null; error: null }
-  | { name: "file-input"; status: "submitting"; lastResult: AnalysisResult | null; requestId: number; error: null }
+  | { name: "file-input"; status: "submitting"; lastResult: AnalysisResult | null; requestId: number; stage: string | null; error: null }
   | { name: "file-input"; status: "error"; lastResult: AnalysisResult | null; error: string };
 
 export type AppFlowState =
@@ -26,10 +26,13 @@ type Action =
   | { type: "setup-save" }
   | { type: "setup-save-failed"; message: string }
   | { type: "submit"; requestId: number }
+  | { type: "progress"; requestId: number; stage: string }
   | { type: "success"; requestId: number; result: AnalysisResult }
   | { type: "failure"; requestId: number; message: string };
 
-function isActiveRequest(state: AppFlowState, requestId: number): boolean {
+type SubmittingState = Extract<FileInputState, { status: "submitting" }>;
+
+function isActiveRequest(state: AppFlowState, requestId: number): state is SubmittingState {
   return (
     state.name === "file-input" &&
     state.status === "submitting" &&
@@ -75,8 +78,15 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
         status: "submitting",
         lastResult: lastResultFrom(state),
         requestId: action.requestId,
+        stage: null,
         error: null,
       };
+    case "progress":
+      if (!isActiveRequest(state, action.requestId)) {
+        return state;
+      }
+
+      return { ...state, stage: action.stage };
     case "success":
       if (!isActiveRequest(state, action.requestId)) {
         return state;
@@ -162,7 +172,14 @@ export function BackendProvider({ backend, initialState, children }: Props) {
   }, [backend]);
 
   useEffect(() => {
+    const unsubscribe = backend.subscribe((method, params) => {
+      if (method === "progress" && typeof params.stage === "string" && typeof params.request_id === "number") {
+        dispatch({ type: "progress", requestId: params.request_id, stage: params.stage });
+      }
+    });
+
     return () => {
+      unsubscribe();
       activeRequestId.current += 1;
       void backend.shutdown();
     };
