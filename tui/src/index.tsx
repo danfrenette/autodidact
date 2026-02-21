@@ -1,6 +1,6 @@
 import { createCliRenderer } from "@opentui/core";
 import { createRoot, useKeyboard, useRenderer } from "@opentui/react";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { Backend } from "./backend.ts";
 import { useBackend } from "./hooks/use-backend.ts";
 import { BackendProvider } from "./providers/backend-provider.tsx";
@@ -9,8 +9,9 @@ import { FileInput } from "./screens/file-input.tsx";
 import { Setup } from "./screens/setup.tsx";
 
 function App() {
-  const { state, analyzeSource, updateConfig, shutdown } = useBackend();
+  const { state, analyzeSource, cancelRequest, updateConfig, shutdown } = useBackend();
   const renderer = useRenderer();
+  const [inputValue, setInputValue] = useState("");
 
   const handleExit = useCallback(() => {
     renderer?.destroy();
@@ -19,6 +20,20 @@ function App() {
 
   useKeyboard((key) => {
     if (key.name === "escape" && state.name === "file-input") {
+      handleExit();
+    }
+
+    if (key.name === "c" && key.ctrl && state.name === "file-input") {
+      if (state.status === "submitting") {
+        cancelRequest();
+        return;
+      }
+
+      if (inputValue.length > 0) {
+        setInputValue("");
+        return;
+      }
+
       handleExit();
     }
   });
@@ -48,6 +63,8 @@ function App() {
           submitting={state.status === "submitting"}
           stage={state.status === "submitting" ? state.stage : null}
           error={state.status === "error" ? state.error : null}
+          value={inputValue}
+          onInput={setInputValue}
         />
       );
   }
@@ -68,7 +85,7 @@ const initialState: AppFlowState =
     };
 
 const renderer = await createCliRenderer({
-  exitOnCtrlC: true,
+  exitOnCtrlC: false,
 });
 createRoot(renderer).render(
   <BackendProvider backend={backend} initialState={initialState}>

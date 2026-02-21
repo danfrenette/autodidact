@@ -23,27 +23,26 @@ type PendingRequest = {
   reject: (error: Error) => void;
 };
 
+function spawnBackend() {
+  const binPath = resolve(import.meta.dir, "../../bin/autodidact");
+  return spawn(["ruby", binPath], {
+    stdin: "pipe",
+    stdout: "pipe",
+    stderr: "inherit",
+  });
+}
+
+type BackendProcess = ReturnType<typeof spawnBackend>;
+
 export class Backend {
-  private process;
+  private process: BackendProcess;
   private nextId = 1;
   private pending = new Map<number, PendingRequest>();
   private listeners = new Set<NotificationHandler>();
   private disposed = false;
 
   constructor() {
-    const binPath = resolve(import.meta.dir, "../../bin/autodidact");
-
-    this.process = spawn(["ruby", binPath], {
-      stdin: "pipe",
-      stdout: "pipe",
-      stderr: "inherit",
-    });
-
-    this.readResponses();
-
-    void this.process.exited.then(() => {
-      this.rejectAll(new Error("Backend process exited"));
-    });
+    this.process = this.spawnProcess();
   }
 
   async ping(): Promise<{ status: string; version: string }> {
@@ -83,6 +82,12 @@ export class Backend {
     };
   }
 
+  cancel() {
+    this.rejectAll(new Error("Request cancelled"));
+    this.process.kill();
+    this.process = this.spawnProcess();
+  }
+
   async shutdown() {
     if (this.disposed) return;
 
@@ -90,6 +95,20 @@ export class Backend {
     this.rejectAll(new Error("Backend was shut down"));
     this.process.stdin.end();
     await this.process.exited;
+  }
+
+  private spawnProcess(): BackendProcess {
+    const proc = spawnBackend();
+
+    void proc.exited.then(() => {
+      if (proc === this.process) {
+        this.rejectAll(new Error("Backend process exited"));
+      }
+    });
+
+    this.readResponses(proc);
+
+    return proc;
   }
 
   private send(
@@ -110,8 +129,8 @@ export class Backend {
     });
   }
 
-  private async readResponses() {
-    const reader = this.process.stdout.getReader();
+  private async readResponses(proc: BackendProcess) {
+    const reader = proc.stdout.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
 
@@ -129,7 +148,9 @@ export class Backend {
         if (line.length > 0) {
           try {
             const msg: RpcMessage = JSON.parse(line);
-            this.handleMessage(msg);
+            if (proc === this.process) {
+              this.handleMessage(msg);
+            }
           } catch {
             // skip malformed lines
           }

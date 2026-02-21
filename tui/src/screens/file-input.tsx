@@ -1,6 +1,6 @@
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import "opentui-spinner/react";
-import type { AnalysisResult } from "../requests/analyze-source/index.ts";
+import type { AnalysisResult } from "../requests/analyze-source";
 import type { BorderCharacters } from "@opentui/core";
 
 type Props = {
@@ -9,6 +9,8 @@ type Props = {
   submitting: boolean;
   stage: string | null;
   error: string | null;
+  value: string;
+  onInput: (value: string) => void;
 };
 
 const STAGE_LABELS: Record<string, string> = {
@@ -49,8 +51,7 @@ function accentColor(submitting: boolean, lastResult: AnalysisResult | null, err
   return "#fab283";
 }
 
-export function FileInput({ onSubmit, lastResult, submitting, stage, error: backendError }: Props) {
-  const [path, setPath] = useState("");
+export function FileInput({ onSubmit, lastResult, submitting, stage, error: backendError, value, onInput }: Props) {
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const error = validationError ?? backendError;
@@ -59,13 +60,21 @@ export function FileInput({ onSubmit, lastResult, submitting, stage, error: back
   const handleSubmit = useCallback(() => {
     if (submitting) return;
 
-    if (path.trim().length === 0) {
+    if (value.trim().length === 0) {
       setValidationError("Please enter a file path");
       return;
     }
     setValidationError(null);
-    onSubmit(path.trim());
-  }, [path, onSubmit, submitting]);
+    onSubmit(value.trim());
+  }, [onSubmit, submitting, value]);
+
+  const handleInput = useCallback((nextValue: string) => {
+    if (validationError !== null) {
+      setValidationError(null);
+    }
+
+    onInput(nextValue);
+  }, [onInput, validationError]);
 
   return (
     <box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1}>
@@ -92,8 +101,9 @@ export function FileInput({ onSubmit, lastResult, submitting, stage, error: back
         >
           {/* Input */}
           <input
+            value={value}
             placeholder={'Enter a file path… "/path/to/chapter.txt"'}
-            onInput={setPath}
+            onInput={handleInput}
             onSubmit={handleSubmit}
             focused={!submitting}
             textColor="#eeeeee"

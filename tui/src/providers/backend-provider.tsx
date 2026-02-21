@@ -28,7 +28,8 @@ type Action =
   | { type: "submit"; requestId: number }
   | { type: "progress"; requestId: number; stage: string }
   | { type: "success"; requestId: number; result: AnalysisResult }
-  | { type: "failure"; requestId: number; message: string };
+  | { type: "failure"; requestId: number; message: string }
+  | { type: "cancel" };
 
 type SubmittingState = Extract<FileInputState, { status: "submitting" }>;
 
@@ -99,12 +100,19 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
       }
 
       return { name: "file-input", status: "error", lastResult: lastResultFrom(state), error: action.message };
+    case "cancel":
+      if (state.name !== "file-input" || state.status !== "submitting") {
+        return state;
+      }
+
+      return { name: "file-input", status: "idle", lastResult: lastResultFrom(state), error: null };
   }
 }
 
 export type BackendContextValue = {
   state: AppFlowState;
   analyzeSource: (path: string) => Promise<void>;
+  cancelRequest: () => void;
   updateConfig: (params: ConfigParams) => Promise<void>;
   shutdown: () => Promise<void>;
 };
@@ -140,6 +148,11 @@ export function BackendProvider({ backend, initialState, children }: Props) {
     },
     [backend],
   );
+
+  const cancelRequest = useCallback(() => {
+    backend.cancel();
+    dispatch({ type: "cancel" });
+  }, [backend]);
 
   const analyzeSource = useCallback(
     async (path: string) => {
@@ -186,8 +199,8 @@ export function BackendProvider({ backend, initialState, children }: Props) {
   }, [backend]);
 
   const value = useMemo(
-    () => ({ state, analyzeSource, updateConfig, shutdown }),
-    [state, analyzeSource, updateConfig, shutdown],
+    () => ({ state, analyzeSource, cancelRequest, updateConfig, shutdown }),
+    [state, analyzeSource, cancelRequest, updateConfig, shutdown],
   );
 
   return <BackendContext.Provider value={value}>{children}</BackendContext.Provider>;
