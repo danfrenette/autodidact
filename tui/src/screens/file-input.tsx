@@ -1,7 +1,10 @@
 import { useCallback, useState } from "react";
+import { useKeyboard } from "@opentui/react";
 import "opentui-spinner/react";
 import type { AnalysisResult } from "../requests/analyze-source";
 import type { BorderCharacters } from "@opentui/core";
+import { useFilePathAutocomplete } from "../hooks/use-file-path-autocomplete";
+import { FilePathAutocomplete } from "./file-path-autocomplete";
 
 type Props = {
   onSubmit: (path: string) => void;
@@ -53,20 +56,32 @@ function accentColor(submitting: boolean, lastResult: AnalysisResult | null, err
 
 export function FileInput({ onSubmit, lastResult, submitting, stage, error: backendError, value, onInput }: Props) {
   const [validationError, setValidationError] = useState<string | null>(null);
+  const autocomplete = useFilePathAutocomplete({ value, onInput, submitting });
 
   const error = validationError ?? backendError;
   const highlight = accentColor(submitting, lastResult, error);
 
+  useKeyboard((key) => {
+    autocomplete.handleKey(key);
+  });
+
   const handleSubmit = useCallback(() => {
     if (submitting) return;
 
-    if (value.trim().length === 0) {
-      setValidationError("Please enter a file path");
+    const result = autocomplete.resolveSubmit();
+    if (result.type === "validation-error") {
+      setValidationError(result.message);
       return;
     }
+
+    if (result.type === "selected-suggestion") {
+      setValidationError(null);
+      return;
+    }
+
     setValidationError(null);
-    onSubmit(value.trim());
-  }, [onSubmit, submitting, value]);
+    onSubmit(result.path);
+  }, [autocomplete, onSubmit, submitting]);
 
   const handleInput = useCallback((nextValue: string) => {
     if (validationError !== null) {
@@ -121,6 +136,8 @@ export function FileInput({ onSubmit, lastResult, submitting, stage, error: back
         </box>
       </box>
 
+      <FilePathAutocomplete visible={autocomplete.visible} state={autocomplete.state} width={70} />
+
       {/* Bottom shadow */}
       <box
         width={70}
@@ -153,7 +170,7 @@ export function FileInput({ onSubmit, lastResult, submitting, stage, error: back
 
         {!submitting && (
           <text fg="#808080">
-            .txt .md .pdf
+            .txt .md .rst .pdf{autocomplete.query !== null ? "  |  ↑/↓ browse, Tab/Enter choose" : ""}
           </text>
         )}
       </box>
