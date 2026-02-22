@@ -1,10 +1,11 @@
-import { createContext, useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import type { ReactNode } from "react";
-import { Backend } from "../backend.ts";
-import type { AnalysisResult } from "../requests/analyze-source/index.ts";
-import type { SetupStatus } from "../requests/setup-status/index.ts";
-import type { ConfigParams } from "../requests/update-config/index.ts";
-import type { OnboardingPersistedState } from "../onboarding/types";
+import { createContext, useCallback, useEffect, useMemo, useReducer, useRef } from "react";
+
+import { Backend } from "@/backend.ts";
+import type { OnboardingPersistedState } from "@/onboarding/types";
+import type { AnalysisResult } from "@/requests/analyze-source/index.ts";
+import type { SetupStatus } from "@/requests/setup-status/index.ts";
+import type { ConfigParams } from "@/requests/update-config/index.ts";
 
 export type SetupPrefill = SetupStatus["prefill"];
 

@@ -1,4 +1,4 @@
-import type { OnboardingHint } from "../types";
+import type { OnboardingHint } from "@/onboarding/types";
 
 export type FileInputHint = OnboardingHint;
 

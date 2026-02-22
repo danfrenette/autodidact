@@ -1,4 +1,4 @@
-import type { FilePathAutocompleteState } from "../hooks/use-file-path-autocomplete";
+import type { FilePathAutocompleteState } from "@/hooks/use-file-path-autocomplete";
 
 type Props = {
   visible: boolean;

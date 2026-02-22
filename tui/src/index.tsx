@@ -1,13 +1,14 @@
 import { createCliRenderer } from "@opentui/core";
 import { createRoot, useKeyboard, useRenderer } from "@opentui/react";
 import { useCallback, useState } from "react";
-import { Backend } from "./backend.ts";
-import { useBackend } from "./hooks/use-backend.ts";
-import { OnboardingProvider, useOnboardingContext } from "./onboarding/context";
-import { BackendProvider } from "./providers/backend-provider.tsx";
-import type { AppFlowState } from "./providers/backend-provider.tsx";
-import { FileInput } from "./screens/file-input.tsx";
-import { Setup } from "./screens/setup.tsx";
+
+import { Backend } from "@/backend.ts";
+import { useBackend } from "@/hooks/use-backend.ts";
+import { OnboardingProvider, useOnboardingContext } from "@/onboarding/context";
+import type { AppFlowState } from "@/providers/backend-provider.tsx";
+import { BackendProvider } from "@/providers/backend-provider.tsx";
+import { FileInput } from "@/screens/file-input.tsx";
+import { Setup } from "@/screens/setup.tsx";
 
 function AppContent() {
   const { state, analyzeSource, cancelRequest, updateConfig, shutdown } = useBackend();

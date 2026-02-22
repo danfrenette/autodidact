@@ -1,5 +1,6 @@
-import type { ServiceResult } from "../../types/rpc.ts";
-import { readPayload } from "../read-payload.ts";
+import { readPayload } from "@/requests/read-payload.ts";
+import type { ServiceResult } from "@/types/rpc.ts";
+
 import type { SetupStatus } from "./types.ts";
 import { resultSchema } from "./types.ts";
 

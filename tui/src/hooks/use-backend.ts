@@ -1,5 +1,6 @@
 import { useContext } from "react";
-import { BackendContext } from "../providers/backend-provider.tsx";
+
+import { BackendContext } from "@/providers/backend-provider.tsx";
 
 export function useBackend() {
   const context = useContext(BackendContext);

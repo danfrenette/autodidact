@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useReducer } from "react";
 import type { KeyEvent } from "@opentui/core";
-import { searchSupportedFiles } from "../lib/file-search";
+import { useCallback, useEffect, useMemo, useReducer } from "react";
+
+import { searchSupportedFiles } from "@/lib/file-search";
 
 const MAX_SUGGESTIONS = 6;
 

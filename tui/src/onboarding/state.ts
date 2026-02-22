@@ -5,7 +5,7 @@ import type {
   OnboardingState,
   SessionDismissedState,
 } from "./types";
-import { onboardingHint, ONBOARDING_VERSION } from "./types";
+import { ONBOARDING_VERSION, onboardingHint } from "./types";
 
 export type OnboardingAction =
   | { type: "mark-milestone"; milestone: OnboardingMilestone }

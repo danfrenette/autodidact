@@ -1,7 +1,9 @@
-import { useCallback, useMemo, useState } from "react";
 import type { KeyEvent } from "@opentui/core";
-import { useOnboardingContext } from "../context";
-import { onboardingHint } from "../types";
+import { useCallback, useMemo, useState } from "react";
+
+import { useOnboardingContext } from "@/onboarding/context";
+import { onboardingHint } from "@/onboarding/types";
+
 import { buildHintUiContext } from "./hint-visibility";
 import { shouldShowAtHint } from "./should-show-at-hint";
 import { shouldShowCtrlCHint } from "./should-show-ctrlc-hint";

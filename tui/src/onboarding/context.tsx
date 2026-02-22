@@ -1,7 +1,8 @@
-import { createContext, useContext } from "react";
 import type { ReactNode } from "react";
-import { useOnboarding } from "./use-onboarding";
+import { createContext, useContext } from "react";
+
 import type { OnboardingPersistedState } from "./types";
+import { useOnboarding } from "./use-onboarding";
 
 type OnboardingContextValue = ReturnType<typeof useOnboarding>;
 

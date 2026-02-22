@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { onboardingHint, ONBOARDING_VERSION } from "./types";
+
+import { ONBOARDING_VERSION, onboardingHint } from "./types";
 
 export const onboardingMilestonesSchema = z.object({
   sawFirstRunHome: z.boolean(),

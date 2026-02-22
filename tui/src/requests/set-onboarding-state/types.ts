@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { onboardingPersistedStateSchema } from "../../onboarding/schema";
+
+import { onboardingPersistedStateSchema } from "@/onboarding/schema";
 
 export const paramsSchema = z.object({
   state: onboardingPersistedStateSchema,

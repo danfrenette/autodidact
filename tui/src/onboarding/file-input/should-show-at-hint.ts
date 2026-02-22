@@ -1,4 +1,5 @@
-import { onboardingHint } from "../types";
+import { onboardingHint } from "@/onboarding/types";
+
 import type { HintUiContext } from "./hint-visibility";
 import { shouldShowHint } from "./hint-visibility";
 

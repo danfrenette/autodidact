@@ -1,7 +1,8 @@
-import { useState, useCallback } from "react";
 import { useKeyboard } from "@opentui/react";
-import type { SetupPrefill } from "../providers/backend-provider.tsx";
-import type { ConfigParams } from "../requests/update-config/index.ts";
+import { useCallback,useState } from "react";
+
+import type { SetupPrefill } from "@/providers/backend-provider.tsx";
+import type { ConfigParams } from "@/requests/update-config/index.ts";
 
 type Props = {
   prefill: SetupPrefill;

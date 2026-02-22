@@ -1,25 +1,26 @@
 import { spawn } from "bun";
 import { resolve } from "path";
-import type {
-  RpcMessage,
-  NotificationHandler,
-  ServiceResult,
-} from "./types/rpc.ts";
-import * as pingRequest from "./requests/ping/index.ts";
-import * as detectSourceRequest from "./requests/detect-source/index.ts";
-import type { SourceInfo } from "./requests/detect-source/index.ts";
-import * as analyzeSourceRequest from "./requests/analyze-source/index.ts";
-import type { AnalysisResult } from "./requests/analyze-source/index.ts";
-import * as setupStatusRequest from "./requests/setup-status/index.ts";
-import type { SetupStatus } from "./requests/setup-status/index.ts";
-import * as updateConfigRequest from "./requests/update-config/index.ts";
+
+import type { OnboardingPersistedState } from "@/onboarding/types";
+import type { AnalysisResult } from "@/requests/analyze-source/index.ts";
+import * as analyzeSourceRequest from "@/requests/analyze-source/index.ts";
+import type { SourceInfo } from "@/requests/detect-source/index.ts";
+import * as detectSourceRequest from "@/requests/detect-source/index.ts";
+import * as getOnboardingStateRequest from "@/requests/get-onboarding-state/index.ts";
+import * as pingRequest from "@/requests/ping/index.ts";
+import * as setOnboardingStateRequest from "@/requests/set-onboarding-state/index.ts";
+import type { SetupStatus } from "@/requests/setup-status/index.ts";
+import * as setupStatusRequest from "@/requests/setup-status/index.ts";
 import type {
   ConfigParams,
   UpdateConfigResult,
-} from "./requests/update-config/index.ts";
-import * as getOnboardingStateRequest from "./requests/get-onboarding-state/index.ts";
-import * as setOnboardingStateRequest from "./requests/set-onboarding-state/index.ts";
-import type { OnboardingPersistedState } from "./onboarding/types";
+} from "@/requests/update-config/index.ts";
+import * as updateConfigRequest from "@/requests/update-config/index.ts";
+import type {
+  NotificationHandler,
+  RpcMessage,
+  ServiceResult,
+} from "@/types/rpc.ts";
 
 type PendingRequest = {
   resolve: (response: ServiceResult) => void;

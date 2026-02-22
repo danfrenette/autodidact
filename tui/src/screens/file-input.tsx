@@ -1,11 +1,14 @@
-import { useCallback, useState } from "react";
-import { useKeyboard } from "@opentui/react";
 import "opentui-spinner/react";
-import type { AnalysisResult } from "../requests/analyze-source";
+
 import type { BorderCharacters } from "@opentui/core";
-import { useFilePathAutocomplete } from "../hooks/use-file-path-autocomplete";
-import { useFileInputOnboarding } from "../onboarding/file-input/use-file-input-onboarding";
-import { onboardingHint } from "../onboarding/types";
+import { useKeyboard } from "@opentui/react";
+import { useCallback, useState } from "react";
+
+import { useFilePathAutocomplete } from "@/hooks/use-file-path-autocomplete";
+import { useFileInputOnboarding } from "@/onboarding/file-input/use-file-input-onboarding";
+import { onboardingHint } from "@/onboarding/types";
+import type { AnalysisResult } from "@/requests/analyze-source";
+
 import { FilePathAutocomplete } from "./file-path-autocomplete";
 import { OnboardingFirstRun } from "./onboarding-first-run";
 import { OnboardingNudge } from "./onboarding-nudge";

@@ -1,4 +1,4 @@
-import type { ServiceResult } from "../types/rpc.ts";
+import type { ServiceResult } from "@/types/rpc.ts";
 
 export function readPayload(result: ServiceResult): Record<string, unknown> {
   if (result.error) {

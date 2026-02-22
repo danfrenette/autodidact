@@ -1,6 +1,7 @@
-import type { ServiceResult } from "../../types/rpc.ts";
-import type { OnboardingPersistedState } from "../../onboarding/types";
-import { readPayload } from "../read-payload.ts";
+import type { OnboardingPersistedState } from "@/onboarding/types";
+import { readPayload } from "@/requests/read-payload.ts";
+import type { ServiceResult } from "@/types/rpc.ts";
+
 import { resultSchema } from "./types.ts";
 
 export const method = "set_onboarding_state";
