@@ -14,6 +14,7 @@ export default tseslint.config(
       "simple-import-sort": simpleImportSort,
     },
     rules: {
+      quotes: ["error", "double", { avoidEscape: true }],
       "simple-import-sort/imports": "error",
       "simple-import-sort/exports": "error",
       "no-restricted-imports": [
