@@ -17,6 +17,9 @@ import type {
   ConfigParams,
   UpdateConfigResult,
 } from "./requests/update-config/index.ts";
+import * as getOnboardingStateRequest from "./requests/get-onboarding-state/index.ts";
+import * as setOnboardingStateRequest from "./requests/set-onboarding-state/index.ts";
+import type { OnboardingPersistedState } from "./onboarding/types";
 
 type PendingRequest = {
   resolve: (response: ServiceResult) => void;
@@ -73,6 +76,20 @@ export class Backend {
     const result = await this.send(updateConfigRequest.method, wireParams);
     const wire = updateConfigRequest.decode(result);
     return updateConfigRequest.toUpdateConfigResult(wire);
+  }
+
+  async getOnboardingState(): Promise<OnboardingPersistedState | null> {
+    const result = await this.send(getOnboardingStateRequest.method, {});
+    const wire = getOnboardingStateRequest.decode(result);
+    return getOnboardingStateRequest.toOnboardingState(wire);
+  }
+
+  async setOnboardingState(state: OnboardingPersistedState): Promise<void> {
+    const result = await this.send(
+      setOnboardingStateRequest.method,
+      setOnboardingStateRequest.toWireParams(state),
+    );
+    setOnboardingStateRequest.decode(result);
   }
 
   subscribe(handler: NotificationHandler) {

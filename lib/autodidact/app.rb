@@ -21,6 +21,8 @@ module Autodidact
       router.register("ping", Commands::Ping)
       router.register("setup_status", Commands::SetupStatus)
       router.register("update_config", Commands::UpdateConfig)
+      router.register("get_onboarding_state", Commands::GetOnboardingState)
+      router.register("set_onboarding_state", Commands::SetOnboardingState)
       router.register("detect_source", Commands::DetectSource)
       router.register("analyze_source", Commands::AnalyzeSource)
     end

@@ -4,7 +4,11 @@ import "opentui-spinner/react";
 import type { AnalysisResult } from "../requests/analyze-source";
 import type { BorderCharacters } from "@opentui/core";
 import { useFilePathAutocomplete } from "../hooks/use-file-path-autocomplete";
+import { useFileInputOnboarding } from "../onboarding/file-input/use-file-input-onboarding";
+import { onboardingHint } from "../onboarding/types";
 import { FilePathAutocomplete } from "./file-path-autocomplete";
+import { OnboardingFirstRun } from "./onboarding-first-run";
+import { OnboardingNudge } from "./onboarding-nudge";
 
 type Props = {
   onSubmit: (path: string) => void;
@@ -57,12 +61,17 @@ function accentColor(submitting: boolean, lastResult: AnalysisResult | null, err
 export function FileInput({ onSubmit, lastResult, submitting, stage, error: backendError, value, onInput }: Props) {
   const [validationError, setValidationError] = useState<string | null>(null);
   const autocomplete = useFilePathAutocomplete({ value, onInput, submitting });
+  const onboarding = useFileInputOnboarding({ inputValue: value, submitting });
 
   const error = validationError ?? backendError;
   const highlight = accentColor(submitting, lastResult, error);
 
   useKeyboard((key) => {
-    autocomplete.handleKey(key);
+    if (autocomplete.handleKey(key)) {
+      return;
+    }
+
+    onboarding.handleKeyboard(key);
   });
 
   const handleSubmit = useCallback(() => {
@@ -76,23 +85,37 @@ export function FileInput({ onSubmit, lastResult, submitting, stage, error: back
 
     if (result.type === "selected-suggestion") {
       setValidationError(null);
+      onboarding.onAutocompleteSelected();
       return;
     }
 
     setValidationError(null);
+    onboarding.onSubmitSucceeded();
     onSubmit(result.path);
-  }, [autocomplete, onSubmit, submitting]);
+  }, [autocomplete, onboarding, onSubmit, submitting]);
 
   const handleInput = useCallback((nextValue: string) => {
     if (validationError !== null) {
       setValidationError(null);
     }
 
+    onboarding.handleInput(nextValue);
     onInput(nextValue);
-  }, [onInput, validationError]);
+  }, [onInput, onboarding, validationError]);
 
   return (
     <box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1}>
+      <OnboardingFirstRun visible={onboarding.showFirstRunPanel} width={70} />
+
+      {onboarding.showHelp && (
+        <box border borderColor="#484848" width={70} style={{ marginBottom: 1 }}>
+          <box flexDirection="column" paddingLeft={1} paddingRight={1} backgroundColor="#161616">
+            <text fg="#eeeeee">Help</text>
+            <text fg="#9a9a9a">Enter submit path  |  @ autocomplete files  |  ? help  |  Ctrl+C cancel/clear</text>
+          </box>
+        </box>
+      )}
+
       {/* Success banner */}
       {lastResult && !submitting && (
         <text fg="#98c379" style={{ marginBottom: 1 }}>
@@ -137,6 +160,24 @@ export function FileInput({ onSubmit, lastResult, submitting, stage, error: back
       </box>
 
       <FilePathAutocomplete visible={autocomplete.visible} state={autocomplete.state} width={70} />
+
+      <OnboardingNudge
+        visible={onboarding.showAtHint}
+        width={70}
+        title="File autocomplete"
+        message="Type @ to search .txt, .md, .rst, and .pdf files quickly."
+        onDismissSession={() => onboarding.dismissHintSession(onboardingHint.at)}
+        onDismissForever={() => onboarding.dismissHintForever(onboardingHint.at)}
+      />
+
+      <OnboardingNudge
+        visible={!onboarding.showAtHint && onboarding.showCtrlCHint}
+        width={70}
+        title="Interrupt behavior"
+        message="Ctrl+C cancels in-flight work, then clears input, then exits."
+        onDismissSession={() => onboarding.dismissHintSession(onboardingHint.ctrlC)}
+        onDismissForever={() => onboarding.dismissHintForever(onboardingHint.ctrlC)}
+      />
 
       {/* Bottom shadow */}
       <box

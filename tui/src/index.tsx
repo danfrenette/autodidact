@@ -3,13 +3,15 @@ import { createRoot, useKeyboard, useRenderer } from "@opentui/react";
 import { useCallback, useState } from "react";
 import { Backend } from "./backend.ts";
 import { useBackend } from "./hooks/use-backend.ts";
+import { OnboardingProvider, useOnboardingContext } from "./onboarding/context";
 import { BackendProvider } from "./providers/backend-provider.tsx";
 import type { AppFlowState } from "./providers/backend-provider.tsx";
 import { FileInput } from "./screens/file-input.tsx";
 import { Setup } from "./screens/setup.tsx";
 
-function App() {
+function AppContent() {
   const { state, analyzeSource, cancelRequest, updateConfig, shutdown } = useBackend();
+  const onboarding = useOnboardingContext();
   const renderer = useRenderer();
   const [inputValue, setInputValue] = useState("");
 
@@ -24,6 +26,8 @@ function App() {
     }
 
     if (key.name === "c" && key.ctrl && state.name === "file-input") {
+      onboarding.onCancelUsed();
+
       if (state.status === "submitting") {
         cancelRequest();
         return;
@@ -70,8 +74,19 @@ function App() {
   }
 }
 
+function App() {
+  const { onboardingState, setOnboardingState } = useBackend();
+
+  return (
+    <OnboardingProvider initialState={onboardingState} saveState={setOnboardingState}>
+      <AppContent />
+    </OnboardingProvider>
+  );
+}
+
 const backend = new Backend();
 const status = await backend.setupStatus();
+const onboardingState = await backend.getOnboardingState().catch(() => null);
 
 const initialState: AppFlowState =
   status.status === "ready"
@@ -88,7 +103,7 @@ const renderer = await createCliRenderer({
   exitOnCtrlC: false,
 });
 createRoot(renderer).render(
-  <BackendProvider backend={backend} initialState={initialState}>
+  <BackendProvider backend={backend} initialState={initialState} initialOnboardingState={onboardingState}>
     <App />
   </BackendProvider>,
 );

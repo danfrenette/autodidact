@@ -4,6 +4,7 @@ import { Backend } from "../backend.ts";
 import type { AnalysisResult } from "../requests/analyze-source/index.ts";
 import type { SetupStatus } from "../requests/setup-status/index.ts";
 import type { ConfigParams } from "../requests/update-config/index.ts";
+import type { OnboardingPersistedState } from "../onboarding/types";
 
 export type SetupPrefill = SetupStatus["prefill"];
 
@@ -111,8 +112,10 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
 
 export type BackendContextValue = {
   state: AppFlowState;
+  onboardingState: OnboardingPersistedState | null;
   analyzeSource: (path: string) => Promise<void>;
   cancelRequest: () => void;
+  setOnboardingState: (state: OnboardingPersistedState) => Promise<void>;
   updateConfig: (params: ConfigParams) => Promise<void>;
   shutdown: () => Promise<void>;
 };
@@ -122,10 +125,11 @@ export const BackendContext = createContext<BackendContextValue | null>(null);
 type Props = {
   backend: Backend;
   initialState: AppFlowState;
+  initialOnboardingState: OnboardingPersistedState | null;
   children: ReactNode;
 };
 
-export function BackendProvider({ backend, initialState, children }: Props) {
+export function BackendProvider({ backend, initialState, initialOnboardingState, children }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const activeRequestId = useRef(0);
 
@@ -184,6 +188,10 @@ export function BackendProvider({ backend, initialState, children }: Props) {
     await backend.shutdown();
   }, [backend]);
 
+  const setOnboardingState = useCallback(async (onboardingState: OnboardingPersistedState) => {
+    await backend.setOnboardingState(onboardingState);
+  }, [backend]);
+
   useEffect(() => {
     const unsubscribe = backend.subscribe((method, params) => {
       if (method === "progress" && typeof params.stage === "string" && typeof params.request_id === "number") {
@@ -199,8 +207,16 @@ export function BackendProvider({ backend, initialState, children }: Props) {
   }, [backend]);
 
   const value = useMemo(
-    () => ({ state, analyzeSource, cancelRequest, updateConfig, shutdown }),
-    [state, analyzeSource, cancelRequest, updateConfig, shutdown],
+    () => ({
+      state,
+      onboardingState: initialOnboardingState,
+      analyzeSource,
+      cancelRequest,
+      setOnboardingState,
+      updateConfig,
+      shutdown,
+    }),
+    [state, initialOnboardingState, analyzeSource, cancelRequest, setOnboardingState, updateConfig, shutdown],
   );
 
   return <BackendContext.Provider value={value}>{children}</BackendContext.Provider>;

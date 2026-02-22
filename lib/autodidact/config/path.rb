@@ -16,6 +16,10 @@ module Autodidact
         config_dir.join("secrets.yml")
       end
 
+      def self.onboarding_file
+        config_dir.join("onboarding.yml")
+      end
+
       def self.ensure_directory
         FileUtils.mkdir_p(config_dir)
       end
