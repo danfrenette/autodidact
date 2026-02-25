@@ -31,13 +31,13 @@ RSpec.describe Autodidact::Config::Store do
 
   describe ".write_secrets / .read_secrets" do
     it "round-trips secrets data through YAML" do
-      described_class.write_secrets(openai_access_token: "sk-test")
+      described_class.write_secrets(access_token: "sk-test")
 
-      expect(described_class.read_secrets).to eq(openai_access_token: "sk-test")
+      expect(described_class.read_secrets).to eq(access_token: "sk-test")
     end
 
     it "sets 0600 permissions on secrets file" do
-      described_class.write_secrets(openai_access_token: "sk-test")
+      described_class.write_secrets(access_token: "sk-test")
 
       mode = File.stat(Autodidact::Config::Path.secrets_file).mode & 0o777
       expect(mode).to eq(0o600)

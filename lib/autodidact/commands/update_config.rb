@@ -3,8 +3,8 @@
 module Autodidact
   module Commands
     class UpdateConfig < ApplicationCommand
-      CONFIG_KEYS = %i[database_url obsidian_vault_path openai_model].freeze
-      SECRET_KEYS = %i[openai_access_token].freeze
+      CONFIG_KEYS = %i[database_url provider obsidian_vault_path model].freeze
+      SECRET_KEYS = %i[access_token].freeze
 
       def call(params:, notify:)
         Config::Store.write_config(config_payload(params))

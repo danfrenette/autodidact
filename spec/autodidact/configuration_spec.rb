@@ -10,44 +10,44 @@ RSpec.describe Autodidact::Configuration do
 
   subject(:config) { described_class.new }
 
-  describe "#openai_access_token" do
+  describe "#access_token" do
     it "returns token from secrets file" do
-      allow(Autodidact::Config::Store).to receive(:read_secrets).and_return(openai_access_token: "sk-from-file")
+      allow(Autodidact::Config::Store).to receive(:read_secrets).and_return(access_token: "sk-from-file")
 
-      expect(config.openai_access_token).to eq("sk-from-file")
+      expect(config.access_token).to eq("sk-from-file")
     end
 
     it "prefers ENV over secrets file" do
-      allow(Autodidact::Config::Store).to receive(:read_secrets).and_return(openai_access_token: "sk-from-file")
+      allow(Autodidact::Config::Store).to receive(:read_secrets).and_return(access_token: "sk-from-file")
 
-      ClimateControl.modify(OPENAI_ACCESS_TOKEN: "sk-from-env") do
+      ClimateControl.modify(ACCESS_TOKEN: "sk-from-env") do
         config = described_class.new
-        expect(config.openai_access_token).to eq("sk-from-env")
+        expect(config.access_token).to eq("sk-from-env")
       end
     end
 
     it "returns nil when missing everywhere" do
-      expect(config.openai_access_token).to be_nil
+      expect(config.access_token).to be_nil
     end
   end
 
-  describe "#openai_model" do
+  describe "#model" do
     it "defaults to gpt-4o-mini" do
-      expect(config.openai_model).to eq("gpt-4o-mini")
+      expect(config.model).to eq("gpt-4o-mini")
     end
 
     it "reads from config file" do
-      allow(Autodidact::Config::Store).to receive(:read_config).and_return(openai_model: "gpt-4o")
+      allow(Autodidact::Config::Store).to receive(:read_config).and_return(model: "gpt-4o")
 
-      expect(config.openai_model).to eq("gpt-4o")
+      expect(config.model).to eq("gpt-4o")
     end
 
     it "prefers ENV over config file" do
-      allow(Autodidact::Config::Store).to receive(:read_config).and_return(openai_model: "gpt-4o")
+      allow(Autodidact::Config::Store).to receive(:read_config).and_return(model: "gpt-4o")
 
-      ClimateControl.modify(OPENAI_MODEL: "gpt-4-turbo") do
+      ClimateControl.modify(MODEL: "gpt-4-turbo") do
         config = described_class.new
-        expect(config.openai_model).to eq("gpt-4-turbo")
+        expect(config.model).to eq("gpt-4-turbo")
       end
     end
   end
@@ -104,7 +104,7 @@ RSpec.describe Autodidact::Configuration do
         obsidian_vault_path: "/vault"
       )
       allow(Autodidact::Config::Store).to receive(:read_secrets).and_return(
-        openai_access_token: "sk-test"
+        access_token: "sk-test"
       )
 
       expect(config.ready?).to be true
@@ -128,26 +128,26 @@ RSpec.describe Autodidact::Configuration do
 
   describe "precedence" do
     it "ENV > secrets > config > defaults" do
-      allow(Autodidact::Config::Store).to receive(:read_config).and_return(openai_model: "from-config")
-      allow(Autodidact::Config::Store).to receive(:read_secrets).and_return(openai_model: "from-secrets")
+      allow(Autodidact::Config::Store).to receive(:read_config).and_return(model: "from-config")
+      allow(Autodidact::Config::Store).to receive(:read_secrets).and_return(model: "from-secrets")
 
-      ClimateControl.modify(OPENAI_MODEL: "from-env") do
+      ClimateControl.modify(MODEL: "from-env") do
         config = described_class.new
-        expect(config.openai_model).to eq("from-env")
+        expect(config.model).to eq("from-env")
       end
     end
 
     it "secrets override config" do
-      allow(Autodidact::Config::Store).to receive(:read_config).and_return(openai_model: "from-config")
-      allow(Autodidact::Config::Store).to receive(:read_secrets).and_return(openai_model: "from-secrets")
+      allow(Autodidact::Config::Store).to receive(:read_config).and_return(model: "from-config")
+      allow(Autodidact::Config::Store).to receive(:read_secrets).and_return(model: "from-secrets")
 
-      expect(config.openai_model).to eq("from-secrets")
+      expect(config.model).to eq("from-secrets")
     end
 
     it "config overrides defaults" do
-      allow(Autodidact::Config::Store).to receive(:read_config).and_return(openai_model: "from-config")
+      allow(Autodidact::Config::Store).to receive(:read_config).and_return(model: "from-config")
 
-      expect(config.openai_model).to eq("from-config")
+      expect(config.model).to eq("from-config")
     end
   end
 end

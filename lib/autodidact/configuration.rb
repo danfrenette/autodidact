@@ -4,20 +4,20 @@ module Autodidact
   class Configuration
     DEFAULTS = {
       database_url: "postgres://localhost:5432/autodidact",
-      openai_model: "gpt-4o-mini",
+      model: "gpt-4o-mini",
       provider: "openai"
     }.freeze
 
     ENV_KEYS = {
       database_url: "DATABASE_URL",
       obsidian_vault_path: "OBSIDIAN_VAULT_PATH",
-      openai_access_token: "OPENAI_ACCESS_TOKEN",
-      openai_model: "OPENAI_MODEL",
+      access_token: "ACCESS_TOKEN",
+      model: "MODEL",
       provider: "AUTODIDACT_PROVIDER"
     }.freeze
 
     attr_reader :database_url, :obsidian_vault_path,
-      :openai_access_token, :openai_model, :provider
+      :access_token, :model, :provider
 
     def initialize
       data = DEFAULTS
@@ -27,8 +27,8 @@ module Autodidact
 
       @database_url = data[:database_url]
       @obsidian_vault_path = data[:obsidian_vault_path]
-      @openai_access_token = data[:openai_access_token]
-      @openai_model = data[:openai_model]
+      @access_token = data[:access_token]
+      @model = data[:model]
       @provider = data[:provider]
     end
 

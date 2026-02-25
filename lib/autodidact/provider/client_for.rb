@@ -20,8 +20,8 @@ module Autodidact
 
       def call
         client_class.new(
-          access_token: config.openai_access_token,
-          model: config.openai_model
+          access_token: config.access_token,
+          model: config.model
         )
       end
 

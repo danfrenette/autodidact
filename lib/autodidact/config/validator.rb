@@ -3,16 +3,13 @@
 module Autodidact
   module Config
     class Validator
+      DEV = "dev"
+
       Status = Data.define(:missing_fields) do
         def ready?
           missing_fields.empty?
         end
       end
-
-      PROVIDER_REQUIREMENTS = {
-        "openai" => %i[obsidian_vault_path openai_access_token],
-        "dev" => %i[obsidian_vault_path]
-      }.freeze
 
       def self.call(config:)
         new(config: config).call
@@ -32,8 +29,9 @@ module Autodidact
       attr_reader :config_data
 
       def required_fields
-        provider = config_data[:provider] || Configuration::DEFAULTS[:provider]
-        PROVIDER_REQUIREMENTS.fetch(provider) { [] }
+        return %i[obsidian_vault_path] if config_data[:provider] == DEV
+
+        %i[obsidian_vault_path access_token]
       end
 
       def blank?(value)

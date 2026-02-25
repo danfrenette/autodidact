@@ -11,8 +11,8 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
   before do
     allow(Autodidact.config).to receive(:ready?).and_return(true)
     allow(Autodidact.config).to receive(:obsidian_vault_path).and_return(vault_dir)
-    allow(Autodidact.config).to receive(:openai_access_token).and_return("sk-test")
-    allow(Autodidact.config).to receive(:openai_model).and_return("gpt-4o-mini")
+    allow(Autodidact.config).to receive(:access_token).and_return("sk-test")
+    allow(Autodidact.config).to receive(:model).and_return("gpt-4o-mini")
   end
 
   let(:vault_dir) { Dir.mktmpdir }

@@ -7,8 +7,8 @@ RSpec.describe Autodidact::Provider::ClientFor do
     instance_double(
       Autodidact::Configuration,
       provider: provider,
-      openai_access_token: "sk-test",
-      openai_model: "gpt-4o-mini"
+      access_token: "sk-test",
+      model: "gpt-4o-mini"
     )
   end
 

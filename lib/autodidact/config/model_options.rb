@@ -12,22 +12,19 @@ module Autodidact
       OPEN_TIMEOUT_SECONDS = 2
       REQUEST_TIMEOUT_SECONDS = 2
 
-      FALLBACK_MODELS = [
-        "gpt-4.1",
-        "gpt-4.1-mini",
-        "gpt-4o-mini",
-        "o4-mini"
-      ].freeze
-
-      def self.call
-        new.call
+      def self.call(provider_id:)
+        new.call(provider_id: provider_id)
       end
 
-      def call
-        cached_models || refreshed_models || FALLBACK_MODELS
+      def call(provider_id:)
+        models_by_provider[provider_id.to_s] || []
       end
 
       private
+
+      def models_by_provider
+        @models_by_provider ||= cached_models || refreshed_models || {}
+      end
 
       def cached_models
         return nil unless fresh_cache?
@@ -70,14 +67,19 @@ module Autodidact
 
       def parse_remote(payload)
         parsed = JSON.parse(payload)
-        models = parsed.fetch("openai", {}).fetch("models", {}).values
-        parse_models(models)
+        parsed.each_with_object({}) do |(provider_id, provider_data), out|
+          models = provider_data.fetch("models", {}).values
+          out[provider_id] = parse_models(models)
+        end
       rescue JSON::ParserError, NoMethodError => e
         raise LoadOptionsError, e.message
       end
 
       def parse_cache(payload)
-        parse_models(JSON.parse(payload).fetch("models", []))
+        parsed = JSON.parse(payload)
+        parsed.each_with_object({}) do |(provider_id, models), out|
+          out[provider_id] = parse_models(models)
+        end
       rescue JSON::ParserError, NoMethodError => e
         raise LoadOptionsError, e.message
       end
@@ -102,13 +104,15 @@ module Autodidact
         File.file?(cache_path) && (Time.now - File.mtime(cache_path)) < CACHE_TTL_SECONDS
       end
 
-      def write_cache(models)
-        return if models.empty?
+      def write_cache(models_by_provider)
+        return if models_by_provider.empty?
 
         Path.ensure_directory
 
-        cache_models = models.map { |model| {"id" => model, "family" => model_family(model)} }
-        File.write(cache_path, JSON.dump({"models" => cache_models}))
+        cache_data = models_by_provider.transform_values do |models|
+          models.map { |model| {"id" => model, "family" => model_family(model)} }
+        end
+        File.write(cache_path, JSON.dump(cache_data))
       end
 
       def model_family(model)
