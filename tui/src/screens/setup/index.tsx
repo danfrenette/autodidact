@@ -1,13 +1,14 @@
 import { useKeyboard } from "@opentui/react";
 
-import { useSetupCombobox } from "@/hooks/use-setup-combobox";
-import { useSetupDraft } from "@/hooks/use-setup-draft";
-import { useSetupSubmit } from "@/hooks/use-setup-submit";
 import type { SetupPrefill } from "@/providers/backend-provider.tsx";
 import type { ConfigParams } from "@/requests/update-config/index.ts";
-import { setupFields } from "@/screens/setup-domain";
-import { SetupComboboxField, SetupTextInputField } from "@/screens/setup-fields";
-import { SetupStatusFooter } from "@/screens/setup-status-footer";
+
+import { setupFields } from "./domain";
+import { SetupComboboxField, SetupTextInputField } from "./fields";
+import { SetupStatusFooter } from "./status-footer";
+import { useCombobox } from "./use-combobox";
+import { useDraft } from "./use-draft";
+import { useSubmit } from "./use-submit";
 
 type Props = {
   prefill: SetupPrefill;
@@ -20,8 +21,8 @@ type Props = {
 };
 
 export function Setup({ prefill, providerOptions, providerModelOptions, saving, error: backendError, onSubmit, onExit }: Props) {
-  const draft = useSetupDraft({ prefill, providerOptions, providerModelOptions });
-  const submission = useSetupSubmit({
+  const draft = useDraft({ prefill, providerOptions, providerModelOptions });
+  const submission = useSubmit({
     obsidianVaultPath: draft.obsidianVaultPath,
     provider: draft.provider,
     accessToken: draft.accessToken,
@@ -34,7 +35,7 @@ export function Setup({ prefill, providerOptions, providerModelOptions, saving, 
   const providerFocused = focusedField === "provider";
   const modelFocused = focusedField === "modelId";
 
-  const providerCombobox = useSetupCombobox({
+  const providerCombobox = useCombobox({
     options: draft.providerValues,
     selectedValue: draft.provider,
     focused: providerFocused,
@@ -45,7 +46,7 @@ export function Setup({ prefill, providerOptions, providerModelOptions, saving, 
     },
   });
 
-  const modelCombobox = useSetupCombobox({
+  const modelCombobox = useCombobox({
     options: draft.modelValues,
     selectedValue: draft.modelId,
     focused: modelFocused,

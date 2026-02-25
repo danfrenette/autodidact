@@ -1,14 +1,10 @@
 import { useMemo, useState } from "react";
 
 import type { SetupPrefill } from "@/providers/backend-provider.tsx";
-import { type SetupField, setupFields } from "@/screens/setup-domain";
-import {
-  resolveInitialModel,
-} from "@/screens/setup-models";
-import {
-  resolveAvailableProviders,
-  resolveInitialProvider,
-} from "@/screens/setup-providers";
+
+import { type SetupField, setupFields } from "./domain";
+import { resolveInitialModel } from "./models";
+import { resolveAvailableProviders, resolveInitialProvider } from "./providers";
 
 type Params = {
   prefill: SetupPrefill;
@@ -16,7 +12,7 @@ type Params = {
   providerModelOptions: Record<string, string[]>;
 };
 
-export function useSetupDraft({ prefill, providerOptions, providerModelOptions }: Params) {
+export function useDraft({ prefill, providerOptions, providerModelOptions }: Params) {
   const availableProviders = useMemo(() => resolveAvailableProviders(providerOptions), [providerOptions]);
   const modelsForProvider = (nextProvider: string) => {
     return providerModelOptions[nextProvider] ?? [];

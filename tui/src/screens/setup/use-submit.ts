@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
 
 import type { ConfigParams } from "@/requests/update-config/index.ts";
-import { validateSetupDraft } from "@/screens/setup-domain";
+
+import { validateSetupDraft } from "./domain";
 
 type Params = {
   obsidianVaultPath: string;
@@ -12,7 +13,7 @@ type Params = {
   onSubmit: (params: ConfigParams) => void;
 };
 
-export function useSetupSubmit({
+export function useSubmit({
   obsidianVaultPath,
   provider,
   accessToken,

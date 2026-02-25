@@ -8,7 +8,7 @@ import { OnboardingProvider, useOnboardingContext } from "@/onboarding/context";
 import type { AppFlowState } from "@/providers/backend-provider.tsx";
 import { BackendProvider } from "@/providers/backend-provider.tsx";
 import { FileInput } from "@/screens/file-input.tsx";
-import { Setup } from "@/screens/setup.tsx";
+import { Setup } from "@/screens/setup/index.tsx";
 
 function AppContent() {
   const { state, analyzeSource, cancelRequest, updateConfig, shutdown } = useBackend();

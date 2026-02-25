@@ -10,7 +10,7 @@ type Params = {
   onCommit: (value: string, reason: CommitReason) => void;
 };
 
-export function useSetupCombobox({ options, selectedValue, focused, onCommit }: Params) {
+export function useCombobox({ options, selectedValue, focused, onCommit }: Params) {
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
