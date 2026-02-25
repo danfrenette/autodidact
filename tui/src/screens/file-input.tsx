@@ -19,6 +19,8 @@ type Props = {
   submitting: boolean;
   stage: string | null;
   error: string | null;
+  provider: string;
+  model: string;
   value: string;
   onInput: (value: string) => void;
 };
@@ -61,7 +63,7 @@ function accentColor(submitting: boolean, lastResult: AnalysisResult | null, err
   return "#fab283";
 }
 
-export function FileInput({ onSubmit, lastResult, submitting, stage, error: backendError, value, onInput }: Props) {
+export function FileInput({ onSubmit, lastResult, submitting, stage, error: backendError, provider, model, value, onInput }: Props) {
   const [validationError, setValidationError] = useState<string | null>(null);
   const autocomplete = useFilePathAutocomplete({ value, onInput, submitting });
   const onboarding = useFileInputOnboarding({ inputValue: value, submitting });
@@ -156,8 +158,8 @@ export function FileInput({ onSubmit, lastResult, submitting, stage, error: back
           {/* Status line: app name + model + provider */}
           <box flexDirection="row" flexShrink={0} paddingTop={1} gap={1}>
             <text fg={highlight}>autodidact</text>
-            <text fg="#eeeeee">gpt-4o-mini</text>
-            <text fg="#808080">openai</text>
+            <text fg="#eeeeee">{model}</text>
+            <text fg="#808080">{provider}</text>
           </box>
         </box>
       </box>

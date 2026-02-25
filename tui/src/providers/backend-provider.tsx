@@ -10,23 +10,44 @@ import type { ConfigParams } from "@/requests/update-config/index.ts";
 export type SetupPrefill = SetupStatus["prefill"];
 
 type SetupState =
-  | { name: "setup-form"; prefill: SetupPrefill; missingFields: string[]; modelOptions: string[]; error: null }
-  | { name: "setup-saving"; prefill: SetupPrefill; missingFields: string[]; modelOptions: string[]; error: null }
-  | { name: "setup-error"; prefill: SetupPrefill; missingFields: string[]; modelOptions: string[]; error: string };
+  | {
+    name: "setup-form";
+    prefill: SetupPrefill;
+    missingFields: string[];
+    providerOptions: string[];
+    providerModelOptions: Record<string, string[]>;
+    error: null;
+  }
+  | {
+    name: "setup-saving";
+    prefill: SetupPrefill;
+    missingFields: string[];
+    providerOptions: string[];
+    providerModelOptions: Record<string, string[]>;
+    error: null;
+  }
+  | {
+    name: "setup-error";
+    prefill: SetupPrefill;
+    missingFields: string[];
+    providerOptions: string[];
+    providerModelOptions: Record<string, string[]>;
+    error: string;
+  };
 
 type FileInputState =
-  | { name: "file-input"; status: "idle"; lastResult: AnalysisResult | null; error: null }
-  | { name: "file-input"; status: "submitting"; lastResult: AnalysisResult | null; requestId: number; stage: string | null; error: null }
-  | { name: "file-input"; status: "error"; lastResult: AnalysisResult | null; error: string };
+  | { name: "file-input"; status: "idle"; lastResult: AnalysisResult | null; error: null; provider: string; model: string }
+  | { name: "file-input"; status: "submitting"; lastResult: AnalysisResult | null; requestId: number; stage: string | null; error: null; provider: string; model: string }
+  | { name: "file-input"; status: "error"; lastResult: AnalysisResult | null; error: string; provider: string; model: string };
 
 export type AppFlowState =
   | SetupState
   | FileInputState;
 
 type Action =
-  | { type: "setup-ready" }
+  | { type: "setup-ready"; provider: string; model: string }
   | { type: "setup-save" }
-  | { type: "setup-save-failed"; message: string }
+  | { type: "setup-save-failed"; message: string; missingFields?: string[] }
   | { type: "submit"; requestId: number }
   | { type: "progress"; requestId: number; stage: string }
   | { type: "success"; requestId: number; result: AnalysisResult }
@@ -50,7 +71,7 @@ function lastResultFrom(state: AppFlowState): AnalysisResult | null {
 function reducer(state: AppFlowState, action: Action): AppFlowState {
   switch (action.type) {
     case "setup-ready":
-      return { name: "file-input", status: "idle", lastResult: null, error: null };
+      return { name: "file-input", status: "idle", lastResult: null, error: null, provider: action.provider, model: action.model };
     case "setup-save":
       if (state.name !== "setup-form" && state.name !== "setup-error") {
         return state;
@@ -60,7 +81,8 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
         name: "setup-saving",
         prefill: state.prefill,
         missingFields: state.missingFields,
-        modelOptions: state.modelOptions,
+        providerOptions: state.providerOptions,
+        providerModelOptions: state.providerModelOptions,
         error: null,
       };
     case "setup-save-failed":
@@ -71,8 +93,9 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
       return {
         name: "setup-error",
         prefill: state.prefill,
-        missingFields: state.missingFields,
-        modelOptions: state.modelOptions,
+        missingFields: action.missingFields ?? state.missingFields,
+        providerOptions: state.providerOptions,
+        providerModelOptions: state.providerModelOptions,
         error: action.message,
       };
     case "submit":
@@ -83,6 +106,8 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
         requestId: action.requestId,
         stage: null,
         error: null,
+        provider: state.name === "file-input" ? state.provider : state.prefill.provider,
+        model: state.name === "file-input" ? state.model : state.prefill.modelId,
       };
     case "progress":
       if (!isActiveRequest(state, action.requestId)) {
@@ -95,19 +120,19 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
         return state;
       }
 
-      return { name: "file-input", status: "idle", lastResult: action.result, error: null };
+      return { name: "file-input", status: "idle", lastResult: action.result, error: null, provider: state.provider, model: state.model };
     case "failure":
       if (!isActiveRequest(state, action.requestId)) {
         return state;
       }
 
-      return { name: "file-input", status: "error", lastResult: lastResultFrom(state), error: action.message };
+      return { name: "file-input", status: "error", lastResult: lastResultFrom(state), error: action.message, provider: state.provider, model: state.model };
     case "cancel":
       if (state.name !== "file-input" || state.status !== "submitting") {
         return state;
       }
 
-      return { name: "file-input", status: "idle", lastResult: lastResultFrom(state), error: null };
+      return { name: "file-input", status: "idle", lastResult: lastResultFrom(state), error: null, provider: state.provider, model: state.model };
   }
 }
 
@@ -142,9 +167,13 @@ export function BackendProvider({ backend, initialState, initialOnboardingState,
         const result = await backend.updateConfig(params);
 
         if (result.status === "ready") {
-          dispatch({ type: "setup-ready" });
+          dispatch({ type: "setup-ready", provider: params.provider, model: params.modelId ?? "" });
         } else {
-          dispatch({ type: "setup-save-failed", message: "Configuration is still incomplete" });
+          dispatch({
+            type: "setup-save-failed",
+            message: "Configuration is still incomplete",
+            missingFields: result.missingFields,
+          });
         }
       } catch (error) {
         const message = error instanceof Error ? error.message : "Failed to save configuration";

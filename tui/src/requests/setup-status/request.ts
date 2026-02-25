@@ -17,9 +17,11 @@ export function toSetupStatus(wire: ReturnType<typeof decode>): SetupStatus {
     prefill: {
       databaseUrl: wire.prefill.database_url,
       obsidianVaultPath: wire.prefill.obsidian_vault_path,
-      openaiAccessToken: wire.prefill.openai_access_token,
-      openaiModel: wire.prefill.openai_model,
+      accessToken: wire.prefill.access_token,
+      modelId: wire.prefill.model,
+      provider: wire.prefill.provider,
     },
-    modelOptions: wire.model_options,
+    providerOptions: wire.provider_options,
+    providerModelOptions: wire.provider_model_options,
   };
 }

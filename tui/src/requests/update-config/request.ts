@@ -12,9 +12,10 @@ export function decode(result: ServiceResult) {
 
 export function toWireParams(params: ConfigParams): Record<string, unknown> {
   return {
+    provider: params.provider,
     obsidian_vault_path: params.obsidianVaultPath,
-    openai_access_token: params.openaiAccessToken,
-    openai_model: params.openaiModel,
+    access_token: params.accessToken,
+    model: params.modelId,
   };
 }
 

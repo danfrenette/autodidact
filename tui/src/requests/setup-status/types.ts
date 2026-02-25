@@ -5,15 +5,17 @@ export const paramsSchema = z.object({});
 export const prefillSchema = z.object({
   database_url: z.string().nullable(),
   obsidian_vault_path: z.string().nullable(),
-  openai_access_token: z.string().nullable(),
-  openai_model: z.string(),
+  access_token: z.string().nullable(),
+  model: z.string(),
+  provider: z.string(),
 });
 
 export const resultSchema = z.object({
   status: z.union([z.literal("ready"), z.literal("needs_setup")]),
   missing_fields: z.array(z.string()),
   prefill: prefillSchema,
-  model_options: z.array(z.string()),
+  provider_options: z.array(z.string()),
+  provider_model_options: z.record(z.array(z.string())),
 });
 
 export type Params = z.infer<typeof paramsSchema>;
@@ -26,8 +28,10 @@ export type SetupStatus = {
   prefill: {
     databaseUrl: string | null;
     obsidianVaultPath: string | null;
-    openaiAccessToken: string | null;
-    openaiModel: string;
+    accessToken: string | null;
+    modelId: string;
+    provider: string;
   };
-  modelOptions: string[];
+  providerOptions: string[];
+  providerModelOptions: Record<string, string[]>;
 };

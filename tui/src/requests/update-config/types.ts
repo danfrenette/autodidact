@@ -2,9 +2,10 @@ import { z } from "zod";
 
 export const paramsSchema = z.object({
   database_url: z.string().optional(),
+  provider: z.string(),
   obsidian_vault_path: z.string(),
-  openai_access_token: z.string(),
-  openai_model: z.string().optional(),
+  access_token: z.string().optional(),
+  model: z.string().optional(),
 });
 
 export const resultSchema = z.object({
@@ -17,9 +18,10 @@ export type Params = z.infer<typeof paramsSchema>;
 export type ResultWire = z.infer<typeof resultSchema>;
 
 export type ConfigParams = {
+  provider: string;
   obsidianVaultPath: string;
-  openaiAccessToken: string;
-  openaiModel?: string;
+  accessToken?: string;
+  modelId?: string;
 };
 
 export type UpdateConfigResult = {
