@@ -28,7 +28,7 @@ RSpec.describe Autodidact::Commands::SetupStatus do
         "obsidian_vault_path" => "/vault"
       ))
       File.write(File.join(config_path, "secrets.yml"), YAML.dump(
-                                                          "openai_access_token" => "sk-test"
+                                                          "access_token" => "sk-test"
                                                         ))
     end
 
@@ -44,7 +44,16 @@ RSpec.describe Autodidact::Commands::SetupStatus do
       result = described_class.call(params: {}, notify: notify)
 
       expect(result.payload[:prefill][:database_url]).to eq("postgres://localhost/test")
-      expect(result.payload[:prefill][:openai_model]).to eq("gpt-4o-mini")
+      expect(result.payload[:prefill][:model]).to eq("gpt-4o-mini")
+    end
+
+    it "includes provider options and model mappings" do
+      result = described_class.call(params: {}, notify: notify)
+
+      expect(result.payload[:provider_options]).to contain_exactly("openai", "anthropic")
+      expect(result.payload[:provider_model_options].keys).to contain_exactly("openai", "anthropic")
+      expect(result.payload[:provider_model_options]["openai"]).to be_an(Array)
+      expect(result.payload[:provider_model_options]["anthropic"]).to be_an(Array)
     end
   end
 
@@ -55,7 +64,7 @@ RSpec.describe Autodidact::Commands::SetupStatus do
       expect(result.error).to be_nil
       expect(result.payload[:status]).to eq("needs_setup")
       expect(result.payload[:missing_fields]).to contain_exactly(
-        :obsidian_vault_path, :openai_access_token
+        :obsidian_vault_path, :access_token
       )
     end
   end

@@ -11,7 +11,8 @@ module Autodidact
           status: status.ready? ? "ready" : "needs_setup",
           missing_fields: status.missing_fields,
           prefill: prefill,
-          model_options: Config::ModelOptions.call
+          provider_options: Config::Providers::Catalog.setup_visible_ids,
+          provider_model_options: provider_model_options
         })
       end
 
@@ -26,6 +27,12 @@ module Autodidact
 
       def blank?(value)
         value.nil? || value.to_s.strip.empty?
+      end
+
+      def provider_model_options
+        Config::Providers::Catalog.setup_visible.each_with_object({}) do |provider, map|
+          map[provider.id] = provider.model_options
+        end
       end
     end
   end
