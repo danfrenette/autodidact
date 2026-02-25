@@ -22,11 +22,15 @@ function AppContent() {
   }, [renderer, shutdown]);
 
   useKeyboard((key) => {
-    if (key.name === "escape" && state.name === "file-input") {
+    if (state.name !== "file-input") {
+      return;
+    }
+
+    if (key.name === "escape") {
       handleExit();
     }
 
-    if (key.name === "c" && key.ctrl && state.name === "file-input") {
+    if (key.name === "c" && key.ctrl) {
       onboarding.onCancelUsed();
 
       if (state.status === "submitting") {
@@ -54,10 +58,12 @@ function AppContent() {
       return (
         <Setup
           prefill={state.prefill}
-          modelOptions={state.modelOptions}
+          providerOptions={state.providerOptions}
+          providerModelOptions={state.providerModelOptions}
           saving={state.name === "setup-saving"}
           error={state.name === "setup-error" ? state.error : null}
           onSubmit={updateConfig}
+          onExit={handleExit}
         />
       );
     case "file-input":
@@ -68,6 +74,8 @@ function AppContent() {
           submitting={state.status === "submitting"}
           stage={state.status === "submitting" ? state.stage : null}
           error={state.status === "error" ? state.error : null}
+          provider={state.provider}
+          model={state.model}
           value={inputValue}
           onInput={setInputValue}
         />
@@ -91,12 +99,20 @@ const onboardingState = await backend.getOnboardingState().catch(() => null);
 
 const initialState: AppFlowState =
   status.status === "ready"
-    ? { name: "file-input", status: "idle", lastResult: null, error: null }
+    ? {
+      name: "file-input",
+      status: "idle",
+      lastResult: null,
+      error: null,
+      provider: status.prefill.provider,
+      model: status.prefill.modelId,
+    }
     : {
       name: "setup-form",
       prefill: status.prefill,
       missingFields: status.missingFields,
-      modelOptions: status.modelOptions,
+      providerOptions: status.providerOptions,
+      providerModelOptions: status.providerModelOptions,
       error: null,
     };
 
