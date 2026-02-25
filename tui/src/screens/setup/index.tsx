@@ -97,8 +97,8 @@ export function Setup({ prefill, providerOptions, providerModelOptions, saving, 
 
       <SetupComboboxField
         title="Provider"
-        value={providerCombobox.inputValue}
-        placeholder={draft.provider}
+        query={providerCombobox.query}
+        selectedValue={providerCombobox.selectedValue}
         options={providerCombobox.filteredOptions}
         highlightedIndex={providerCombobox.highlightedIndex}
         isOpen={providerCombobox.isOpen}
@@ -126,8 +126,8 @@ export function Setup({ prefill, providerOptions, providerModelOptions, saving, 
 
       <SetupComboboxField
         title="Model"
-        value={modelCombobox.inputValue}
-        placeholder={draft.modelId}
+        query={modelCombobox.query}
+        selectedValue={modelCombobox.selectedValue}
         options={modelCombobox.filteredOptions}
         highlightedIndex={modelCombobox.highlightedIndex}
         isOpen={modelCombobox.isOpen}

@@ -30,8 +30,8 @@ export function SetupTextInputField({
 
 type SetupComboboxFieldProps = {
   title: string;
-  value: string;
-  placeholder: string;
+  query: string;
+  selectedValue: string;
   options: string[];
   highlightedIndex: number;
   isOpen: boolean;
@@ -42,8 +42,8 @@ type SetupComboboxFieldProps = {
 
 export function SetupComboboxField({
   title,
-  value,
-  placeholder,
+  query,
+  selectedValue,
   options,
   highlightedIndex,
   isOpen,
@@ -52,20 +52,25 @@ export function SetupComboboxField({
   onSubmit,
 }: SetupComboboxFieldProps) {
   const visibleOptions = options.slice(0, 5);
+  const height = isOpen ? 3 + visibleOptions.length : 3;
 
   return (
-    <box border title={title} style={{ width: 80, height: 9, marginBottom: 1 }}>
+    <box border title={title} style={{ width: 80, height, marginBottom: 1 }}>
       <box flexDirection="column" flexGrow={1}>
-        <input
-          value={value}
-          placeholder={placeholder}
-          onInput={onInput}
-          onSubmit={onSubmit}
-          focused={focused}
-        />
+        {focused
+          ? (
+            <input
+              value={query}
+              placeholder={selectedValue}
+              onInput={onInput}
+              onSubmit={onSubmit}
+              focused={focused}
+            />
+          )
+          : <text>{selectedValue}</text>}
 
         {isOpen && (
-          <box flexDirection="column" style={{ marginTop: 1 }}>
+          <box flexDirection="column" paddingBottom={1}>
             {visibleOptions.length === 0 && <text fg="#808080">No matches</text>}
 
             {visibleOptions.map((option, index) => (

@@ -25,14 +25,11 @@ export function useCombobox({ options, selectedValue, focused, onCommit }: Param
   }, [options, query]);
 
   useEffect(() => {
-    if (focused) {
-      setIsOpen(true);
-      return;
+    if (!focused) {
+      setIsOpen(false);
+      setQuery("");
+      setHighlightedIndex(0);
     }
-
-    setIsOpen(false);
-    setQuery("");
-    setHighlightedIndex(0);
   }, [focused]);
 
   const moveUp = useCallback(() => {
@@ -75,7 +72,7 @@ export function useCombobox({ options, selectedValue, focused, onCommit }: Param
 
   const handleInput = useCallback((value: string) => {
     setQuery(value);
-    setIsOpen(true);
+    setIsOpen(value.length > 0);
     setHighlightedIndex(0);
   }, []);
 
@@ -129,7 +126,8 @@ export function useCombobox({ options, selectedValue, focused, onCommit }: Param
 
   return {
     isOpen,
-    inputValue: query,
+    query,
+    selectedValue,
     filteredOptions,
     highlightedIndex,
     handleInput,
