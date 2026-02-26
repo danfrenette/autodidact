@@ -1,4 +1,5 @@
 import type { KeyEvent } from "@opentui/core";
+import fuzzysort from "fuzzysort";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type CommitReason = "enter" | "tab";
@@ -16,12 +17,13 @@ export function useCombobox({ options, selectedValue, focused, onCommit }: Param
   const [highlightedIndex, setHighlightedIndex] = useState(0);
 
   const filteredOptions = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
+    const normalizedQuery = query.trim();
     if (normalizedQuery.length === 0) {
       return options;
     }
 
-    return options.filter((option) => option.toLowerCase().includes(normalizedQuery));
+const results = fuzzysort.go(normalizedQuery, options, { limit: options.length });
+return results.map((result) => result.target);
   }, [options, query]);
 
   useEffect(() => {
