@@ -96,6 +96,10 @@ return results.map((result) => result.target);
     }
 
     if (key.name === "tab") {
+      if (key.shift) {
+        return false;
+      }
+
       if (!isOpen) {
         return false;
       }

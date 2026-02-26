@@ -78,6 +78,21 @@ export function useDraft({ prefill, missingFields, providerOptions, providerMode
     focusByField(nextField);
   };
 
+  const focusPrevious = () => {
+    const stepFields = fieldsForStep(currentStep);
+    const firstStepField = stepFields[0] ?? firstFieldForStep(currentStep);
+    const currentField = setupFields[focusIndex] ?? firstStepField;
+    const currentStepPosition = stepFields.indexOf(currentField);
+    if (currentStepPosition === -1) {
+      focusByField(firstStepField);
+      return;
+    }
+
+    const previousIndex = currentStepPosition === 0 ? stepFields.length - 1 : currentStepPosition - 1;
+    const previousField = stepFields[previousIndex] ?? firstStepField;
+    focusByField(previousField);
+  };
+
   const goToStep = (step: SetupStep) => {
     const nextStepIndex = setupSteps.indexOf(step);
     if (nextStepIndex === -1) {
@@ -118,6 +133,7 @@ export function useDraft({ prefill, missingFields, providerOptions, providerMode
     setModelId,
     focusByField,
     focusNext,
+    focusPrevious,
     goToStep,
     goNextStep,
     goPreviousStep,

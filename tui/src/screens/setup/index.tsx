@@ -1,5 +1,3 @@
-import { useKeyboard } from "@opentui/react";
-
 import type { SetupPrefill } from "@/providers/backend-provider.tsx";
 import type { ConfigParams } from "@/requests/update-config/index.ts";
 
@@ -12,6 +10,7 @@ import { VaultStep } from "./steps/vault-step";
 import { setupFields } from "./wizard/types";
 import { useCombobox } from "./wizard/use-combobox";
 import { useDraft } from "./wizard/use-draft";
+import { useNavigation } from "./wizard/use-navigation";
 import { useSubmit } from "./wizard/use-submit";
 
 type Props = {
@@ -74,28 +73,15 @@ export function Setup({
     },
   });
 
-  useKeyboard((key) => {
-    if (providerFocused && providerCombobox.handleKey(key)) {
-      return;
-    }
-
-    if (modelFocused && modelCombobox.handleKey(key)) {
-      return;
-    }
-
-    if (key.name === "escape" || (key.name === "c" && key.ctrl)) {
-      onExit();
-      return;
-    }
-
-    if (key.name === "tab") {
-      draft.focusNext();
-      return;
-    }
-
-    if (key.name === "left" || (key.name === "backspace" && !modelFocused && !providerFocused)) {
-      draft.goPreviousStep();
-    }
+  useNavigation({
+    providerFocused,
+    modelFocused,
+    providerHandleKey: providerCombobox.handleKey,
+    modelHandleKey: modelCombobox.handleKey,
+    focusNext: draft.focusNext,
+    focusPrevious: draft.focusPrevious,
+    goPreviousStep: draft.goPreviousStep,
+    onExit,
   });
 
   return (
