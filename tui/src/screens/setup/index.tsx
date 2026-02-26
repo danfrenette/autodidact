@@ -3,15 +3,19 @@ import { useKeyboard } from "@opentui/react";
 import type { SetupPrefill } from "@/providers/backend-provider.tsx";
 import type { ConfigParams } from "@/requests/update-config/index.ts";
 
-import { setupFields } from "./domain";
-import { SetupComboboxField, SetupTextInputField } from "./fields";
 import { SetupStatusFooter } from "./status-footer";
-import { useCombobox } from "./use-combobox";
-import { useDraft } from "./use-draft";
-import { useSubmit } from "./use-submit";
+import { AccessTokenStep } from "./steps/access-token-step";
+import { ProviderModelStep } from "./steps/provider-model-step";
+import { StepTabs } from "./steps/step-tabs";
+import { VaultStep } from "./steps/vault-step";
+import { setupFields } from "./wizard/types";
+import { useCombobox } from "./wizard/use-combobox";
+import { useDraft } from "./wizard/use-draft";
+import { useSubmit } from "./wizard/use-submit";
 
 type Props = {
   prefill: SetupPrefill;
+  missingFields: string[];
   providerOptions: string[];
   providerModelOptions: Record<string, string[]>;
   saving: boolean;
@@ -20,8 +24,17 @@ type Props = {
   onExit: () => void;
 };
 
-export function Setup({ prefill, providerOptions, providerModelOptions, saving, error: backendError, onSubmit, onExit }: Props) {
-  const draft = useDraft({ prefill, providerOptions, providerModelOptions });
+export function Setup({
+  prefill,
+  missingFields,
+  providerOptions,
+  providerModelOptions,
+  saving,
+  error: backendError,
+  onSubmit,
+  onExit,
+}: Props) {
+  const draft = useDraft({ prefill, missingFields, providerOptions, providerModelOptions });
   const submission = useSubmit({
     obsidianVaultPath: draft.obsidianVaultPath,
     provider: draft.provider,
@@ -42,7 +55,7 @@ export function Setup({ prefill, providerOptions, providerModelOptions, saving, 
     onCommit: (value) => {
       submission.clearValidationError();
       draft.setProvider(value);
-      draft.focusByField("accessToken");
+      draft.focusByField("modelId");
     },
   });
 
@@ -54,8 +67,8 @@ export function Setup({ prefill, providerOptions, providerModelOptions, saving, 
       submission.clearValidationError();
       draft.setModelId(value);
 
-      if (reason === "enter") {
-        submission.submit(value);
+      if (reason === "enter" || reason === "tab") {
+        draft.goNextStep();
       }
     },
   });
@@ -76,70 +89,63 @@ export function Setup({ prefill, providerOptions, providerModelOptions, saving, 
 
     if (key.name === "tab") {
       draft.focusNext();
+      return;
+    }
+
+    if (key.name === "left" || (key.name === "backspace" && !modelFocused && !providerFocused)) {
+      draft.goPreviousStep();
     }
   });
 
   return (
     <box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1}>
       <text style={{ marginBottom: 1 }}>Autodidact Setup</text>
+      <StepTabs activeIndex={draft.stepIndex} />
 
-      <SetupTextInputField
-        title="Obsidian vault path"
-        placeholder="/path/to/vault"
-        value={draft.obsidianVaultPath}
-        onInput={(value) => {
-          submission.clearValidationError();
-          draft.setObsidianVaultPath(value);
-        }}
-        onSubmit={() => draft.focusByField("provider")}
-        focused={focusedField === "obsidianVaultPath"}
-      />
+      {draft.currentStep === "vault" && (
+        <VaultStep
+          value={draft.obsidianVaultPath}
+          focused={focusedField === "obsidianVaultPath"}
+          onInput={(value) => {
+            submission.clearValidationError();
+            draft.setObsidianVaultPath(value);
+          }}
+          onSubmit={() => {
+            draft.goNextStep();
+          }}
+        />
+      )}
 
-      <SetupComboboxField
-        title="Provider"
-        query={providerCombobox.query}
-        selectedValue={providerCombobox.selectedValue}
-        options={providerCombobox.filteredOptions}
-        highlightedIndex={providerCombobox.highlightedIndex}
-        isOpen={providerCombobox.isOpen}
-        focused={providerFocused}
-        onInput={(value) => {
-          submission.clearValidationError();
-          providerCombobox.handleInput(value);
-        }}
-        onSubmit={() => {
-          providerCombobox.submitFromInput();
-        }}
-      />
+      {draft.currentStep === "providerModel" && (
+        <ProviderModelStep
+          provider={providerCombobox}
+          model={modelCombobox}
+          providerFocused={providerFocused}
+          modelFocused={modelFocused}
+          onProviderInput={(value) => {
+            submission.clearValidationError();
+            providerCombobox.handleInput(value);
+          }}
+          onModelInput={(value) => {
+            submission.clearValidationError();
+            modelCombobox.handleInput(value);
+          }}
+        />
+      )}
 
-      <SetupTextInputField
-        title="Access token"
-        placeholder="sk-..."
-        value={draft.accessToken}
-        onInput={(value) => {
-          submission.clearValidationError();
-          draft.setAccessToken(value);
-        }}
-        onSubmit={submission.submit}
-        focused={focusedField === "accessToken"}
-      />
-
-      <SetupComboboxField
-        title="Model"
-        query={modelCombobox.query}
-        selectedValue={modelCombobox.selectedValue}
-        options={modelCombobox.filteredOptions}
-        highlightedIndex={modelCombobox.highlightedIndex}
-        isOpen={modelCombobox.isOpen}
-        focused={modelFocused}
-        onInput={(value) => {
-          submission.clearValidationError();
-          modelCombobox.handleInput(value);
-        }}
-        onSubmit={() => {
-          modelCombobox.submitFromInput();
-        }}
-      />
+      {draft.currentStep === "accessToken" && (
+        <AccessTokenStep
+          value={draft.accessToken}
+          focused={focusedField === "accessToken"}
+          onInput={(value) => {
+            submission.clearValidationError();
+            draft.setAccessToken(value);
+          }}
+          onSubmit={() => {
+            submission.submit();
+          }}
+        />
+      )}
 
       <SetupStatusFooter error={submission.error} saving={saving} />
     </box>

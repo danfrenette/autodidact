@@ -19,7 +19,7 @@ export function SetupStatusFooter({ error, saving }: Props) {
       )}
 
       <text fg="#666666" style={{ marginTop: 1 }}>
-        Type to filter, arrows to navigate, Enter or Tab to select, Esc to close
+        Tab to move focus, Enter to continue, Left/Backspace to go back, Esc to exit
       </text>
     </>
   );

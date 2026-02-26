@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 
 import type { ConfigParams } from "@/requests/update-config/index.ts";
 
-import { validateSetupDraft } from "./domain";
+import { validateSetupDraft } from "./types";
 
 type Params = {
   obsidianVaultPath: string;

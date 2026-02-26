@@ -58,6 +58,7 @@ function AppContent() {
       return (
         <Setup
           prefill={state.prefill}
+          missingFields={state.missingFields}
           providerOptions={state.providerOptions}
           providerModelOptions={state.providerModelOptions}
           saving={state.name === "setup-saving"}
