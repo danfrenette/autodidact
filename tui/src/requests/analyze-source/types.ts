@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const paramsSchema = z.object({
-  path: z.string(),
+  input: z.string(),
 });
 
 export const resultSchema = z.object({

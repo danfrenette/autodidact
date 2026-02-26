@@ -28,7 +28,7 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
       allow(Autodidact::Storage::PersistSourceBlob).to receive(:call).and_return(blob)
       allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call).and_return("## Notes\n- point")
 
-      result = described_class.call(params: {path: file.path}, notify: notify)
+      result = described_class.call(params: {input: file.path}, notify: notify)
 
       expect(result.error).to be_nil
       expect(result.payload[:note_path]).to end_with(".md")
@@ -45,16 +45,16 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
       file.write("fake pdf")
       file.flush
 
-      result = described_class.call(params: {path: file.path}, notify: notify)
+      result = described_class.call(params: {input: file.path}, notify: notify)
 
       expect(result.payload).to be_nil
-      expect(result.error[:message]).to include("PDF sources are not yet implemented")
+      expect(result.error[:message]).to include("PDF conversion is not yet implemented")
     ensure
       file.close!
     end
   end
 
-  describe "OpenAI failure" do
+  describe "provider failure" do
     it "returns a failure when analysis raises" do
       file = Tempfile.new(["sample", ".txt"])
       file.write("content")
@@ -62,9 +62,9 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
 
       allow(Autodidact::Storage::PersistSourceBlob).to receive(:call).and_return(blob)
       allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call)
-        .and_raise(StandardError, "OpenAI analysis failed: rate limited")
+        .and_raise(StandardError, "Provider analysis failed: rate limited")
 
-      result = described_class.call(params: {path: file.path}, notify: notify)
+      result = described_class.call(params: {input: file.path}, notify: notify)
 
       expect(result.payload).to be_nil
       expect(result.error[:message]).to include("rate limited")
@@ -75,26 +75,36 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
 
   describe "missing file" do
     it "returns a failure for nonexistent path" do
-      result = described_class.call(params: {path: "/nope/missing.txt"}, notify: notify)
+      result = described_class.call(params: {input: "/nope/missing.txt"}, notify: notify)
 
       expect(result.payload).to be_nil
       expect(result.error[:message]).to include("File not found")
     end
   end
 
-  describe "unsupported input kinds" do
+  describe "unsupported input types" do
     it "returns a failure for url input" do
-      result = described_class.call(params: {path: "https://example.com/article"}, notify: notify)
+      result = described_class.call(params: {input: "https://example.com/article"}, notify: notify)
 
       expect(result.payload).to be_nil
-      expect(result.error[:message]).to eq("Input kind 'url' is detected but not supported yet. Please provide a local file path.")
+      expect(result.error[:message]).to include("Input type 'url' is not yet supported")
     end
+  end
 
-    it "returns a failure for raw_text input" do
-      result = described_class.call(params: {path: "This is a sentence.\nAnd another sentence."}, notify: notify)
+  describe "raw text success path" do
+    it "analyzes raw text end-to-end" do
+      allow(Autodidact::Storage::PersistSourceBlob).to receive(:call).and_return(blob)
+      allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call).and_return("## Notes\n- point")
 
-      expect(result.payload).to be_nil
-      expect(result.error[:message]).to eq("Input kind 'raw_text' is detected but not supported yet. Please provide a local file path.")
+      result = described_class.call(
+        params: {input: "This is a sentence.\nAnd another sentence."},
+        notify: notify
+      )
+
+      expect(result.error).to be_nil
+      expect(result.payload[:note_path]).to end_with(".md")
+      expect(result.payload[:source_blob_id]).to eq(42)
+      expect(File.exist?(result.payload[:note_path])).to be true
     end
   end
 
@@ -110,9 +120,9 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
       stages = []
       tracking_notify = proc { |**data| stages << data[:stage] }
 
-      described_class.call(params: {path: file.path}, notify: tracking_notify)
+      described_class.call(params: {input: file.path}, notify: tracking_notify)
 
-      expect(stages).to eq(%w[detect_source ingest persist analyze write])
+      expect(stages).to eq(%w[convert persist analyze write])
     ensure
       file.close!
     end

@@ -139,7 +139,7 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
 export type BackendContextValue = {
   state: AppFlowState;
   onboardingState: OnboardingPersistedState | null;
-  analyzeSource: (path: string) => Promise<void>;
+  analyzeSource: (input: string) => Promise<void>;
   cancelRequest: () => void;
   setOnboardingState: (state: OnboardingPersistedState) => Promise<void>;
   updateConfig: (params: ConfigParams) => Promise<void>;
@@ -189,13 +189,13 @@ export function BackendProvider({ backend, initialState, initialOnboardingState,
   }, [backend]);
 
   const analyzeSource = useCallback(
-    async (path: string) => {
+    async (input: string) => {
       const requestId = activeRequestId.current + 1;
       activeRequestId.current = requestId;
       dispatch({ type: "submit", requestId });
 
       try {
-        const result = await backend.analyzeSource(path);
+        const result = await backend.analyzeSource(input);
         if (activeRequestId.current !== requestId) {
           return;
         }

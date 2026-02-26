@@ -3,84 +3,123 @@
 module Autodidact
   module Commands
     class AnalyzeSource < Command
-      class PdfNotImplemented < StandardError; end
-      class UnsupportedInputKind < StandardError; end
+      class UnsupportedInputType < StandardError; end
+      class UnsupportedSourceType < StandardError; end
+
+      SUPPORTED_INPUT_TYPES = %w[file_path raw_text].freeze
 
       def call(params:, notify:)
-        raise "Configuration is incomplete. Run setup first." unless Autodidact.config.ready?
+        validate_config!
 
-        source = detect_source(params, notify)
-        raise PdfNotImplemented, "PDF sources are not yet implemented" if source[:source_type] == "pdf"
+        input = params.fetch(:input)
 
-        raw_text = ingest_text(source, notify)
-        blob = persist_source_blob(source, raw_text, notify)
-        content = analyze_content(raw_text, notify)
-        note_path = render_and_write_note(source, content, notify)
+        notify.call(stage: "convert")
+        conversion = convert(input, notify)
+
+        notify.call(stage: "persist")
+        blob = persist(conversion)
+
+        notify.call(stage: "analyze")
+        content = analyze(conversion)
+
+        notify.call(stage: "write")
+        note_path = render_and_write(conversion, content)
 
         success(payload: {note_path: note_path.to_s, source_blob_id: blob.id})
       end
 
       private
 
-      def detect_source(params, notify)
-        notify.call(stage: "detect_source")
+      def validate_config!
+        raise "Configuration is incomplete. Run setup first." unless Autodidact.config.ready?
+      end
 
-        input_kind_result = Commands::DetectInputKind.call(params: params, notify: notify)
-        raise StandardError, input_kind_result.error[:message] if input_kind_result.failure?
+      def convert(input, notify)
+        input_type = detect_input_type(input)
 
-        input_kind = input_kind_result.payload[:input_kind]
-        raise UnsupportedInputKind, unsupported_input_message(input_kind) unless input_kind == "file_path"
+        case input_type
+        when "file_path" then convert_file(input, notify)
+        when "raw_text" then convert_raw_text(input)
+        end
+      end
 
-        result = Commands::DetectSource.call(params: params, notify: notify)
+      def detect_input_type(input)
+        result = Commands::DetectInputType.call(input: input)
+        input_type = result.payload[:input_type]
+
+        unless SUPPORTED_INPUT_TYPES.include?(input_type)
+          raise UnsupportedInputType,
+            "Input type '#{input_type}' is not yet supported. Please provide a local file path or raw text."
+        end
+
+        input_type
+      end
+
+      def convert_file(path, notify)
+        source = detect_source(path, notify)
+
+        case source[:source_type]
+        when "text"
+          convert_text(source)
+        when "pdf"
+          raise UnsupportedSourceType, "PDF conversion is not yet implemented"
+        end
+      end
+
+      def convert_text(source)
+        result = Convert::TextConverter.call(path: source[:path], source_type: source[:source_type])
         raise StandardError, result.error[:message] if result.failure?
 
         result.payload
       end
 
-      def unsupported_input_message(input_kind)
-        "Input kind '#{input_kind}' is detected but not supported yet. Please provide a local file path."
+      def detect_source(path, notify)
+        result = Commands::DetectSource.call(params: {path: path}, notify: notify)
+        raise StandardError, result.error[:message] if result.failure?
+
+        result.payload
       end
 
-      def ingest_text(source, notify)
-        notify.call(stage: "ingest")
-        Ingest::TextIngestor.call(path: source[:path])
-      end
+      def convert_raw_text(text)
+        timestamp = Time.now.strftime("%Y-%m-%d")
 
-      def persist_source_blob(source, raw_text, notify)
-        notify.call(stage: "persist")
-        Storage::PersistSourceBlob.call(
-          source_path: source[:path],
-          source_type: source[:source_type],
+        ConversionResult.new(
+          raw_text: text,
+          source_path: nil,
+          source_type: "text",
           selection_kind: "full",
-          raw_text: raw_text
+          selection_payload: {input_type: "raw_text"},
+          note_filename: "#{timestamp}--raw-text.md"
         )
       end
 
-      def analyze_content(raw_text, notify)
-        notify.call(stage: "analyze")
-        Analysis::GenerateNoteContent.call(raw_text: raw_text)
+      def persist(conversion)
+        Storage::PersistSourceBlob.call(
+          source_path: conversion.source_path || "raw_text://inline",
+          source_type: conversion.source_type,
+          selection_kind: conversion.selection_kind,
+          raw_text: conversion.raw_text,
+          selection_payload: conversion.selection_payload
+        )
       end
 
-      def render_and_write_note(source, content, notify)
-        notify.call(stage: "write")
+      def analyze(conversion)
+        Analysis::GenerateNoteContent.call(raw_text: conversion.raw_text)
+      end
+
+      def render_and_write(conversion, content)
         rendered = Output::RenderNote.call(
           tag: "autodidact",
-          source_path: source[:path],
+          source_path: conversion.source_path || "raw_text://inline",
           content: content,
           created_at: Time.now
         )
 
         Output::WriteNote.call(
           vault_path: Autodidact.config.obsidian_vault_path,
-          filename: note_filename(source),
+          filename: conversion.note_filename,
           rendered_content: rendered
         )
-      end
-
-      def note_filename(source)
-        timestamp = Time.now.strftime("%Y-%m-%d")
-        basename = File.basename(source[:path], ".*").gsub(/[^a-zA-Z0-9\-_]+/, "-")
-        "#{timestamp}--#{basename}.md"
       end
     end
   end

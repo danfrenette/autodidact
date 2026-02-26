@@ -16,7 +16,10 @@ module Autodidact
   end
 
   def self.loader
-    @loader ||= Zeitwerk::Loader.for_gem.tap(&:setup)
+    @loader ||= Zeitwerk::Loader.for_gem.tap do |loader|
+      loader.collapse(root.join("lib", "autodidact", "primitives"))
+      loader.setup
+    end
   end
 end
 

@@ -60,8 +60,8 @@ export class Backend {
     return detectSourceRequest.toSourceInfo(wire);
   }
 
-  async analyzeSource(path: string): Promise<AnalysisResult> {
-    const result = await this.send(analyzeSourceRequest.method, { path });
+  async analyzeSource(input: string): Promise<AnalysisResult> {
+    const result = await this.send(analyzeSourceRequest.method, { input });
     const wire = analyzeSourceRequest.decode(result);
     return analyzeSourceRequest.toAnalysisResult(wire);
   }
