@@ -17,7 +17,7 @@ export function useSubmit({
   obsidianVaultPath,
   provider,
   accessToken,
-  modelId,
+  modelId: currentModelId,
   backendError,
   onSubmit,
 }: Params) {
@@ -31,7 +31,7 @@ export function useSubmit({
     }
   }, [validationError]);
 
-  const submit = useCallback(() => {
+  const submit = useCallback((modelId: string = currentModelId) => {
     const result = validateSetupDraft({
       obsidianVaultPath,
       provider,
@@ -46,7 +46,7 @@ export function useSubmit({
 
     setValidationError(null);
     onSubmit(result.payload);
-  }, [obsidianVaultPath, onSubmit, accessToken, provider, modelId]);
+  }, [obsidianVaultPath, onSubmit, accessToken, provider, currentModelId]);
 
   return {
     error,

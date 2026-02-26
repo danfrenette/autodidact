@@ -40,13 +40,17 @@ RSpec.describe Autodidact::Commands::UpdateConfig do
     params = {
       database_url: "postgres://localhost/test",
       obsidian_vault_path: "/vault",
-      access_token: "sk-test"
+      access_token: "sk-test",
+      provider: "openai",
+      model: "gpt-4o-mini"
     }
 
     result = described_class.call(params: params, notify: notify)
 
     expect(result.payload[:status]).to eq("ready")
     expect(result.payload[:missing_fields]).to be_empty
+    expect(result.payload[:provider]).to eq("openai")
+    expect(result.payload[:model]).to eq("gpt-4o-mini")
   end
 
   it "returns needs_setup when saved config is incomplete" do

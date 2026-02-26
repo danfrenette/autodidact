@@ -167,7 +167,7 @@ export function BackendProvider({ backend, initialState, initialOnboardingState,
         const result = await backend.updateConfig(params);
 
         if (result.status === "ready") {
-          dispatch({ type: "setup-ready", provider: params.provider, model: params.modelId ?? "" });
+          dispatch({ type: "setup-ready", provider: result.provider, model: result.model });
         } else {
           dispatch({
             type: "setup-save-failed",

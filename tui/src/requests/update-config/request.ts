@@ -25,5 +25,7 @@ export function toUpdateConfigResult(
   return {
     status: wire.status,
     missingFields: wire.missing_fields,
+    provider: wire.provider,
+    model: wire.model,
   };
 }

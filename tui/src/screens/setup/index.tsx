@@ -55,7 +55,7 @@ export function Setup({ prefill, providerOptions, providerModelOptions, saving, 
       draft.setModelId(value);
 
       if (reason === "enter") {
-        submission.submit();
+        submission.submit(value);
       }
     },
   });

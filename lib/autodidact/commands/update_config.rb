@@ -15,7 +15,9 @@ module Autodidact
 
         success(payload: {
           status: status.ready? ? "ready" : "needs_setup",
-          missing_fields: status.missing_fields
+          missing_fields: status.missing_fields,
+          provider: Autodidact.config.provider,
+          model: Autodidact.config.model
         })
       end
 

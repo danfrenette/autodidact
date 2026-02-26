@@ -11,6 +11,8 @@ export const paramsSchema = z.object({
 export const resultSchema = z.object({
   status: z.union([z.literal("ready"), z.literal("needs_setup")]),
   missing_fields: z.array(z.string()),
+  provider: z.string(),
+  model: z.string(),
 });
 
 export type Params = z.infer<typeof paramsSchema>;
@@ -27,4 +29,6 @@ export type ConfigParams = {
 export type UpdateConfigResult = {
   status: "ready" | "needs_setup";
   missingFields: string[];
+  provider: string;
+  model: string;
 };
