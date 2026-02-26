@@ -5,6 +5,7 @@ import type { ConfigParams } from "@/requests/update-config/index.ts";
 
 import { SetupStatusFooter } from "./status-footer";
 import { AccessTokenStep } from "./steps/access-token-step";
+import { ActionRow } from "./steps/action-row";
 import { ProviderModelStep } from "./steps/provider-model-step";
 import { StepTabs } from "./steps/step-tabs";
 import { VaultStep } from "./steps/vault-step";
@@ -99,55 +100,65 @@ export function Setup({
 
   return (
     <box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1}>
-      <text style={{ marginBottom: 1 }}>Autodidact Setup</text>
-      <StepTabs activeIndex={draft.stepIndex} />
+      <box border borderColor="#4b4b4b" style={{ width: 86, paddingLeft: 2, paddingRight: 2, paddingTop: 1, paddingBottom: 1 }}>
+        <box flexDirection="row" alignItems="center" style={{ marginBottom: 1 }}>
+          <text fg="#fab283">◆</text>
+          <text style={{ marginLeft: 1 }}>Autodidact Setup Wizard</text>
+        </box>
 
-      {draft.currentStep === "vault" && (
-        <VaultStep
-          value={draft.obsidianVaultPath}
-          focused={focusedField === "obsidianVaultPath"}
-          onInput={(value) => {
-            submission.clearValidationError();
-            draft.setObsidianVaultPath(value);
-          }}
-          onSubmit={() => {
-            draft.goNextStep();
-          }}
-        />
-      )}
+        <StepTabs activeIndex={draft.stepIndex} />
 
-      {draft.currentStep === "providerModel" && (
-        <ProviderModelStep
-          provider={providerCombobox}
-          model={modelCombobox}
-          providerFocused={providerFocused}
-          modelFocused={modelFocused}
-          onProviderInput={(value) => {
-            submission.clearValidationError();
-            providerCombobox.handleInput(value);
-          }}
-          onModelInput={(value) => {
-            submission.clearValidationError();
-            modelCombobox.handleInput(value);
-          }}
-        />
-      )}
+        {draft.currentStep === "vault" && (
+          <VaultStep
+            value={draft.obsidianVaultPath}
+            focused={focusedField === "obsidianVaultPath"}
+            onInput={(value) => {
+              submission.clearValidationError();
+              draft.setObsidianVaultPath(value);
+            }}
+            onSubmit={() => {
+              draft.goNextStep();
+            }}
+          />
+        )}
 
-      {draft.currentStep === "accessToken" && (
-        <AccessTokenStep
-          value={draft.accessToken}
-          focused={focusedField === "accessToken"}
-          onInput={(value) => {
-            submission.clearValidationError();
-            draft.setAccessToken(value);
-          }}
-          onSubmit={() => {
-            submission.submit();
-          }}
-        />
-      )}
+        {draft.currentStep === "providerModel" && (
+          <ProviderModelStep
+            provider={providerCombobox}
+            model={modelCombobox}
+            providerFocused={providerFocused}
+            modelFocused={modelFocused}
+            onProviderInput={(value) => {
+              submission.clearValidationError();
+              providerCombobox.handleInput(value);
+            }}
+            onModelInput={(value) => {
+              submission.clearValidationError();
+              modelCombobox.handleInput(value);
+            }}
+          />
+        )}
 
-      <SetupStatusFooter error={submission.error} saving={saving} />
+        {draft.currentStep === "accessToken" && (
+          <AccessTokenStep
+            value={draft.accessToken}
+            provider={draft.provider}
+            modelId={draft.modelId}
+            vaultPath={draft.obsidianVaultPath}
+            focused={focusedField === "accessToken"}
+            onInput={(value) => {
+              submission.clearValidationError();
+              draft.setAccessToken(value);
+            }}
+            onSubmit={() => {
+              submission.submit();
+            }}
+          />
+        )}
+
+        <SetupStatusFooter error={submission.error} saving={saving} />
+        <ActionRow step={draft.currentStep} />
+      </box>
     </box>
   );
 }

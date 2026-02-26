@@ -28,7 +28,9 @@ export function ProviderModelStep({
   onModelInput,
 }: Props) {
   return (
-    <>
+    <box flexDirection="column">
+      <text fg="#a5a5a5" style={{ marginBottom: 1 }}>Choose your AI provider and model. Type to fuzzy search.</text>
+
       <SetupComboboxField
         title="Provider"
         query={provider.query}
@@ -56,6 +58,6 @@ export function ProviderModelStep({
           model.submitFromInput();
         }}
       />
-    </>
+    </box>
   );
 }
