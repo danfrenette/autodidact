@@ -2,18 +2,18 @@
 
 module Autodidact
   module Commands
-    class SetupStatus < ApplicationCommand
+    class SetupStatus < Command
       def call(params:, notify:)
         status = Config::Validator.call(config: Autodidact.config)
         prefill = prefill_data
 
         success(payload: {
-          status: status.ready? ? "ready" : "needs_setup",
-          missing_fields: status.missing_fields,
-          prefill: prefill,
-          provider_options: Config::Providers::Catalog.setup_visible_ids,
-          provider_model_options: provider_model_options
-        })
+                  status: status.ready? ? 'ready' : 'needs_setup',
+                  missing_fields: status.missing_fields,
+                  prefill: prefill,
+                  provider_options: Config::Providers::Catalog.setup_visible_ids,
+                  provider_model_options: provider_model_options
+                })
       end
 
       private
