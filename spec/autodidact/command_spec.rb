@@ -1,44 +1,44 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
+require "spec_helper"
 
 RSpec.describe Autodidact::Command do
   let(:notify) { proc {} }
 
-  describe '.call' do
-    it 'rescues StandardError into a failure result' do
-      stub_const('TestCommand', Class.new(described_class) do
+  describe ".call" do
+    it "rescues StandardError into a failure result" do
+      stub_const("TestCommand", Class.new(described_class) do
         def call(params:, notify:)
-          raise StandardError, 'boom'
+          raise StandardError, "boom"
         end
       end)
 
       result = TestCommand.call(params: {}, notify: notify)
 
       expect(result.payload).to be_nil
-      expect(result.error).to eq(message: 'boom')
+      expect(result.error).to eq(message: "boom")
     end
   end
 
-  describe '#success' do
-    it 'returns a Result with payload and nil error' do
+  describe "#success" do
+    it "returns a Result with payload and nil error" do
       command = described_class.new
-      result = command.success(payload: { status: 'ok' })
+      result = command.success(payload: {status: "ok"})
 
-      expect(result.payload).to eq(status: 'ok')
+      expect(result.payload).to eq(status: "ok")
       expect(result.error).to be_nil
       expect(result.success?).to be(true)
       expect(result.failure?).to be(false)
     end
   end
 
-  describe '#failure' do
-    it 'returns a Result with nil payload and error message' do
+  describe "#failure" do
+    it "returns a Result with nil payload and error message" do
       command = described_class.new
-      result = command.failure(StandardError.new('oops'))
+      result = command.failure(StandardError.new("oops"))
 
       expect(result.payload).to be_nil
-      expect(result.error).to eq(message: 'oops')
+      expect(result.error).to eq(message: "oops")
       expect(result.success?).to be(false)
       expect(result.failure?).to be(true)
     end

@@ -82,6 +82,22 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
     end
   end
 
+  describe "unsupported input kinds" do
+    it "returns a failure for url input" do
+      result = described_class.call(params: {path: "https://example.com/article"}, notify: notify)
+
+      expect(result.payload).to be_nil
+      expect(result.error[:message]).to eq("Input kind 'url' is detected but not supported yet. Please provide a local file path.")
+    end
+
+    it "returns a failure for raw_text input" do
+      result = described_class.call(params: {path: "This is a sentence.\nAnd another sentence."}, notify: notify)
+
+      expect(result.payload).to be_nil
+      expect(result.error[:message]).to eq("Input kind 'raw_text' is detected but not supported yet. Please provide a local file path.")
+    end
+  end
+
   describe "notify progress" do
     it "emits progress stages in order" do
       file = Tempfile.new(["sample", ".txt"])

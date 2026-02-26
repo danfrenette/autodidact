@@ -14,11 +14,11 @@ module Autodidact
         status = Config::Validator.call(config: Autodidact.config)
 
         success(payload: {
-                  status: status.ready? ? 'ready' : 'needs_setup',
-                  missing_fields: status.missing_fields,
-                  provider: Autodidact.config.provider,
-                  model: Autodidact.config.model
-                })
+          status: status.ready? ? "ready" : "needs_setup",
+          missing_fields: status.missing_fields,
+          provider: Autodidact.config.provider,
+          model: Autodidact.config.model
+        })
       end
 
       private

@@ -7,10 +7,10 @@ module Autodidact
       class UnsupportedFileType < StandardError; end
 
       EXTENSION_MAP = {
-        '.txt' => 'text',
-        '.md' => 'text',
-        '.rst' => 'text',
-        '.pdf' => 'pdf'
+        ".txt" => "text",
+        ".md" => "text",
+        ".rst" => "text",
+        ".pdf" => "pdf"
       }.freeze
 
       def call(params:, notify:)
@@ -19,10 +19,10 @@ module Autodidact
         source_type = detect_type!(path)
 
         success(payload: {
-                  path: path,
-                  source_type: source_type,
-                  metadata: build_metadata(path, source_type)
-                })
+          path: path,
+          source_type: source_type,
+          metadata: build_metadata(path, source_type)
+        })
       end
 
       private
@@ -44,18 +44,18 @@ module Autodidact
 
       def build_metadata(path, source_type)
         case source_type
-        when 'text' then text_metadata(path)
-        when 'pdf' then pdf_metadata(path)
+        when "text" then text_metadata(path)
+        when "pdf" then pdf_metadata(path)
         else {}
         end
       end
 
       def text_metadata(path)
-        { line_count: File.foreach(path).count }
+        {line_count: File.foreach(path).count}
       end
 
       def pdf_metadata(path)
-        { file_size: File.size(path) }
+        {file_size: File.size(path)}
       end
     end
   end

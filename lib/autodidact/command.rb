@@ -15,7 +15,7 @@ module Autodidact
     def self.call(...)
       command = new
       command.call(...)
-    rescue StandardError => e
+    rescue => e
       command.failure(e)
     end
 
@@ -24,7 +24,7 @@ module Autodidact
     end
 
     def failure(error)
-      Result.new(payload: nil, error: { message: error.message })
+      Result.new(payload: nil, error: {message: error.message})
     end
   end
 end
