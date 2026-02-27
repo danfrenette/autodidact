@@ -13,11 +13,11 @@ import { FilePathAutocomplete } from "./file-path-autocomplete";
 import { OnboardingFirstRun } from "./onboarding-first-run";
 import { OnboardingNudge } from "./onboarding-nudge";
 import { InputSection } from "./sections/input-section";
-import { ModelSection } from "./sections/model-section";
 import { OutputModal } from "./sections/output-modal";
 import { TagsSection } from "./sections/tags-section";
 import { PANEL_WIDTH } from "./styles";
 import { useInputBadges } from "./use-badges";
+import { useModelPickerDisclosure } from "./use-model-picker-disclosure";
 
 type Props = {
   onSubmit: (path: string) => void;
@@ -68,6 +68,7 @@ function accentColor(submitting: boolean, lastResult: AnalysisResult | null, err
 export function FileInput({ onSubmit, lastResult, submitting, stage, error: backendError, provider, model, value, onInput }: Props) {
   const [validationError, setValidationError] = useState<string | null>(null);
   const [showOutputModal, setShowOutputModal] = useState(false);
+  const modelPicker = useModelPickerDisclosure({ disabled: submitting });
   const autocomplete = useFilePathAutocomplete({ value, onInput, submitting });
   const onboarding = useFileInputOnboarding({ inputValue: value, submitting });
   const badges = useInputBadges(value);
@@ -84,6 +85,10 @@ export function FileInput({ onSubmit, lastResult, submitting, stage, error: back
     }
 
     if (autocomplete.handleKey(key)) {
+      return;
+    }
+
+    if (modelPicker.handleKeyboard(key)) {
       return;
     }
 
@@ -144,12 +149,14 @@ export function FileInput({ onSubmit, lastResult, submitting, stage, error: back
         onSubmit={handleSubmit}
         badgeLabel={detectedBadgeLabel}
         badgeSupported={badges.inputBadge.supported}
+        model={model}
+        provider={provider}
+        modelPickerExpanded={modelPicker.isOpen}
+        onModelPickerPress={modelPicker.toggle}
         width={PANEL_WIDTH}
       />
 
       <FilePathAutocomplete visible={autocomplete.visible} state={autocomplete.state} width={PANEL_WIDTH} />
-
-      <ModelSection model={model} provider={provider} width={PANEL_WIDTH} />
 
       <TagsSection
         hasResult={lastResult !== null}
