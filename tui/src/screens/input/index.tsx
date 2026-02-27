@@ -12,6 +12,12 @@ import type { AnalysisResult } from "@/requests/analyze-source";
 import { FilePathAutocomplete } from "./file-path-autocomplete";
 import { OnboardingFirstRun } from "./onboarding-first-run";
 import { OnboardingNudge } from "./onboarding-nudge";
+import { InputSection } from "./sections/input-section";
+import { ModelSection } from "./sections/model-section";
+import { OutputModal } from "./sections/output-modal";
+import { TagsSection } from "./sections/tags-section";
+import { PANEL_WIDTH } from "./styles";
+import { useInputBadges } from "./use-badges";
 
 type Props = {
   onSubmit: (path: string) => void;
@@ -26,11 +32,11 @@ type Props = {
 };
 
 const STAGE_LABELS: Record<string, string> = {
-  detect_source: "Detecting source type…",
-  ingest: "Reading file…",
-  persist: "Saving to database…",
-  analyze: "Analyzing with provider (this may take a minute)…",
-  write: "Writing note…",
+  detect_source: "Detecting source type...",
+  ingest: "Reading file...",
+  persist: "Saving to database...",
+  analyze: "Analyzing with provider (this may take a minute)...",
+  write: "Writing note...",
 };
 
 const EMPTY_BORDER: BorderCharacters = {
@@ -48,12 +54,8 @@ const EMPTY_BORDER: BorderCharacters = {
 };
 
 function stageLabel(stage: string | null): string {
-  if (!stage) return "Starting…";
+  if (!stage) return "Starting...";
   return STAGE_LABELS[stage] ?? stage;
-}
-
-function obsidianUri(notePath: string): string {
-  return `obsidian://open?path=${encodeURIComponent(notePath)}`;
 }
 
 function accentColor(submitting: boolean, lastResult: AnalysisResult | null, error: string | null): string {
@@ -65,13 +67,22 @@ function accentColor(submitting: boolean, lastResult: AnalysisResult | null, err
 
 export function FileInput({ onSubmit, lastResult, submitting, stage, error: backendError, provider, model, value, onInput }: Props) {
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [showOutputModal, setShowOutputModal] = useState(false);
   const autocomplete = useFilePathAutocomplete({ value, onInput, submitting });
   const onboarding = useFileInputOnboarding({ inputValue: value, submitting });
+  const badges = useInputBadges(value);
 
   const error = validationError ?? backendError;
   const highlight = accentColor(submitting, lastResult, error);
+  const detectedBadgeLabel = `${badges.inputBadge.supported ? "✓" : "✕"} ${badges.inputBadge.label}`;
 
   useKeyboard((key) => {
+    if (showOutputModal && (key.name === "escape" || key.name === "return")) {
+      key.preventDefault();
+      setShowOutputModal(false);
+      return;
+    }
+
     if (autocomplete.handleKey(key)) {
       return;
     }
@@ -95,6 +106,7 @@ export function FileInput({ onSubmit, lastResult, submitting, stage, error: back
     }
 
     setValidationError(null);
+    setShowOutputModal(true);
     onboarding.onSubmitSucceeded();
     onSubmit(result.path);
   }, [autocomplete, onboarding, onSubmit, submitting]);
@@ -104,16 +116,20 @@ export function FileInput({ onSubmit, lastResult, submitting, stage, error: back
       setValidationError(null);
     }
 
+    if (showOutputModal) {
+      setShowOutputModal(false);
+    }
+
     onboarding.handleInput(nextValue);
     onInput(nextValue);
-  }, [onInput, onboarding, validationError]);
+  }, [onInput, onboarding, showOutputModal, validationError]);
 
   return (
     <box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1}>
-      <OnboardingFirstRun visible={onboarding.showFirstRunPanel} width={70} />
+      <OnboardingFirstRun visible={onboarding.showFirstRunPanel} width={PANEL_WIDTH} />
 
       {onboarding.showHelp && (
-        <box border borderColor="#484848" width={70} style={{ marginBottom: 1 }}>
+        <box border borderColor="#484848" width={PANEL_WIDTH} style={{ marginBottom: 1 }}>
           <box flexDirection="column" paddingLeft={1} paddingRight={1} backgroundColor="#161616">
             <text fg="#eeeeee">Help</text>
             <text fg="#9a9a9a">Enter submit path  |  @ autocomplete files  |  ? help  |  Ctrl+C cancel/clear</text>
@@ -121,54 +137,32 @@ export function FileInput({ onSubmit, lastResult, submitting, stage, error: back
         </box>
       )}
 
-      {/* Success banner */}
-      {lastResult && !submitting && (
-        <text fg="#98c379" style={{ marginBottom: 1 }}>
-          Note created: <a href={obsidianUri(lastResult.notePath)}>{lastResult.notePath}</a>
-        </text>
-      )}
+      <InputSection
+        value={value}
+        submitting={submitting}
+        onInput={handleInput}
+        onSubmit={handleSubmit}
+        badgeLabel={detectedBadgeLabel}
+        badgeSupported={badges.inputBadge.supported}
+        width={PANEL_WIDTH}
+      />
 
-      {/* Accent bar + input area */}
-      <box
-        border={["left"]}
-        borderColor={highlight}
-        customBorderChars={{ ...EMPTY_BORDER, vertical: "┃", bottomLeft: "╹" }}
-        width={70}
-      >
-        <box
-          paddingLeft={2}
-          paddingRight={2}
-          paddingTop={1}
-          flexGrow={1}
-          backgroundColor="#1e1e1e"
-        >
-          {/* Input */}
-          <input
-            value={value}
-            placeholder={'Enter a file path… "/path/to/chapter.txt"'}
-            onInput={handleInput}
-            onSubmit={handleSubmit}
-            focused={!submitting}
-            textColor="#eeeeee"
-            cursorColor="#eeeeee"
-            focusedBackgroundColor="#1e1e1e"
-            backgroundColor="#1e1e1e"
-          />
+      <FilePathAutocomplete visible={autocomplete.visible} state={autocomplete.state} width={PANEL_WIDTH} />
 
-          {/* Status line: app name + model + provider */}
-          <box flexDirection="row" flexShrink={0} paddingTop={1} gap={1}>
-            <text fg={highlight}>autodidact</text>
-            <text fg="#eeeeee">{model}</text>
-            <text fg="#808080">{provider}</text>
-          </box>
-        </box>
-      </box>
+      <ModelSection model={model} provider={provider} width={PANEL_WIDTH} />
 
-      <FilePathAutocomplete visible={autocomplete.visible} state={autocomplete.state} width={70} />
+      <TagsSection
+        hasResult={lastResult !== null}
+        selectedCount={badges.selectedCount}
+        tags={badges.tags}
+        isSelected={badges.isSelected}
+        onToggle={badges.toggleTag}
+        width={PANEL_WIDTH}
+      />
 
       <OnboardingNudge
         visible={onboarding.showAtHint}
-        width={70}
+        width={PANEL_WIDTH}
         title="File autocomplete"
         message="Type @ to search .txt, .md, .rst, and .pdf files quickly."
         onDismissSession={() => onboarding.dismissHintSession(onboardingHint.at)}
@@ -177,16 +171,15 @@ export function FileInput({ onSubmit, lastResult, submitting, stage, error: back
 
       <OnboardingNudge
         visible={!onboarding.showAtHint && onboarding.showCtrlCHint}
-        width={70}
+        width={PANEL_WIDTH}
         title="Interrupt behavior"
         message="Ctrl+C cancels in-flight work, then clears input, then exits."
         onDismissSession={() => onboarding.dismissHintSession(onboardingHint.ctrlC)}
         onDismissForever={() => onboarding.dismissHintForever(onboardingHint.ctrlC)}
       />
 
-      {/* Bottom shadow */}
       <box
-        width={70}
+        width={PANEL_WIDTH}
         height={1}
         border={["left"]}
         borderColor={highlight}
@@ -200,8 +193,7 @@ export function FileInput({ onSubmit, lastResult, submitting, stage, error: back
         />
       </box>
 
-      {/* Footer: spinner/status or hints */}
-      <box flexDirection="row" justifyContent="space-between" width={70} style={{ marginTop: 0 }}>
+      <box flexDirection="row" justifyContent="space-between" width={PANEL_WIDTH} style={{ marginTop: 0 }}>
         <box flexDirection="row" alignItems="center">
           {submitting && (
             <>
@@ -216,10 +208,12 @@ export function FileInput({ onSubmit, lastResult, submitting, stage, error: back
 
         {!submitting && (
           <text fg="#808080">
-            .txt .md .rst .pdf{autocomplete.query !== null ? "  |  ↑/↓ browse, Tab/Enter choose" : ""}
+            {autocomplete.query !== null ? "↑/↓ browse, Tab/Enter choose" : "input ready"}
           </text>
         )}
       </box>
+
+      <OutputModal visible={showOutputModal} result={lastResult} onClose={() => setShowOutputModal(false)} />
     </box>
   );
 }

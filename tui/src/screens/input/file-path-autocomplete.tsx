@@ -15,11 +15,11 @@ export function FilePathAutocomplete({ visible, state, width = 70 }: Props) {
     <box border borderColor="#484848" width={width} style={{ marginTop: 1 }}>
       <box flexDirection="column" backgroundColor="#161616" paddingLeft={1} paddingRight={1}>
         {state.status === "loading" && (
-          <text fg="#808080">Searching supported files...</text>
+          <text fg="#808080">Searching files...</text>
         )}
 
         {state.status === "empty" && (
-          <text fg="#808080">No matching supported files</text>
+          <text fg="#808080">No matching files</text>
         )}
 
         {state.status === "open" && state.items.map((item, index) => (
