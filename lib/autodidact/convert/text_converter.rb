@@ -3,7 +3,12 @@
 module Autodidact
   module Convert
     class TextConverter < Command
-      def call(path:, source_type:)
+      def initialize(path:, source_type:)
+        @path = path
+        @source_type = source_type
+      end
+
+      def call
         raw_text = File.read(path)
 
         success(payload: ConversionResult.new(
@@ -12,13 +17,15 @@ module Autodidact
           source_type: source_type,
           selection_kind: "full",
           selection_payload: {},
-          note_filename: note_filename(path)
+          note_filename: note_filename
         ))
       end
 
       private
 
-      def note_filename(path)
+      attr_reader :path, :source_type
+
+      def note_filename
         timestamp = Time.now.strftime("%Y-%m-%d")
         basename = File.basename(path, ".*").gsub(/[^a-zA-Z0-9\-_]+/, "-")
         "#{timestamp}--#{basename}.md"

@@ -4,6 +4,7 @@ PATH
     autodidact (0.1.0)
       dotenv
       faraday
+      pdf-reader
       pg
       ruby-openai
       sequel
@@ -12,6 +13,8 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
+    Ascii85 (2.0.1)
+    afm (1.0.0)
     ast (2.4.3)
     bigdecimal (4.0.1)
     climate_control (1.2.0)
@@ -28,6 +31,7 @@ GEM
       multipart-post (~> 2.0)
     faraday-net_http (3.4.2)
       net-http (~> 0.5)
+    hashery (2.1.2)
     io-console (0.8.2)
     json (2.18.1)
     language_server-protocol (3.17.0.5)
@@ -41,6 +45,12 @@ GEM
     parser (3.3.10.1)
       ast (~> 2.4.1)
       racc
+    pdf-reader (2.15.1)
+      Ascii85 (>= 1.0, < 3.0, != 2.0.0)
+      afm (>= 0.2.1, < 2)
+      hashery (~> 2.0)
+      ruby-rc4
+      ttfunk
     pg (1.6.3)
     pg (1.6.3-aarch64-linux)
     pg (1.6.3-aarch64-linux-musl)
@@ -97,6 +107,7 @@ GEM
       faraday (>= 1)
       faraday-multipart (>= 1)
     ruby-progressbar (1.13.0)
+    ruby-rc4 (0.1.5)
     sequel (5.101.0)
       bigdecimal
     slop (3.6.0)
@@ -112,6 +123,7 @@ GEM
     standard-performance (1.9.0)
       lint_roller (~> 1.1)
       rubocop-performance (~> 1.26.0)
+    ttfunk (1.7.0)
     unicode-display_width (3.2.0)
       unicode-emoji (~> 4.1)
     unicode-emoji (4.2.0)

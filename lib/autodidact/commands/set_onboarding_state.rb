@@ -3,13 +3,18 @@
 module Autodidact
   module Commands
     class SetOnboardingState < Command
-      def call(params:, notify:)
-        state = params.fetch(:state)
-        raise ArgumentError, "state must be an object" unless state.is_a?(Hash)
+      def initialize(params:, **)
+        @state = params.fetch(:state)
+      end
 
+      def call
         Config::Store.write_onboarding(state)
         success(payload: {ok: true})
       end
+
+      private
+
+      attr_reader :state
     end
   end
 end

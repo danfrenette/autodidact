@@ -13,10 +13,15 @@ module Autodidact
 
   class Command
     def self.call(...)
-      command = new
-      command.call(...)
+      command = new(...)
+      command.call
     rescue => e
-      command.failure(e)
+      return command.failure(e) if command
+
+      Result.new(payload: nil, error: {message: e.message})
+    end
+
+    def initialize(*)
     end
 
     def success(payload:)

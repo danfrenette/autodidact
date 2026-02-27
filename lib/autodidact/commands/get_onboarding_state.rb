@@ -2,8 +2,8 @@
 
 module Autodidact
   module Commands
-    class GetOnboardingState < Command
-      def call(params:, notify:)
+    class GetOnboardingState < Query
+      def call
         success(payload: {state: Config::Store.read_onboarding})
       end
     end

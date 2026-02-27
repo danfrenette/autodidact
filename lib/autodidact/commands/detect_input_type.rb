@@ -4,14 +4,19 @@ module Autodidact
   module Commands
     class DetectInputType < Command
       URL_PATTERN = %r{\Ahttps?://\S+\z}
+      def initialize(input:)
+        @input = input
+      end
 
-      def call(input:)
+      def call
         success(payload: {
           input_type: classify(input)
         })
       end
 
       private
+
+      attr_reader :input
 
       def classify(input)
         value = input.to_s.strip

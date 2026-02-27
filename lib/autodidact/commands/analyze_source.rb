@@ -8,13 +8,16 @@ module Autodidact
 
       SUPPORTED_INPUT_TYPES = %w[file_path raw_text].freeze
 
-      def call(params:, notify:)
+      def initialize(params:, notify:)
+        @input = params.fetch(:input)
+        @notify = notify
+      end
+
+      def call
         validate_config!
 
-        input = params.fetch(:input)
-
         notify.call(stage: "convert")
-        conversion = convert(input, notify)
+        conversion = convert
 
         notify.call(stage: "persist")
         blob = persist(conversion)
@@ -30,20 +33,22 @@ module Autodidact
 
       private
 
+      attr_reader :input, :notify
+
       def validate_config!
         raise "Configuration is incomplete. Run setup first." unless Autodidact.config.ready?
       end
 
-      def convert(input, notify)
-        input_type = detect_input_type(input)
+      def convert
+        input_type = detect_input_type
 
         case input_type
-        when "file_path" then convert_file(input, notify)
-        when "raw_text" then convert_raw_text(input)
+        when "file_path" then convert_file
+        when "raw_text" then convert_raw_text
         end
       end
 
-      def detect_input_type(input)
+      def detect_input_type
         result = Commands::DetectInputType.call(input: input)
         input_type = result.payload[:input_type]
 
@@ -55,8 +60,8 @@ module Autodidact
         input_type
       end
 
-      def convert_file(path, notify)
-        source = detect_source(path, notify)
+      def convert_file
+        source = detect_source
 
         case source[:source_type]
         when "text"
@@ -73,18 +78,18 @@ module Autodidact
         result.payload
       end
 
-      def detect_source(path, notify)
-        result = Commands::DetectSource.call(params: {path: path}, notify: notify)
+      def detect_source
+        result = Commands::DetectSource.call(params: {path: input}, notify: notify)
         raise StandardError, result.error[:message] if result.failure?
 
         result.payload
       end
 
-      def convert_raw_text(text)
+      def convert_raw_text
         timestamp = Time.now.strftime("%Y-%m-%d")
 
         ConversionResult.new(
-          raw_text: text,
+          raw_text: input,
           source_path: nil,
           source_type: "text",
           selection_kind: "full",

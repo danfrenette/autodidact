@@ -2,8 +2,8 @@
 
 module Autodidact
   module Commands
-    class Ping < Command
-      def call(params:, notify:)
+    class Ping < Query
+      def call
         success(payload: {status: "ok", version: Autodidact::VERSION})
       end
     end

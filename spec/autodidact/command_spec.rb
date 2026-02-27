@@ -8,7 +8,10 @@ RSpec.describe Autodidact::Command do
   describe ".call" do
     it "rescues StandardError into a failure result" do
       stub_const("TestCommand", Class.new(described_class) do
-        def call(params:, notify:)
+        def initialize(params:, notify:)
+        end
+
+        def call
           raise StandardError, "boom"
         end
       end)

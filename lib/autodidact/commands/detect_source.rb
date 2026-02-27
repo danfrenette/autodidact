@@ -5,7 +5,6 @@ module Autodidact
     class DetectSource < Command
       class FileNotFound < StandardError; end
       class UnsupportedFileType < StandardError; end
-
       EXTENSION_MAP = {
         ".txt" => "text",
         ".md" => "text",
@@ -13,48 +12,52 @@ module Autodidact
         ".pdf" => "pdf"
       }.freeze
 
-      def call(params:, notify:)
-        path = normalize_path(params.fetch(:path))
-        validate_path!(path)
-        source_type = detect_type!(path)
+      def initialize(params:, **)
+        @path = normalize_path(params.fetch(:path))
+      end
 
+      def call
+        validate_path!
+        source_type = detect_type!
         success(payload: {
           path: path,
           source_type: source_type,
-          metadata: build_metadata(path, source_type)
+          metadata: build_metadata(source_type)
         })
       end
 
       private
 
+      attr_reader :path
+
       def normalize_path(path)
         File.expand_path(path)
       end
 
-      def validate_path!(path)
+      def validate_path!
         raise FileNotFound, "File not found: #{path}" unless File.file?(path)
       end
 
-      def detect_type!(path)
+      def detect_type!
         ext = File.extname(path).downcase
         EXTENSION_MAP.fetch(ext) do
           raise UnsupportedFileType, "Unsupported file type: #{ext}"
         end
       end
 
-      def build_metadata(path, source_type)
+      def build_metadata(source_type)
         case source_type
-        when "text" then text_metadata(path)
-        when "pdf" then pdf_metadata(path)
+        when "text" then text_metadata
+        when "pdf" then pdf_metadata
         else {}
         end
       end
 
-      def text_metadata(path)
+      def text_metadata
         {line_count: File.foreach(path).count}
       end
 
-      def pdf_metadata(path)
+      def pdf_metadata
         {file_size: File.size(path)}
       end
     end
