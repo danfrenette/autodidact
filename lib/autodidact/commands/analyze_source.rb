@@ -10,6 +10,7 @@ module Autodidact
 
       def initialize(params:, notify:)
         @input = params.fetch(:input)
+        @chapter = params[:chapter]
         @notify = notify
       end
 
@@ -18,6 +19,7 @@ module Autodidact
 
         notify.call(stage: "convert")
         conversion = convert
+        return success(payload: conversion.to_wire) unless conversion.continue?
 
         notify.call(stage: "persist")
         blob = persist(conversion)
@@ -28,12 +30,12 @@ module Autodidact
         notify.call(stage: "write")
         note_path = render_and_write(conversion, content)
 
-        success(payload: {note_path: note_path.to_s, source_blob_id: blob.id})
+        success(payload: completed_payload(note_path, blob))
       end
 
       private
 
-      attr_reader :input, :notify
+      attr_reader :input, :chapter, :notify
 
       def validate_config!
         raise "Configuration is incomplete. Run setup first." unless Autodidact.config.ready?
@@ -67,12 +69,19 @@ module Autodidact
         when "text"
           convert_text(source)
         when "pdf"
-          raise UnsupportedSourceType, "PDF conversion is not yet implemented"
+          convert_pdf(source)
         end
       end
 
       def convert_text(source)
         result = Convert::TextConverter.call(path: source[:path], source_type: source[:source_type])
+        raise StandardError, result.error[:message] if result.failure?
+
+        result.payload
+      end
+
+      def convert_pdf(source)
+        result = Convert::PdfConverter.call(path: source[:path], source_type: source[:source_type], chapter: chapter)
         raise StandardError, result.error[:message] if result.failure?
 
         result.payload
@@ -125,6 +134,13 @@ module Autodidact
           filename: conversion.note_filename,
           rendered_content: rendered
         )
+      end
+
+      def completed_payload(note_path, blob)
+        Commands::Payloads::CompletedAnalysis.new(
+          note_path: note_path.to_s,
+          source_blob_id: blob.id
+        ).to_wire
       end
     end
   end

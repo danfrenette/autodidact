@@ -39,18 +39,34 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
     end
   end
 
-  describe "PDF rejection" do
-    it "returns a failure for PDF files" do
-      file = Tempfile.new(["sample", ".pdf"])
-      file.write("fake pdf")
-      file.flush
+  describe "PDF with table of contents" do
+    it "returns pending_selection when no chapter is specified" do
+      result = described_class.call(
+        params: {input: "The Art of Doing Science and Engineering.pdf"},
+        notify: notify
+      )
 
-      result = described_class.call(params: {input: file.path}, notify: notify)
+      expect(result).to be_success
+      expect(result.payload[:status]).to eq("pending_selection")
+      expect(result.payload[:chapters]).not_to be_empty
+    end
 
-      expect(result.payload).to be_nil
-      expect(result.error[:message]).to include("PDF conversion is not yet implemented")
-    ensure
-      file.close!
+    it "returns completed when chapter is specified" do
+      allow(Autodidact::Storage::PersistSourceBlob).to receive(:call).and_return(blob)
+      allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call).and_return("## Notes")
+
+      result = described_class.call(
+        params: {
+          input: "The Art of Doing Science and Engineering.pdf",
+          chapter: {title: "Introduction", page: 9}
+        },
+        notify: notify
+      )
+
+      expect(result).to be_success
+      expect(result.payload[:status]).to eq("completed")
+      expect(result.payload[:note_path]).to end_with(".md")
+      expect(result.payload[:source_blob_id]).to eq(42)
     end
   end
 

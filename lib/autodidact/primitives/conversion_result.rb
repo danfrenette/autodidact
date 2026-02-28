@@ -8,5 +8,9 @@ module Autodidact
     :selection_kind,
     :selection_payload,
     :note_filename
-  )
+  ) do
+    def continue?
+      true
+    end
+  end
 end
