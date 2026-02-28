@@ -1,6 +1,6 @@
 import { createCliRenderer } from "@opentui/core";
 import { createRoot, useKeyboard, useRenderer } from "@opentui/react";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { Backend } from "@/backend.ts";
 import { useBackend } from "@/hooks/use-backend.ts";
@@ -11,7 +11,7 @@ import { FileInput } from "@/screens/input/index.tsx";
 import { Setup } from "@/screens/setup/index.tsx";
 
 function AppContent() {
-  const { state, analyzeSource, cancelRequest, updateConfig, setFileInputProvider, setFileInputModel, shutdown } = useBackend();
+  const { state, analyzeSource, cancelRequest, updateConfig, setFileInputProvider, setFileInputModel, selectChapterUp, selectChapterDown, confirmChapter, cancelChapter, shutdown } = useBackend();
   const onboarding = useOnboardingContext();
   const renderer = useRenderer();
   const [inputValue, setInputValue] = useState("");
@@ -21,23 +21,25 @@ function AppContent() {
     void shutdown();
   }, [renderer, shutdown]);
 
+  const selectingChapter = state.name === "file-input" && state.status === "selecting-chapter";
   useKeyboard((key) => {
     if (state.name !== "file-input") {
       return;
     }
 
-    if (key.name === "escape") {
+    if (key.name === "escape" && !selectingChapter) {
       handleExit();
     }
-
     if (key.name === "c" && key.ctrl) {
       onboarding.onCancelUsed();
-
+      if (selectingChapter) {
+        cancelChapter();
+        return;
+      }
       if (state.status === "submitting") {
         cancelRequest();
         return;
       }
-
       if (inputValue.length > 0) {
         setInputValue("");
         return;
@@ -50,6 +52,21 @@ function AppContent() {
   const handleFileSubmit = useCallback(async (path: string) => {
     await analyzeSource(path);
   }, [analyzeSource]);
+
+  const chapterSelection = useMemo(() => {
+    if (state.name !== "file-input" || state.status !== "selecting-chapter") {
+      return null;
+    }
+
+    return {
+      chapters: state.chapters,
+      selectedIndex: state.selectedIndex,
+      onUp: selectChapterUp,
+      onDown: selectChapterDown,
+      onConfirm: confirmChapter,
+      onCancel: cancelChapter,
+    };
+  }, [state, selectChapterUp, selectChapterDown, confirmChapter, cancelChapter]);
 
   switch (state.name) {
     case "setup-form":
@@ -83,6 +100,7 @@ function AppContent() {
           onModelChange={setFileInputModel}
           value={inputValue}
           onInput={setInputValue}
+          chapterSelection={chapterSelection}
         />
       );
   }

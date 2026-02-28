@@ -12,7 +12,7 @@ function obsidianUri(notePath: string): string {
 }
 
 export function OutputModal({ visible, result, onClose }: Props) {
-  if (!visible || !result) {
+  if (!visible || !result || result.status !== "completed") {
     return null;
   }
 

@@ -7,13 +7,14 @@ import { useCallback, useMemo, useState } from "react";
 import { useFilePathAutocomplete } from "@/hooks/use-file-path-autocomplete";
 import { useFileInputOnboarding } from "@/onboarding/file-input/use-file-input-onboarding";
 import { onboardingHint } from "@/onboarding/types";
-import type { AnalysisResult } from "@/requests/analyze-source";
+import type { AnalysisResult, Chapter } from "@/requests/analyze-source";
 import { resolveAvailableModels } from "@/screens/setup/models";
 import { resolveAvailableProviders } from "@/screens/setup/providers";
 import { useCombobox } from "@/screens/setup/wizard/use-combobox";
 
 import { OnboardingFirstRun } from "./onboarding-first-run";
 import { OnboardingNudge } from "./onboarding-nudge";
+import { ChapterSelectionSection } from "./sections/chapter-selection-section";
 import { InputSection } from "./sections/input-section";
 import { OutputModal } from "./sections/output-modal";
 import { TagsSection } from "./sections/tags-section";
@@ -21,6 +22,14 @@ import { PANEL_WIDTH } from "./styles";
 import { useInputBadges } from "./use-badges";
 import { useModelPickerDisclosure } from "./use-model-picker-disclosure";
 
+type ChapterSelectionState = {
+  chapters: Chapter[];
+  selectedIndex: number;
+  onUp: () => void;
+  onDown: () => void;
+  onConfirm: () => void;
+  onCancel: () => void;
+};
 type Props = {
   onSubmit: (path: string) => void;
   lastResult: AnalysisResult | null;
@@ -35,6 +44,7 @@ type Props = {
   onModelChange: (model: string) => void;
   value: string;
   onInput: (value: string) => void;
+  chapterSelection: ChapterSelectionState | null;
 };
 
 const STAGE_LABELS: Record<string, string> = {
@@ -85,6 +95,7 @@ export function FileInput({
   onModelChange,
   value,
   onInput,
+  chapterSelection,
 }: Props) {
   const [validationError, setValidationError] = useState<string | null>(null);
   const [showOutputModal, setShowOutputModal] = useState(false);
@@ -128,42 +139,62 @@ export function FileInput({
   const detectedBadgeLabel = `${badges.inputBadge.supported ? "✓" : "✕"} ${badges.inputBadge.label}`;
 
   useKeyboard((key) => {
+    if (chapterSelection) {
+      if (key.name === "up") {
+        key.preventDefault();
+        chapterSelection.onUp();
+        return;
+      }
+
+      if (key.name === "down") {
+        key.preventDefault();
+        chapterSelection.onDown();
+        return;
+      }
+
+      if (key.name === "return") {
+        key.preventDefault();
+        chapterSelection.onConfirm();
+        return;
+      }
+
+      if (key.name === "escape") {
+        key.preventDefault();
+        chapterSelection.onCancel();
+        return;
+      }
+
+      return;
+    }
     if (showOutputModal && (key.name === "escape" || key.name === "return")) {
       key.preventDefault();
       setShowOutputModal(false);
       return;
     }
-
     if (autocomplete.handleKey(key)) {
       return;
     }
-
     if (modelPicker.isOpen) {
       if (activePicker === "provider" && providerCombobox.handleKey(key)) {
         return;
       }
-
       if (activePicker === "model" && modelCombobox.handleKey(key)) {
         return;
       }
-
       if (key.name === "backtab" || (key.name === "tab" && key.shift)) {
         key.preventDefault();
         setActivePicker((current) => (current === "provider" ? "model" : "provider"));
         return;
       }
-
       if (key.name === "tab") {
         key.preventDefault();
         setActivePicker((current) => (current === "provider" ? "model" : "provider"));
         return;
       }
     }
-
     if (modelPicker.handleKeyboard(key)) {
       return;
     }
-
     onboarding.handleKeyboard(key);
   });
 
@@ -234,24 +265,32 @@ export function FileInput({
         </box>
       )}
 
-      <InputSection
-        value={value}
-        submitting={submitting}
-        onInput={handleInput}
-        onSubmit={handleSubmit}
-        badgeLabel={detectedBadgeLabel}
-        badgeSupported={badges.inputBadge.supported}
-        model={model}
-        provider={provider}
-        modelPickerExpanded={modelPicker.isOpen}
-        onProviderPress={handleProviderPress}
-        onModelPress={handleModelPress}
-        onChevronPress={handleChevronPress}
-        providerCombobox={{ ...providerCombobox, focused: modelPicker.isOpen && activePicker === "provider" }}
-        modelCombobox={{ ...modelCombobox, focused: modelPicker.isOpen && activePicker === "model" }}
-        autocompleteState={autocomplete.state}
-        width={PANEL_WIDTH}
-      />
+      {chapterSelection ? (
+        <ChapterSelectionSection
+          chapters={chapterSelection.chapters}
+          selectedIndex={chapterSelection.selectedIndex}
+          width={PANEL_WIDTH}
+        />
+      ) : (
+        <InputSection
+          value={value}
+          submitting={submitting}
+          onInput={handleInput}
+          onSubmit={handleSubmit}
+          badgeLabel={detectedBadgeLabel}
+          badgeSupported={badges.inputBadge.supported}
+          model={model}
+          provider={provider}
+          modelPickerExpanded={modelPicker.isOpen}
+          onProviderPress={handleProviderPress}
+          onModelPress={handleModelPress}
+          onChevronPress={handleChevronPress}
+          providerCombobox={{ ...providerCombobox, focused: modelPicker.isOpen && activePicker === "provider" }}
+          modelCombobox={{ ...modelCombobox, focused: modelPicker.isOpen && activePicker === "model" }}
+          autocompleteState={autocomplete.state}
+          width={PANEL_WIDTH}
+        />
+      )}
 
       <TagsSection
         hasResult={lastResult !== null}
@@ -310,7 +349,9 @@ export function FileInput({
 
         {!submitting && (
           <text fg="#808080">
-            {autocomplete.query !== null ? "↑/↓ browse, Tab/Enter choose" : "input ready"}
+            {chapterSelection
+              ? "Up/Down navigate, Enter select, Esc cancel"
+              : autocomplete.query !== null ? "\u2191/\u2193 browse, Tab/Enter choose" : "input ready"}
           </text>
         )}
       </box>
