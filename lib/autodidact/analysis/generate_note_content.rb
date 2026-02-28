@@ -2,21 +2,18 @@
 
 module Autodidact
   module Analysis
-    class GenerateNoteContent
+    class GenerateNoteContent < Command
       class ProviderError < StandardError; end
-
-      def self.call(raw_text:)
-        new(raw_text: raw_text).call
-      end
 
       def initialize(raw_text:)
         @raw_text = raw_text
       end
 
       def call
-        client.chat(prompt: FixedPrompt.call(raw_text: raw_text))
-      rescue => e
-        raise ProviderError, "Provider analysis failed: #{e.message}"
+        content = client.chat(prompt: FixedPrompt.call(raw_text: raw_text))
+        success(payload: content)
+      rescue ProviderError => e
+        failure(e)
       end
 
       private
@@ -24,7 +21,10 @@ module Autodidact
       attr_reader :raw_text
 
       def client
-        Provider::ClientFor.call(config: Autodidact.config)
+        result = Provider::ClientFor.call(config: Autodidact.config)
+        raise ProviderError, result.error[:message] if result.failure?
+
+        result.payload
       end
     end
   end

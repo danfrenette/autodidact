@@ -5,6 +5,8 @@ require "openai"
 module Autodidact
   module Provider
     class OpenaiClient
+      class ProviderError < StandardError; end
+
       def initialize(access_token:, model:)
         @client = OpenAI::Client.new(access_token: access_token)
         @model = model
@@ -25,7 +27,7 @@ module Autodidact
 
       def extract_content(response)
         content = response.dig("choices", 0, "message", "content")
-        raise StandardError, "Provider returned empty content" if blank?(content)
+        raise ProviderError, "Provider returned empty content" if blank?(content)
 
         content
       end
