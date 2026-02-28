@@ -2,7 +2,10 @@ import { spawn } from "bun";
 import { resolve } from "path";
 
 import type { OnboardingPersistedState } from "@/onboarding/types";
-import type { AnalysisResult } from "@/requests/analyze-source/index.ts";
+import type {
+  AnalysisResult,
+  Chapter,
+} from "@/requests/analyze-source/index.ts";
 import * as analyzeSourceRequest from "@/requests/analyze-source/index.ts";
 import type { SourceInfo } from "@/requests/detect-source/index.ts";
 import * as detectSourceRequest from "@/requests/detect-source/index.ts";
@@ -60,8 +63,9 @@ export class Backend {
     return detectSourceRequest.toSourceInfo(wire);
   }
 
-  async analyzeSource(input: string): Promise<AnalysisResult> {
-    const result = await this.send(analyzeSourceRequest.method, { input });
+  async analyzeSource(input: string, chapter?: Chapter): Promise<AnalysisResult> {
+    const params = chapter ? { input, chapter } : { input };
+    const result = await this.send(analyzeSourceRequest.method, params);
     const wire = analyzeSourceRequest.decode(result);
     return analyzeSourceRequest.toAnalysisResult(wire);
   }
