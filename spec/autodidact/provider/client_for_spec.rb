@@ -23,6 +23,16 @@ RSpec.describe Autodidact::Provider::ClientFor do
       end
     end
 
+    context "when provider is 'anthropic'" do
+      let(:provider) { "anthropic" }
+
+      it "returns an AnthropicClient instance" do
+        result = described_class.call(config: config)
+
+        expect(result).to be_a(Autodidact::Provider::AnthropicClient)
+      end
+    end
+
     context "when provider is 'dev'" do
       let(:provider) { "dev" }
 
@@ -43,6 +53,12 @@ RSpec.describe Autodidact::Provider::ClientFor do
           described_class::UnknownProviderError,
           /Unknown provider: "unknown"/
         )
+      end
+
+      it "raises a subclass of ProviderError" do
+        expect do
+          described_class.call(config: config)
+        end.to raise_error(Autodidact::Provider::ProviderError)
       end
     end
   end

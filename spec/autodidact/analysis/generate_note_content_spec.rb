@@ -4,11 +4,10 @@ require "spec_helper"
 
 RSpec.describe Autodidact::Analysis::GenerateNoteContent do
   let(:client) { instance_double(Autodidact::Provider::OpenaiClient) }
-  let(:client_result) { success_result(client) }
   let(:prompt) { "stubbed prompt content" }
 
   before do
-    allow(Autodidact::Provider::ClientFor).to receive(:call).and_return(client_result)
+    allow(Autodidact::Provider::ClientFor).to receive(:call).and_return(client)
     allow(Autodidact::Analysis::FixedPrompt).to receive(:call).and_return(prompt)
   end
 
@@ -24,12 +23,22 @@ RSpec.describe Autodidact::Analysis::GenerateNoteContent do
 
     it "returns a failure result when the provider raises ProviderError" do
       allow(client).to receive(:chat)
-        .and_raise(Autodidact::Analysis::GenerateNoteContent::ProviderError, "rate limited")
+        .and_raise(Autodidact::Provider::ProviderError, "rate limited")
 
       result = described_class.call(raw_text: "hello")
 
       expect(result).to be_failure
       expect(result.error[:message]).to include("rate limited")
+    end
+
+    it "returns a failure result when ClientFor raises UnknownProviderError" do
+      allow(Autodidact::Provider::ClientFor).to receive(:call)
+        .and_raise(Autodidact::Provider::ClientFor::UnknownProviderError, 'Unknown provider: "bogus"')
+
+      result = described_class.call(raw_text: "hello")
+
+      expect(result).to be_failure
+      expect(result.error[:message]).to include("Unknown provider")
     end
   end
 end

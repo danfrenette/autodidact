@@ -5,8 +5,6 @@ require "openai"
 module Autodidact
   module Provider
     class OpenaiClient
-      class ProviderError < StandardError; end
-
       def initialize(access_token:, model:)
         @client = OpenAI::Client.new(access_token: access_token)
         @model = model
@@ -15,6 +13,8 @@ module Autodidact
       def chat(prompt:)
         response = client.chat(parameters: parameters(prompt))
         extract_content(response)
+      rescue Faraday::Error => e
+        raise ProviderError, e.message
       end
 
       private

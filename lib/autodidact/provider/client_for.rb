@@ -3,12 +3,7 @@
 module Autodidact
   module Provider
     class ClientFor
-      class UnknownProviderError < StandardError; end
-
-      REGISTRY = {
-        "openai" => OpenaiClient,
-        "dev" => DevClient
-      }.freeze
+      class UnknownProviderError < ProviderError; end
 
       def self.call(config:)
         new(config: config).call
@@ -30,9 +25,17 @@ module Autodidact
       attr_reader :config
 
       def client_class
-        REGISTRY.fetch(config.provider) do
-          raise UnknownProviderError, "Unknown provider: #{config.provider.inspect}"
-        end
+        raise UnknownProviderError unless definition_supported?
+
+        definition.runtime_client_class
+      end
+
+      def definition
+        @definition ||= Config::Providers::Catalog.fetch(config.provider)
+      end
+
+      def definition_supported?
+        definition.present? && definition.runtime_client_class.present?
       end
     end
   end

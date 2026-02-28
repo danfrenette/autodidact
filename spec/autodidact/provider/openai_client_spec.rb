@@ -21,32 +21,32 @@ RSpec.describe Autodidact::Provider::OpenaiClient do
       expect(result).to eq("## Summary\n- note")
     end
 
-    it "raises when OpenAI returns empty content" do
+    it "raises ProviderError when OpenAI returns empty content" do
       allow(openai_client).to receive(:chat).and_return(
         "choices" => [{"message" => {"content" => ""}}]
       )
 
       expect do
         client.chat(prompt: "test")
-      end.to raise_error(StandardError, /Provider returned empty content/)
+      end.to raise_error(Autodidact::Provider::ProviderError, /Provider returned empty content/)
     end
 
-    it "raises when OpenAI returns nil content" do
+    it "raises ProviderError when OpenAI returns nil content" do
       allow(openai_client).to receive(:chat).and_return(
         "choices" => [{"message" => {"content" => nil}}]
       )
 
       expect do
         client.chat(prompt: "test")
-      end.to raise_error(StandardError, /Provider returned empty content/)
+      end.to raise_error(Autodidact::Provider::ProviderError, /Provider returned empty content/)
     end
 
-    it "wraps client errors" do
-      allow(openai_client).to receive(:chat).and_raise(StandardError, "rate limited")
+    it "wraps Faraday errors in ProviderError" do
+      allow(openai_client).to receive(:chat).and_raise(Faraday::ConnectionFailed, "connection refused")
 
       expect do
         client.chat(prompt: "test")
-      end.to raise_error(StandardError, /rate limited/)
+      end.to raise_error(Autodidact::Provider::ProviderError, /connection refused/)
     end
   end
 end

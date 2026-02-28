@@ -29,7 +29,7 @@ module Autodidact
               id: "anthropic",
               label: "Anthropic",
               setup_visible: true,
-              runtime_client_class: nil,
+              runtime_client_class: Provider::AnthropicClient,
               model_options_loader: -> { ModelOptions.call(provider_id: :anthropic) }
             ),
             ProviderDefinition.new(

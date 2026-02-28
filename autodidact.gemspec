@@ -14,10 +14,11 @@ Gem::Specification.new do |spec|
   spec.bindir = "bin"
   spec.executables = ["autodidact"]
 
+  spec.add_dependency "anthropic"
+  spec.add_dependency "base64"
   spec.add_dependency "dotenv"
   spec.add_dependency "faraday"
   spec.add_dependency "hexapdf"
-  spec.add_dependency "pdf-reader"
   spec.add_dependency "pg"
   spec.add_dependency "ruby-openai"
   spec.add_dependency "sequel"
