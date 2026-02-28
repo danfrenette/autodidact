@@ -11,7 +11,7 @@ import { FileInput } from "@/screens/input/index.tsx";
 import { Setup } from "@/screens/setup/index.tsx";
 
 function AppContent() {
-  const { state, analyzeSource, cancelRequest, updateConfig, shutdown } = useBackend();
+  const { state, analyzeSource, cancelRequest, updateConfig, setFileInputProvider, setFileInputModel, shutdown } = useBackend();
   const onboarding = useOnboardingContext();
   const renderer = useRenderer();
   const [inputValue, setInputValue] = useState("");
@@ -77,6 +77,10 @@ function AppContent() {
           error={state.status === "error" ? state.error : null}
           provider={state.provider}
           model={state.model}
+          providerOptions={state.providerOptions}
+          providerModelOptions={state.providerModelOptions}
+          onProviderChange={setFileInputProvider}
+          onModelChange={setFileInputModel}
           value={inputValue}
           onInput={setInputValue}
         />
@@ -107,6 +111,8 @@ const initialState: AppFlowState =
       error: null,
       provider: status.prefill.provider,
       model: status.prefill.modelId,
+      providerOptions: status.providerOptions,
+      providerModelOptions: status.providerModelOptions,
     }
     : {
       name: "setup-form",

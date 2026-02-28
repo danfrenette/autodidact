@@ -10,6 +10,12 @@ export const inputStyles = {
   label: "#6f7887",
   value: "#d9deea",
   muted: "#8f97a5",
+  comboboxMenuBorder: "#2c3744",
+  comboboxMenuBackground: "#101722",
+  comboboxRowText: "#cfd6e3",
+  comboboxRowHighlightBackground: "#1b2533",
+  comboboxRowHighlightText: "#f1f5fc",
+  comboboxRowHighlightMarker: "#63d389",
 } as const;
 
 export const modalStyles = {

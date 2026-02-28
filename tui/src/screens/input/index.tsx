@@ -2,14 +2,16 @@ import "opentui-spinner/react";
 
 import type { BorderCharacters } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { useFilePathAutocomplete } from "@/hooks/use-file-path-autocomplete";
 import { useFileInputOnboarding } from "@/onboarding/file-input/use-file-input-onboarding";
 import { onboardingHint } from "@/onboarding/types";
 import type { AnalysisResult } from "@/requests/analyze-source";
+import { resolveAvailableModels } from "@/screens/setup/models";
+import { resolveAvailableProviders } from "@/screens/setup/providers";
+import { useCombobox } from "@/screens/setup/wizard/use-combobox";
 
-import { FilePathAutocomplete } from "./file-path-autocomplete";
 import { OnboardingFirstRun } from "./onboarding-first-run";
 import { OnboardingNudge } from "./onboarding-nudge";
 import { InputSection } from "./sections/input-section";
@@ -27,6 +29,10 @@ type Props = {
   error: string | null;
   provider: string;
   model: string;
+  providerOptions: string[];
+  providerModelOptions: Record<string, string[]>;
+  onProviderChange: (provider: string) => void;
+  onModelChange: (model: string) => void;
   value: string;
   onInput: (value: string) => void;
 };
@@ -65,13 +71,57 @@ function accentColor(submitting: boolean, lastResult: AnalysisResult | null, err
   return "#fab283";
 }
 
-export function FileInput({ onSubmit, lastResult, submitting, stage, error: backendError, provider, model, value, onInput }: Props) {
+export function FileInput({
+  onSubmit,
+  lastResult,
+  submitting,
+  stage,
+  error: backendError,
+  provider,
+  model,
+  providerOptions,
+  providerModelOptions,
+  onProviderChange,
+  onModelChange,
+  value,
+  onInput,
+}: Props) {
   const [validationError, setValidationError] = useState<string | null>(null);
   const [showOutputModal, setShowOutputModal] = useState(false);
+  const [activePicker, setActivePicker] = useState<"provider" | "model">("model");
   const modelPicker = useModelPickerDisclosure({ disabled: submitting });
   const autocomplete = useFilePathAutocomplete({ value, onInput, submitting });
   const onboarding = useFileInputOnboarding({ inputValue: value, submitting });
   const badges = useInputBadges(value);
+
+  const resolvedProviderOptions = useMemo(
+    () => resolveAvailableProviders(providerOptions),
+    [providerOptions],
+  );
+
+  const resolvedModelOptions = useMemo(
+    () => resolveAvailableModels(providerModelOptions[provider] ?? []),
+    [provider, providerModelOptions],
+  );
+
+  const providerCombobox = useCombobox({
+    options: resolvedProviderOptions,
+    selectedValue: provider,
+    focused: modelPicker.isOpen && activePicker === "provider",
+    onCommit: (nextValue) => {
+      onProviderChange(nextValue);
+      setActivePicker("model");
+    },
+  });
+
+  const modelCombobox = useCombobox({
+    options: resolvedModelOptions,
+    selectedValue: model,
+    focused: modelPicker.isOpen && activePicker === "model",
+    onCommit: (nextValue) => {
+      onModelChange(nextValue);
+    },
+  });
 
   const error = validationError ?? backendError;
   const highlight = accentColor(submitting, lastResult, error);
@@ -86,6 +136,28 @@ export function FileInput({ onSubmit, lastResult, submitting, stage, error: back
 
     if (autocomplete.handleKey(key)) {
       return;
+    }
+
+    if (modelPicker.isOpen) {
+      if (activePicker === "provider" && providerCombobox.handleKey(key)) {
+        return;
+      }
+
+      if (activePicker === "model" && modelCombobox.handleKey(key)) {
+        return;
+      }
+
+      if (key.name === "backtab" || (key.name === "tab" && key.shift)) {
+        key.preventDefault();
+        setActivePicker((current) => (current === "provider" ? "model" : "provider"));
+        return;
+      }
+
+      if (key.name === "tab") {
+        key.preventDefault();
+        setActivePicker((current) => (current === "provider" ? "model" : "provider"));
+        return;
+      }
     }
 
     if (modelPicker.handleKeyboard(key)) {
@@ -129,6 +201,26 @@ export function FileInput({ onSubmit, lastResult, submitting, stage, error: back
     onInput(nextValue);
   }, [onInput, onboarding, showOutputModal, validationError]);
 
+  const handleProviderPress = useCallback(() => {
+    setActivePicker("provider");
+    modelPicker.open();
+  }, [modelPicker]);
+
+  const handleModelPress = useCallback(() => {
+    setActivePicker("model");
+    modelPicker.open();
+  }, [modelPicker]);
+
+  const handleChevronPress = useCallback(() => {
+    if (modelPicker.isOpen) {
+      modelPicker.close();
+      return;
+    }
+
+    setActivePicker("model");
+    modelPicker.open();
+  }, [modelPicker]);
+
   return (
     <box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1}>
       <OnboardingFirstRun visible={onboarding.showFirstRunPanel} width={PANEL_WIDTH} />
@@ -152,11 +244,14 @@ export function FileInput({ onSubmit, lastResult, submitting, stage, error: back
         model={model}
         provider={provider}
         modelPickerExpanded={modelPicker.isOpen}
-        onModelPickerPress={modelPicker.toggle}
+        onProviderPress={handleProviderPress}
+        onModelPress={handleModelPress}
+        onChevronPress={handleChevronPress}
+        providerCombobox={{ ...providerCombobox, focused: modelPicker.isOpen && activePicker === "provider" }}
+        modelCombobox={{ ...modelCombobox, focused: modelPicker.isOpen && activePicker === "model" }}
+        autocompleteState={autocomplete.state}
         width={PANEL_WIDTH}
       />
-
-      <FilePathAutocomplete visible={autocomplete.visible} state={autocomplete.state} width={PANEL_WIDTH} />
 
       <TagsSection
         hasResult={lastResult !== null}
