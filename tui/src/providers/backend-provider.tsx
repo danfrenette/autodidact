@@ -3,7 +3,10 @@ import { createContext, useCallback, useEffect, useMemo, useReducer, useRef } fr
 
 import { Backend } from "@/backend.ts";
 import type { OnboardingPersistedState } from "@/onboarding/types";
-import type { AnalysisResult } from "@/requests/analyze-source/index.ts";
+import type {
+  AnalysisResult,
+  Chapter,
+} from "@/requests/analyze-source/index.ts";
 import type { SetupStatus } from "@/requests/setup-status/index.ts";
 import type { ConfigParams } from "@/requests/update-config/index.ts";
 
@@ -44,7 +47,8 @@ type FileInputBase = {
 
 type FileInputState =
   | ({ name: "file-input"; status: "idle"; lastResult: AnalysisResult | null; error: null } & FileInputBase)
-  | ({ name: "file-input"; status: "submitting"; lastResult: AnalysisResult | null; requestId: number; stage: string | null; error: null } & FileInputBase)
+  | ({ name: "file-input"; status: "submitting"; lastResult: AnalysisResult | null; requestId: number; stage: string | null; error: null; pendingInput: string; pendingChapter?: Chapter } & FileInputBase)
+  | ({ name: "file-input"; status: "selecting-chapter"; lastResult: AnalysisResult | null; input: string; chapters: Chapter[]; selectedIndex: number; error: null } & FileInputBase)
   | ({ name: "file-input"; status: "error"; lastResult: AnalysisResult | null; error: string } & FileInputBase);
 
 export type AppFlowState =
@@ -55,11 +59,16 @@ type Action =
   | { type: "setup-ready"; provider: string; model: string }
   | { type: "setup-save" }
   | { type: "setup-save-failed"; message: string; missingFields?: string[] }
-  | { type: "submit"; requestId: number }
+  | { type: "submit"; requestId: number; input: string; chapter?: Chapter }
   | { type: "progress"; requestId: number; stage: string }
   | { type: "success"; requestId: number; result: AnalysisResult }
+  | { type: "pending-selection"; requestId: number; input: string; chapters: Chapter[] }
   | { type: "failure"; requestId: number; message: string }
   | { type: "cancel" }
+  | { type: "chapter-up" }
+  | { type: "chapter-down" }
+  | { type: "chapter-confirm"; requestId: number }
+  | { type: "chapter-cancel" }
   | { type: "file-input-provider-changed"; provider: string }
   | { type: "file-input-model-changed"; model: string };
 
@@ -139,6 +148,8 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
         requestId: action.requestId,
         stage: null,
         error: null,
+        pendingInput: action.input,
+        pendingChapter: action.chapter,
         provider: state.name === "file-input" ? state.provider : state.prefill.provider,
         model: state.name === "file-input" ? state.model : state.prefill.modelId,
         ...options,
@@ -150,6 +161,25 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
       }
 
       return { ...state, stage: action.stage };
+    case "pending-selection":
+      if (!isActiveRequest(state, action.requestId)) {
+        return state;
+      }
+
+      return {
+        name: "file-input",
+        status: "selecting-chapter",
+        lastResult: lastResultFrom(state),
+        input: action.input,
+        chapters: action.chapters,
+        selectedIndex: 0,
+        error: null,
+        provider: state.provider,
+        model: state.model,
+        providerOptions: state.providerOptions,
+        providerModelOptions: state.providerModelOptions,
+      };
+
     case "success":
       if (!isActiveRequest(state, action.requestId)) {
         return state;
@@ -181,7 +211,59 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
         providerModelOptions: state.providerModelOptions,
       };
     case "cancel":
-      if (state.name !== "file-input" || state.status !== "submitting") {
+      if (state.name !== "file-input" || (state.status !== "submitting" && state.status !== "selecting-chapter")) {
+        return state;
+      }
+
+      return {
+        name: "file-input",
+        status: "idle",
+        lastResult: lastResultFrom(state),
+        error: null,
+        provider: state.provider,
+        model: state.model,
+        providerOptions: state.providerOptions,
+        providerModelOptions: state.providerModelOptions,
+      };
+
+    case "chapter-up":
+      if (state.name !== "file-input" || state.status !== "selecting-chapter") {
+        return state;
+      }
+
+      return {
+        ...state,
+        selectedIndex: state.selectedIndex > 0 ? state.selectedIndex - 1 : state.chapters.length - 1,
+      };
+
+    case "chapter-down":
+      if (state.name !== "file-input" || state.status !== "selecting-chapter") {
+        return state;
+      }
+
+      return {
+        ...state,
+        selectedIndex: state.selectedIndex < state.chapters.length - 1 ? state.selectedIndex + 1 : 0,
+      };
+
+    case "chapter-confirm":
+      if (state.name !== "file-input" || state.status !== "selecting-chapter") {
+        return state;
+      }
+
+      return {
+        ...state,
+        status: "submitting",
+        lastResult: lastResultFrom(state),
+        requestId: action.requestId,
+        stage: null,
+        error: null,
+        pendingInput: state.input,
+        pendingChapter: state.chapters[state.selectedIndex],
+      };
+
+    case "chapter-cancel":
+      if (state.name !== "file-input" || state.status !== "selecting-chapter") {
         return state;
       }
 
@@ -230,6 +312,10 @@ export type BackendContextValue = {
   updateConfig: (params: ConfigParams) => Promise<void>;
   setFileInputProvider: (provider: string) => void;
   setFileInputModel: (model: string) => void;
+  selectChapterUp: () => void;
+  selectChapterDown: () => void;
+  confirmChapter: () => void;
+  cancelChapter: () => void;
   shutdown: () => Promise<void>;
 };
 
@@ -276,18 +362,22 @@ export function BackendProvider({ backend, initialState, initialOnboardingState,
   }, [backend]);
 
   const analyzeSource = useCallback(
-    async (input: string) => {
+    async (input: string, chapter?: Chapter) => {
       const requestId = activeRequestId.current + 1;
       activeRequestId.current = requestId;
-      dispatch({ type: "submit", requestId });
+      dispatch({ type: "submit", requestId, input, chapter });
 
       try {
-        const result = await backend.analyzeSource(input);
+        const result = await backend.analyzeSource(input, chapter);
         if (activeRequestId.current !== requestId) {
           return;
         }
 
-        dispatch({ type: "success", requestId, result });
+        if (result.status === "pending_selection") {
+          dispatch({ type: "pending-selection", requestId, input, chapters: result.chapters });
+        } else {
+          dispatch({ type: "success", requestId, result });
+        }
       } catch (error) {
         if (activeRequestId.current !== requestId) {
           return;
@@ -317,6 +407,29 @@ export function BackendProvider({ backend, initialState, initialOnboardingState,
     dispatch({ type: "file-input-model-changed", model });
   }, []);
 
+  const selectChapterUp = useCallback(() => {
+    dispatch({ type: "chapter-up" });
+  }, []);
+
+  const selectChapterDown = useCallback(() => {
+    dispatch({ type: "chapter-down" });
+  }, []);
+
+  const confirmChapter = useCallback(() => {
+    const requestId = activeRequestId.current + 1;
+    activeRequestId.current = requestId;
+    dispatch({ type: "chapter-confirm", requestId });
+
+    if (state.name === "file-input" && state.status === "selecting-chapter") {
+      const selectedChapter = state.chapters[state.selectedIndex];
+      void analyzeSource(state.input, selectedChapter);
+    }
+  }, [state, analyzeSource]);
+
+  const cancelChapter = useCallback(() => {
+    dispatch({ type: "chapter-cancel" });
+  }, []);
+
   useEffect(() => {
     const unsubscribe = backend.subscribe((method, params) => {
       if (method === "progress" && typeof params.stage === "string" && typeof params.request_id === "number") {
@@ -341,9 +454,13 @@ export function BackendProvider({ backend, initialState, initialOnboardingState,
       updateConfig,
       setFileInputProvider,
       setFileInputModel,
+      selectChapterUp,
+      selectChapterDown,
+      confirmChapter,
+      cancelChapter,
       shutdown,
     }),
-    [state, initialOnboardingState, analyzeSource, cancelRequest, setOnboardingState, updateConfig, setFileInputProvider, setFileInputModel, shutdown],
+    [state, initialOnboardingState, analyzeSource, cancelRequest, setOnboardingState, updateConfig, setFileInputProvider, setFileInputModel, selectChapterUp, selectChapterDown, confirmChapter, cancelChapter, shutdown],
   );
 
   return <BackendContext.Provider value={value}>{children}</BackendContext.Provider>;
