@@ -1,10 +1,10 @@
 import { Badge } from "@opentui-ui/react/badge";
 
-import { inputStyles, tagBadgeStyles } from "@/screens/input/styles";
+import { SectionCard } from "@/components/section-card";
+import { SectionHeader } from "@/components/section-header";
+import { uiStyles } from "@/components/ui-styles";
+import { tagBadgeStyles } from "@/screens/input/styles";
 import type { TagOption } from "@/screens/input/use-badges";
-
-import { SectionCard } from "./section-card";
-import { SectionHeader } from "./section-header";
 
 type Props = {
   hasResult: boolean;
@@ -26,7 +26,7 @@ function TagBadge({ option, selected, onToggle }: { option: TagOption; selected:
 export function TagsSection({ hasResult, selectedCount, tags, isSelected, onToggle, width }: Props) {
   return (
     <SectionCard width={width} marginBottom={1}>
-      <SectionHeader icon="⌂" title="TAGS" right={<text fg={inputStyles.muted}>{`${selectedCount} selected`}</text>} alignItems="flex-start" />
+      <SectionHeader icon="⌂" title="TAGS" right={<text fg={uiStyles.muted}>{`${selectedCount} selected`}</text>} alignItems="flex-start" />
 
       {hasResult ? (
         <>
@@ -42,7 +42,7 @@ export function TagsSection({ hasResult, selectedCount, tags, isSelected, onTogg
           </box>
         </>
       ) : (
-        <text fg={inputStyles.label}>Tags appear after analysis</text>
+        <text fg={uiStyles.label}>Tags appear after analysis</text>
       )}
     </SectionCard>
   );

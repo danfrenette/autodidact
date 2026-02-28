@@ -1,12 +1,13 @@
 import { Badge } from "@opentui-ui/react/badge";
 
+import { OptionsMenu } from "@/components/options-menu";
+import { SectionCard } from "@/components/section-card";
+import { SectionHeader } from "@/components/section-header";
+import { uiStyles } from "@/components/ui-styles";
 import type { FilePathAutocompleteState } from "@/hooks/use-file-path-autocomplete";
-import { inputBadgeStyles, inputStyles } from "@/screens/input/styles";
+import { inputBadgeStyles } from "@/screens/input/styles";
 
 import { ComboboxSelectField } from "./combobox-select-field";
-import { OptionsMenu } from "./options-menu";
-import { SectionCard } from "./section-card";
-import { SectionHeader } from "./section-header";
 
 type ComboboxView = {
   query: string;
@@ -60,7 +61,7 @@ export function InputSection({
     <SectionCard width={width} marginBottom={1} gap={0}>
       <SectionHeader icon="↥" title="INPUT" right={<Badge label={badgeLabel} styles={inputBadgeStyles(badgeSupported)} />} />
 
-      <box border borderColor={inputStyles.fieldBorder} paddingLeft={1} paddingRight={1} backgroundColor={inputStyles.fieldBackground}>
+      <box border borderColor={uiStyles.fieldBorder} paddingLeft={1} paddingRight={1} backgroundColor={uiStyles.fieldBackground}>
         <input
           value={value}
           placeholder={'Enter a file path or input text... "./notes/chapter.txt"'}
@@ -69,8 +70,8 @@ export function InputSection({
           focused={!submitting}
           textColor="#eeeeee"
           cursorColor="#eeeeee"
-          focusedBackgroundColor={inputStyles.fieldBackground}
-          backgroundColor={inputStyles.fieldBackground}
+          focusedBackgroundColor={uiStyles.fieldBackground}
+          backgroundColor={uiStyles.fieldBackground}
         />
       </box>
 
@@ -87,10 +88,10 @@ export function InputSection({
       )}
 
       <box flexDirection="row" alignItems="center" gap={1}>
-        <text fg={inputStyles.muted} onMouseDown={onModelPress}>{model}</text>
-        <text fg={inputStyles.label}>/</text>
-        <text fg={inputStyles.muted} onMouseDown={onProviderPress}>{provider}</text>
-        <text fg={inputStyles.muted} onMouseDown={onChevronPress}>{modelPickerExpanded ? "⌃" : "⌄"}</text>
+        <text fg={uiStyles.muted} onMouseDown={onModelPress}>{model}</text>
+        <text fg={uiStyles.label}>/</text>
+        <text fg={uiStyles.muted} onMouseDown={onProviderPress}>{provider}</text>
+        <text fg={uiStyles.muted} onMouseDown={onChevronPress}>{modelPickerExpanded ? "⌃" : "⌄"}</text>
       </box>
 
       {modelPickerExpanded && (

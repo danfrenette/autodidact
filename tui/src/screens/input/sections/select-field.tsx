@@ -1,4 +1,4 @@
-import { inputStyles } from "@/screens/input/styles";
+import { uiStyles } from "@/components/ui-styles";
 
 type Props = {
   label: string;
@@ -8,11 +8,11 @@ type Props = {
 export function SelectField({ label, value }: Props) {
   return (
     <box flexDirection="column" flexGrow={1}>
-      <text fg={inputStyles.label}>{label}</text>
-      <box border borderColor={inputStyles.fieldBorder} paddingLeft={1} paddingRight={1} backgroundColor={inputStyles.fieldBackground}>
+      <text fg={uiStyles.label}>{label}</text>
+      <box border borderColor={uiStyles.fieldBorder} paddingLeft={1} paddingRight={1} backgroundColor={uiStyles.fieldBackground}>
         <box flexDirection="row" justifyContent="space-between" width="100%">
-          <text fg={inputStyles.value}>{value}</text>
-          <text fg={inputStyles.muted}>⌄</text>
+          <text fg={uiStyles.value}>{value}</text>
+          <text fg={uiStyles.muted}>⌄</text>
         </box>
       </box>
     </box>

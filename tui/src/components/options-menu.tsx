@@ -1,4 +1,4 @@
-import { inputStyles } from "@/screens/input/styles";
+import { uiStyles } from "./ui-styles";
 
 type Props = {
   items: string[];
@@ -22,14 +22,13 @@ export function OptionsMenu({
   return (
     <box
       border
-      borderColor={inputStyles.comboboxMenuBorder}
-      backgroundColor={inputStyles.comboboxMenuBackground}
+      borderColor={uiStyles.comboboxMenuBorder}
+      backgroundColor={uiStyles.comboboxMenuBackground}
       flexDirection="column"
-
     >
       {visibleItems.length === 0 && (
         <box paddingLeft={1} paddingRight={1}>
-          <text fg={inputStyles.muted}>{emptyMessage}</text>
+          <text fg={uiStyles.muted}>{emptyMessage}</text>
         </box>
       )}
 
@@ -44,11 +43,11 @@ export function OptionsMenu({
             justifyContent="space-between"
             paddingLeft={1}
             paddingRight={1}
-            backgroundColor={highlighted ? inputStyles.comboboxRowHighlightBackground : undefined}
+            backgroundColor={highlighted ? uiStyles.comboboxRowHighlightBackground : undefined}
           >
-            <text fg={highlighted ? inputStyles.comboboxRowHighlightText : inputStyles.comboboxRowText}>{item}</text>
+            <text fg={highlighted ? uiStyles.comboboxRowHighlightText : uiStyles.comboboxRowText}>{item}</text>
             {showSelectionMarker && (
-              <text fg={selected ? inputStyles.comboboxRowHighlightMarker : inputStyles.muted}>{selected ? "●" : " "}</text>
+              <text fg={selected ? uiStyles.comboboxRowHighlightMarker : uiStyles.muted}>{selected ? "●" : " "}</text>
             )}
           </box>
         );

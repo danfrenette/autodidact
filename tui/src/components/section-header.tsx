@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { inputStyles } from "@/screens/input/styles";
+import { uiStyles } from "./ui-styles";
 
 type Props = {
   icon: string;
@@ -13,8 +13,8 @@ export function SectionHeader({ icon, title, right, alignItems = "center" }: Pro
   return (
     <box flexDirection="row" justifyContent="space-between" alignItems={alignItems}>
       <box flexDirection="row" gap={1}>
-        <text fg={inputStyles.icon}>{icon}</text>
-        <text fg={inputStyles.title}>{title}</text>
+        <text fg={uiStyles.icon}>{icon}</text>
+        <text fg={uiStyles.title}>{title}</text>
       </box>
       {right ?? null}
     </box>

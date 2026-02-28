@@ -1,6 +1,5 @@
-import { inputStyles } from "@/screens/input/styles";
-
-import { OptionsMenu } from "./options-menu";
+import { OptionsMenu } from "@/components/options-menu";
+import { uiStyles } from "@/components/ui-styles";
 
 type Props = {
   label: string;
@@ -29,13 +28,13 @@ export function ComboboxSelectField({
 }: Props) {
   return (
     <box flexDirection="column" flexGrow={1}>
-      <text fg={inputStyles.label}>{label}</text>
+      <text fg={uiStyles.label}>{label}</text>
       <box
         border
-        borderColor={focused ? inputStyles.comboboxMenuBorder : inputStyles.fieldBorder}
+        borderColor={focused ? uiStyles.comboboxMenuBorder : uiStyles.fieldBorder}
         paddingLeft={1}
         paddingRight={1}
-        backgroundColor={inputStyles.fieldBackground}
+        backgroundColor={uiStyles.fieldBackground}
         onMouseDown={onPress}
       >
         {focused
@@ -48,14 +47,14 @@ export function ComboboxSelectField({
               focused={focused}
               textColor="#eeeeee"
               cursorColor="#eeeeee"
-              focusedBackgroundColor={inputStyles.fieldBackground}
-              backgroundColor={inputStyles.fieldBackground}
+              focusedBackgroundColor={uiStyles.fieldBackground}
+              backgroundColor={uiStyles.fieldBackground}
             />
           )
           : (
             <box flexDirection="row" justifyContent="space-between" width="100%">
-              <text fg={inputStyles.value}>{selectedValue}</text>
-              <text fg={inputStyles.muted}>⌄</text>
+              <text fg={uiStyles.value}>{selectedValue}</text>
+              <text fg={uiStyles.muted}>⌄</text>
             </box>
           )}
       </box>

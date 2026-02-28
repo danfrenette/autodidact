@@ -1,3 +1,5 @@
+import { OptionsMenu } from "@/components/options-menu";
+
 type SetupTextInputFieldProps = {
   title: string;
   placeholder: string;
@@ -16,14 +18,21 @@ export function SetupTextInputField({
   onSubmit,
 }: SetupTextInputFieldProps) {
   return (
-    <box border title={title} style={{ width: 80, height: 3, marginBottom: 1 }}>
-      <input
-        placeholder={placeholder}
-        value={value}
-        onInput={onInput}
-        onSubmit={onSubmit}
-        focused={focused}
-      />
+    <box flexDirection="column" style={{ marginBottom: 1 }}>
+      <text fg="#6f7887">{title.toUpperCase()}</text>
+      <box border borderColor="#27303c" paddingLeft={1} paddingRight={1} backgroundColor="#0d1117" style={{ width: 80 }}>
+        <input
+          placeholder={placeholder}
+          value={value}
+          onInput={onInput}
+          onSubmit={onSubmit}
+          focused={focused}
+          textColor="#eeeeee"
+          cursorColor="#eeeeee"
+          focusedBackgroundColor="#0d1117"
+          backgroundColor="#0d1117"
+        />
+      </box>
     </box>
   );
 }
@@ -51,12 +60,17 @@ export function SetupComboboxField({
   onInput,
   onSubmit,
 }: SetupComboboxFieldProps) {
-  const visibleOptions = options.slice(0, 5);
-  const height = isOpen ? 3 + visibleOptions.length : 3;
-
   return (
-    <box border title={title} style={{ width: 80, height, marginBottom: 1 }}>
-      <box flexDirection="column" flexGrow={1}>
+    <box flexDirection="column" style={{ marginBottom: 1 }}>
+      <text fg="#6f7887">{title.toUpperCase()}</text>
+      <box
+        border
+        borderColor={focused ? "#2c3744" : "#27303c"}
+        paddingLeft={1}
+        paddingRight={1}
+        backgroundColor="#0d1117"
+        style={{ width: 80 }}
+      >
         {focused
           ? (
             <input
@@ -65,22 +79,22 @@ export function SetupComboboxField({
               onInput={onInput}
               onSubmit={onSubmit}
               focused={focused}
+              textColor="#eeeeee"
+              cursorColor="#eeeeee"
+              focusedBackgroundColor="#0d1117"
+              backgroundColor="#0d1117"
             />
           )
-          : <text>{selectedValue}</text>}
-
-        {isOpen && (
-          <box flexDirection="column" paddingBottom={1}>
-            {visibleOptions.length === 0 && <text fg="#808080">No matches</text>}
-
-            {visibleOptions.map((option, index) => (
-              <box key={option} backgroundColor={index === highlightedIndex ? "#fab283" : undefined}>
-                <text fg={index === highlightedIndex ? "#1a1a1a" : "#d6d6d6"}>{option}</text>
-              </box>
-            ))}
-          </box>
-        )}
+          : <text fg="#d9deea">{selectedValue}</text>}
       </box>
+
+      {isOpen && (
+        <OptionsMenu
+          items={options}
+          highlightedIndex={highlightedIndex}
+          selectedValue={selectedValue}
+        />
+      )}
     </box>
   );
 }

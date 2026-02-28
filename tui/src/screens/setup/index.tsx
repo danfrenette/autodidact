@@ -1,3 +1,5 @@
+import { SectionCard } from "@/components/section-card";
+import { SectionHeader } from "@/components/section-header";
 import type { SetupPrefill } from "@/providers/backend-provider.tsx";
 import type { ConfigParams } from "@/requests/update-config/index.ts";
 
@@ -86,11 +88,8 @@ export function Setup({
 
   return (
     <box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1}>
-      <box border borderColor="#4b4b4b" style={{ width: 86, paddingLeft: 2, paddingRight: 2, paddingTop: 1, paddingBottom: 1 }}>
-        <box flexDirection="row" alignItems="center" style={{ marginBottom: 1 }}>
-          <text fg="#fab283">◆</text>
-          <text style={{ marginLeft: 1 }}>Autodidact Setup Wizard</text>
-        </box>
+      <SectionCard width={86}>
+        <SectionHeader icon="◆" title="Autodidact Setup" />
 
         <StepTabs activeIndex={draft.stepIndex} />
 
@@ -144,7 +143,7 @@ export function Setup({
 
         <SetupStatusFooter error={submission.error} saving={saving} />
         <ActionRow step={draft.currentStep} />
-      </box>
+      </SectionCard>
     </box>
   );
 }

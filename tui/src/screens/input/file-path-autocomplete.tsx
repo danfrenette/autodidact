@@ -1,6 +1,5 @@
+import { OptionsMenu } from "@/components/options-menu";
 import type { FilePathAutocompleteState } from "@/hooks/use-file-path-autocomplete";
-
-import { OptionsMenu } from "./sections/options-menu";
 
 type Props = {
   visible: boolean;
