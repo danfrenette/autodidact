@@ -4,28 +4,32 @@ require "spec_helper"
 
 RSpec.describe Autodidact::Analysis::GenerateNoteContent do
   let(:client) { instance_double(Autodidact::Provider::OpenaiClient) }
+  let(:client_result) { success_result(client) }
   let(:prompt) { "stubbed prompt content" }
 
   before do
-    allow(Autodidact::Provider::ClientFor).to receive(:call).and_return(client)
+    allow(Autodidact::Provider::ClientFor).to receive(:call).and_return(client_result)
     allow(Autodidact::Analysis::FixedPrompt).to receive(:call).and_return(prompt)
   end
 
   describe "#call" do
-    it "returns content from provider chat" do
+    it "returns a success result with content from the provider" do
       allow(client).to receive(:chat).with(prompt: prompt).and_return("## Summary\n- note")
 
       result = described_class.call(raw_text: "hello world")
 
-      expect(result).to eq("## Summary\n- note")
+      expect(result).to be_success
+      expect(result.payload).to eq("## Summary\n- note")
     end
 
-    it "wraps provider errors with context" do
-      allow(client).to receive(:chat).and_raise(StandardError, "rate limited")
+    it "returns a failure result when the provider raises ProviderError" do
+      allow(client).to receive(:chat)
+        .and_raise(Autodidact::Analysis::GenerateNoteContent::ProviderError, "rate limited")
 
-      expect do
-        described_class.call(raw_text: "hello")
-      end.to raise_error(described_class::ProviderError, /Provider analysis failed: rate limited/)
+      result = described_class.call(raw_text: "hello")
+
+      expect(result).to be_failure
+      expect(result.error[:message]).to include("rate limited")
     end
   end
 end

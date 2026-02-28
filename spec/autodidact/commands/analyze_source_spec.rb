@@ -26,7 +26,7 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
       file.flush
 
       allow(Autodidact::Storage::PersistSourceBlob).to receive(:call).and_return(blob)
-      allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call).and_return("## Notes\n- point")
+      allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call).and_return(success_result("## Notes\n- point"))
 
       result = described_class.call(params: {input: file.path}, notify: notify)
 
@@ -42,7 +42,7 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
   describe "PDF with table of contents" do
     it "returns pending_selection when no chapter is specified" do
       result = described_class.call(
-        params: {input: "The Art of Doing Science and Engineering.pdf"},
+        params: {input: "spec/fixtures/with_toc.pdf"},
         notify: notify
       )
 
@@ -53,12 +53,12 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
 
     it "returns completed when chapter is specified" do
       allow(Autodidact::Storage::PersistSourceBlob).to receive(:call).and_return(blob)
-      allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call).and_return("## Notes")
+      allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call).and_return(success_result("## Notes"))
 
       result = described_class.call(
         params: {
-          input: "The Art of Doing Science and Engineering.pdf",
-          chapter: {title: "Introduction", page: 9}
+          input: "spec/fixtures/with_toc.pdf",
+          chapter: {title: "Introduction", page: 1}
         },
         notify: notify
       )
@@ -78,7 +78,7 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
 
       allow(Autodidact::Storage::PersistSourceBlob).to receive(:call).and_return(blob)
       allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call)
-        .and_raise(StandardError, "Provider analysis failed: rate limited")
+        .and_return(error_result("Provider analysis failed: rate limited"))
 
       result = described_class.call(params: {input: file.path}, notify: notify)
 
@@ -110,7 +110,7 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
   describe "raw text success path" do
     it "analyzes raw text end-to-end" do
       allow(Autodidact::Storage::PersistSourceBlob).to receive(:call).and_return(blob)
-      allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call).and_return("## Notes\n- point")
+      allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call).and_return(success_result("## Notes\n- point"))
 
       result = described_class.call(
         params: {input: "This is a sentence.\nAnd another sentence."},
@@ -131,7 +131,7 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
       file.flush
 
       allow(Autodidact::Storage::PersistSourceBlob).to receive(:call).and_return(blob)
-      allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call).and_return("notes")
+      allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call).and_return(success_result("notes"))
 
       stages = []
       tracking_notify = proc { |**data| stages << data[:stage] }

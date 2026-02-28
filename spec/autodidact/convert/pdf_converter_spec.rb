@@ -6,7 +6,7 @@ RSpec.describe Autodidact::Convert::PdfConverter do
   describe ".call" do
     context "with a PDF that has no table of contents" do
       it "returns a ConversionResult with full text" do
-        result = described_class.call(path: "pdf-without-contents.pdf", source_type: "pdf")
+        result = described_class.call(path: "spec/fixtures/without_toc.pdf", source_type: "pdf")
 
         expect(result).to be_success
         expect(result.payload).to be_a(Autodidact::ConversionResult)
@@ -16,10 +16,7 @@ RSpec.describe Autodidact::Convert::PdfConverter do
 
     context "with a PDF that has a table of contents" do
       it "returns a PendingSelection payload" do
-        result = described_class.call(
-          path: "The Art of Doing Science and Engineering.pdf",
-          source_type: "pdf"
-        )
+        result = described_class.call(path: "spec/fixtures/with_toc.pdf", source_type: "pdf")
 
         expect(result).to be_success
         expect(result.payload).to be_a(Autodidact::Commands::Payloads::PendingSelection)
@@ -30,9 +27,9 @@ RSpec.describe Autodidact::Convert::PdfConverter do
 
     context "with a specific chapter selected" do
       it "returns a ConversionResult for that chapter" do
-        chapter = {title: "Introduction", page: 9}
+        chapter = {title: "Introduction", page: 1}
         result = described_class.call(
-          path: "The Art of Doing Science and Engineering.pdf",
+          path: "spec/fixtures/with_toc.pdf",
           source_type: "pdf",
           chapter: chapter
         )
