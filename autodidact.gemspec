@@ -16,6 +16,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "dotenv"
   spec.add_dependency "faraday"
+  spec.add_dependency "hexapdf"
   spec.add_dependency "pdf-reader"
   spec.add_dependency "pg"
   spec.add_dependency "ruby-openai"

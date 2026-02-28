@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const chapterSchema = z.object({
+  id: z.string(),
   title: z.string(),
   page: z.number(),
 });

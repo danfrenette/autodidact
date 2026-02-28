@@ -48,7 +48,7 @@ export function ChapterSelectionSection({
 
           return (
             <box
-              key={`${chapter.id}-${chapter.title}-${chapter.page}`}
+              key={chapter.id}
               flexDirection="row"
               justifyContent="space-between"
               paddingLeft={1}

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require "pdf/reader"
+require "digest"
+require "hexapdf"
 
 module Autodidact
   class PdfDocument
@@ -9,24 +10,26 @@ module Autodidact
     end
 
     def chapters
-      outline_ref = catalog[:Outlines]
-      return [] unless outline_ref
-
-      outlines = objects[outline_ref]
-      first_ref = outlines[:First]
-      return [] unless first_ref
-
       items = []
-      walk_outline(ref: first_ref, items: items)
+      doc.outline.each_item do |item, _level|
+        title = item[:Title]
+        page = page_number_for(item)
+        items << {id: chapter_id(title, page), title: title, page: page} if title && !title.empty? && page
+      end
       items
     end
 
     def page_count
-      reader.page_count
+      doc.pages.count
     end
 
     def page_text(number)
-      reader.pages[number - 1]&.text || ""
+      page = doc.pages[number - 1]
+      return "" unless page
+
+      extractor = Pdf::TextExtractor.new(page.resources)
+      page.process_contents(extractor)
+      extractor.text
     end
 
     def pages_text(range)
@@ -37,76 +40,30 @@ module Autodidact
 
     attr_reader :path
 
-    def reader
-      @reader ||= PDF::Reader.new(path)
+    def doc
+      @doc ||= HexaPDF::Document.open(path)
     end
 
-    def objects
-      reader.objects
-    end
+    def page_number_for(item)
+      dest = item.destination || action_destination(item)
+      return unless dest
 
-    def catalog
-      objects[objects.trailer[:Root]]
-    end
-
-    def walk_outline(ref:, items:)
-      node = objects[ref]
-
-      title = normalize_title(node[:Title])
-      page = resolve_page(node)
-      items << {title: title, page: page} if title && page
-
-      walk_outline(ref: node[:First], items: items) if node[:First]
-      walk_outline(ref: node[:Next], items: items) if node[:Next]
-    end
-
-    def resolve_page(node)
-      ref = page_ref_from_dest(node[:Dest]) || page_ref_from_action(node[:A])
-      return unless ref&.respond_to?(:id)
-
-      page_map[ref.id]
-    end
-
-    def page_ref_from_dest(dest)
-      resolved = dest
-      resolved = objects[resolved] if resolved.is_a?(PDF::Reader::Reference)
-      resolved[0] if resolved.is_a?(Array)
-    end
-
-    def page_ref_from_action(action)
-      resolved = action
-      resolved = objects[resolved] if resolved.is_a?(PDF::Reader::Reference)
-      return unless resolved.is_a?(Hash) && resolved[:S] == :GoTo
-
-      page_ref_from_dest(resolved[:D])
-    end
-
-    def page_map
-      @page_map ||= build_page_map
-    end
-
-    def build_page_map
-      page_refs = {}
-      objects.each do |ref, object|
-        next unless ref.respond_to?(:id)
-        next unless object.is_a?(Hash) && object[:Type] == :Page
-
-        page_refs[object.object_id] = ref.id
+      page_obj = dest.first
+      doc.pages.each_with_index do |page, index|
+        return index + 1 if page == page_obj
       end
-
-      reader.pages.each_with_object({}) do |page, map|
-        ref_id = page_refs[page.page_object.object_id]
-        map[ref_id] = page.number if ref_id
-      end
+      nil
     end
 
-    def normalize_title(value)
-      title = value
-        .to_s
-        .encode("UTF-8", invalid: :replace, undef: :replace, replace: "")
-        .gsub(/\s+/, " ")
-        .strip
-      title.empty? ? nil : title
+    def action_destination(item)
+      action = item[:A]
+      return unless action.is_a?(HexaPDF::Dictionary) && action[:S] == :GoTo
+
+      action[:D]
+    end
+
+    def chapter_id(title, page)
+      Digest::SHA256.hexdigest("#{page}:#{title}")[0, 8]
     end
   end
 end
