@@ -26,9 +26,7 @@ module Autodidact
       attr_reader :path, :source_type
 
       def note_filename
-        timestamp = Time.now.strftime("%Y-%m-%d")
-        basename = File.basename(path, ".*").gsub(/[^a-zA-Z0-9\-_]+/, "-")
-        "#{timestamp}--#{basename}.md"
+        NoteFilename.new(path: path).call
       end
     end
   end

@@ -4,7 +4,6 @@ module Autodidact
   module Commands
     class AnalyzeSource < Command
       class UnsupportedInputType < StandardError; end
-      class UnsupportedSourceType < StandardError; end
 
       SUPPORTED_INPUT_TYPES = %w[file_path raw_text].freeze
 
@@ -42,9 +41,7 @@ module Autodidact
       end
 
       def convert
-        input_type = detect_input_type
-
-        case input_type
+        case detect_input_type
         when "file_path" then convert_file
         when "raw_text" then convert_raw_text
         end
@@ -66,45 +63,37 @@ module Autodidact
         source = detect_source
 
         case source[:source_type]
-        when "text"
-          convert_text(source)
-        when "pdf"
-          convert_pdf(source)
+        when "text" then convert_text(source)
+        when "pdf" then convert_pdf(source)
         end
       end
 
       def convert_text(source)
         result = Convert::TextConverter.call(path: source[:path], source_type: source[:source_type])
-        raise StandardError, result.error[:message] if result.failure?
+        raise result.error[:message] if result.failure?
 
         result.payload
       end
 
       def convert_pdf(source)
         result = Convert::PdfConverter.call(path: source[:path], source_type: source[:source_type], chapter: chapter)
-        raise StandardError, result.error[:message] if result.failure?
+        raise result.error[:message] if result.failure?
 
         result.payload
       end
 
       def detect_source
         result = Commands::DetectSource.call(params: {path: input}, notify: notify)
-        raise StandardError, result.error[:message] if result.failure?
+        raise result.error[:message] if result.failure?
 
         result.payload
       end
 
       def convert_raw_text
-        timestamp = Time.now.strftime("%Y-%m-%d")
+        result = Convert::RawTextConverter.call(text: input)
+        raise result.error[:message] if result.failure?
 
-        ConversionResult.new(
-          raw_text: input,
-          source_path: nil,
-          source_type: "text",
-          selection_kind: "full",
-          selection_payload: {input_type: "raw_text"},
-          note_filename: "#{timestamp}--raw-text.md"
-        )
+        result.payload
       end
 
       def persist(conversion)
@@ -118,7 +107,10 @@ module Autodidact
       end
 
       def analyze(conversion)
-        Analysis::GenerateNoteContent.call(raw_text: conversion.raw_text)
+        result = Analysis::GenerateNoteContent.call(raw_text: conversion.raw_text)
+        raise result.error[:message] if result.failure?
+
+        result.payload
       end
 
       def render_and_write(conversion, content)

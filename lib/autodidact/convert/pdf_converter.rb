@@ -58,16 +58,11 @@ module Autodidact
       end
 
       def chapter_filename
-        timestamp = Time.now.strftime("%Y-%m-%d")
-        basename = File.basename(path, ".*").gsub(/[^a-zA-Z0-9\-_]+/, "-")
-        slug = chapter[:title].downcase.gsub(/[^a-z0-9]+/, "-").gsub(/\A-|-\z/, "")
-        "#{timestamp}--#{basename}--#{slug}.md"
+        NoteFilename.new(path: path, chapter: chapter).call
       end
 
       def full_filename
-        timestamp = Time.now.strftime("%Y-%m-%d")
-        basename = File.basename(path, ".*").gsub(/[^a-zA-Z0-9\-_]+/, "-")
-        "#{timestamp}--#{basename}.md"
+        NoteFilename.new(path: path).call
       end
     end
   end
