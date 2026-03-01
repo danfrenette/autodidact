@@ -1,3 +1,5 @@
+import { getWindowSlice } from "@/hooks/use-windowed-list";
+
 import { uiStyles } from "./ui-styles";
 
 type Props = {
@@ -17,7 +19,8 @@ export function OptionsMenu({
   emptyMessage = "No matches",
   maxItems = 5,
 }: Props) {
-  const visibleItems = items.slice(0, maxItems);
+  const { start, end } = getWindowSlice(items.length, highlightedIndex, maxItems);
+  const visibleItems = items.slice(start, end);
 
   return (
     <box
@@ -32,8 +35,9 @@ export function OptionsMenu({
         </box>
       )}
 
-      {visibleItems.map((item, index) => {
-        const highlighted = index === highlightedIndex;
+      {visibleItems.map((item, visibleIndex) => {
+        const absoluteIndex = start + visibleIndex;
+        const highlighted = absoluteIndex === highlightedIndex;
         const selected = selectedValue === item;
 
         return (

@@ -1,7 +1,6 @@
 import "opentui-spinner/react";
 
 import type { BorderCharacters } from "@opentui/core";
-import { useKeyboard } from "@opentui/react";
 import { useCallback, useMemo, useState } from "react";
 
 import { useFilePathAutocomplete } from "@/hooks/use-file-path-autocomplete";
@@ -20,16 +19,10 @@ import { OutputModal } from "./sections/output-modal";
 import { TagsSection } from "./sections/tags-section";
 import { PANEL_WIDTH } from "./styles";
 import { useInputBadges } from "./use-badges";
+import { useChapterSelection } from "./use-chapter-selection";
+import { useInputKeyboard } from "./use-input-keyboard";
 import { useModelPickerDisclosure } from "./use-model-picker-disclosure";
 
-type ChapterSelectionState = {
-  chapters: Chapter[];
-  selectedIndex: number;
-  onUp: () => void;
-  onDown: () => void;
-  onConfirm: () => void;
-  onCancel: () => void;
-};
 type Props = {
   onSubmit: (path: string) => void;
   lastResult: AnalysisResult | null;
@@ -44,7 +37,9 @@ type Props = {
   onModelChange: (model: string) => void;
   value: string;
   onInput: (value: string) => void;
-  chapterSelection: ChapterSelectionState | null;
+  chapters: Chapter[] | null;
+  onConfirmChapter: (chapter: Chapter) => void;
+  onCancelChapter: () => void;
 };
 
 const STAGE_LABELS: Record<string, string> = {
@@ -95,15 +90,22 @@ export function FileInput({
   onModelChange,
   value,
   onInput,
-  chapterSelection,
+  chapters,
+  onConfirmChapter,
+  onCancelChapter,
 }: Props) {
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [showOutputModal, setShowOutputModal] = useState(false);
   const [activePicker, setActivePicker] = useState<"provider" | "model">("model");
   const modelPicker = useModelPickerDisclosure({ disabled: submitting });
   const autocomplete = useFilePathAutocomplete({ value, onInput, submitting });
   const onboarding = useFileInputOnboarding({ inputValue: value, submitting });
   const badges = useInputBadges(value);
+  const chapterSelection = useChapterSelection({
+    chapters: chapters ?? [],
+    onConfirm: onConfirmChapter,
+    onCancel: onCancelChapter,
+    active: chapters !== null,
+  });
 
   const resolvedProviderOptions = useMemo(
     () => resolveAvailableProviders(providerOptions),
@@ -138,64 +140,17 @@ export function FileInput({
   const highlight = accentColor(submitting, lastResult, error);
   const detectedBadgeLabel = `${badges.inputBadge.supported ? "✓" : "✕"} ${badges.inputBadge.label}`;
 
-  useKeyboard((key) => {
-    if (chapterSelection) {
-      if (key.name === "up") {
-        key.preventDefault();
-        chapterSelection.onUp();
-        return;
-      }
-
-      if (key.name === "down") {
-        key.preventDefault();
-        chapterSelection.onDown();
-        return;
-      }
-
-      if (key.name === "return") {
-        key.preventDefault();
-        chapterSelection.onConfirm();
-        return;
-      }
-
-      if (key.name === "escape") {
-        key.preventDefault();
-        chapterSelection.onCancel();
-        return;
-      }
-
-      return;
-    }
-    if (showOutputModal && (key.name === "escape" || key.name === "return")) {
-      key.preventDefault();
-      setShowOutputModal(false);
-      return;
-    }
-    if (autocomplete.handleKey(key)) {
-      return;
-    }
-    if (modelPicker.isOpen) {
-      if (activePicker === "provider" && providerCombobox.handleKey(key)) {
-        return;
-      }
-      if (activePicker === "model" && modelCombobox.handleKey(key)) {
-        return;
-      }
-      if (key.name === "backtab" || (key.name === "tab" && key.shift)) {
-        key.preventDefault();
-        setActivePicker((current) => (current === "provider" ? "model" : "provider"));
-        return;
-      }
-      if (key.name === "tab") {
-        key.preventDefault();
-        setActivePicker((current) => (current === "provider" ? "model" : "provider"));
-        return;
-      }
-    }
-    if (modelPicker.handleKeyboard(key)) {
-      return;
-    }
-    onboarding.handleKeyboard(key);
+  const { showOutputModal, openOutputModal, closeOutputModal } = useInputKeyboard({
+    chapterActive: chapters !== null,
+    chapterHandleKey: chapterSelection.handleKey,
+    autocompleteHandleKey: autocomplete.handleKey,
+    modelPickerOpen: modelPicker.isOpen,
+    activePicker,
+    setActivePicker,
+    providerComboboxHandleKey: providerCombobox.handleKey,
+    modelComboboxHandleKey: modelCombobox.handleKey,
+    modelPickerHandleKeyboard: modelPicker.handleKeyboard,
+    onboardingHandleKeyboard: onboarding.handleKeyboard,
   });
 
   const handleSubmit = useCallback(() => {
@@ -214,10 +169,10 @@ export function FileInput({
     }
 
     setValidationError(null);
-    setShowOutputModal(true);
+    openOutputModal();
     onboarding.onSubmitSucceeded();
     onSubmit(result.path);
-  }, [autocomplete, onboarding, onSubmit, submitting]);
+  }, [autocomplete, onboarding, onSubmit, openOutputModal, submitting]);
 
   const handleInput = useCallback((nextValue: string) => {
     if (validationError !== null) {
@@ -225,12 +180,12 @@ export function FileInput({
     }
 
     if (showOutputModal) {
-      setShowOutputModal(false);
+      closeOutputModal();
     }
 
     onboarding.handleInput(nextValue);
     onInput(nextValue);
-  }, [onInput, onboarding, showOutputModal, validationError]);
+  }, [closeOutputModal, onInput, onboarding, showOutputModal, validationError]);
 
   const handleProviderPress = useCallback(() => {
     setActivePicker("provider");
@@ -265,10 +220,15 @@ export function FileInput({
         </box>
       )}
 
-      {chapterSelection ? (
+      {chapters ? (
         <ChapterSelectionSection
-          chapters={chapterSelection.chapters}
-          selectedIndex={chapterSelection.selectedIndex}
+          query={chapterSelection.query}
+          onInput={chapterSelection.handleInput}
+          filteredChapters={chapterSelection.filteredChapters}
+          totalCount={chapterSelection.totalCount}
+          highlightedIndex={chapterSelection.highlightedIndex}
+          visibleChapters={chapterSelection.visibleChapters}
+          windowStart={chapterSelection.windowStart}
           width={PANEL_WIDTH}
         />
       ) : (
@@ -349,14 +309,14 @@ export function FileInput({
 
         {!submitting && (
           <text fg="#808080">
-            {chapterSelection
-              ? "Up/Down navigate, Enter select, Esc cancel"
+            {chapters
+              ? "Type to filter, Up/Down navigate, Enter select, Esc cancel"
               : autocomplete.query !== null ? "\u2191/\u2193 browse, Tab/Enter choose" : "input ready"}
           </text>
         )}
       </box>
 
-      <OutputModal visible={showOutputModal} result={lastResult} onClose={() => setShowOutputModal(false)} />
+      <OutputModal visible={showOutputModal} result={lastResult} onClose={closeOutputModal} />
     </box>
   );
 }
