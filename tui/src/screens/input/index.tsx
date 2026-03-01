@@ -1,7 +1,3 @@
-import "opentui-spinner/react";
-
-import { execSync } from "node:child_process";
-
 import type { BorderCharacters, TextareaRenderable } from "@opentui/core";
 import type { KeyEvent } from "@opentui/core";
 import { useCallback, useMemo, useRef, useState } from "react";
@@ -21,6 +17,7 @@ import { OnboardingNudge } from "./onboarding-nudge";
 import { ChapterSelectionSection } from "./sections/chapter-selection-section";
 import { InputSection } from "./sections/input-section";
 import { OutputModal } from "./sections/output-modal";
+import { StatusMessage } from "./sections/status-message";
 import { TagsSection } from "./sections/tags-section";
 import { PANEL_WIDTH } from "./styles";
 import { useInputBadges } from "./use-badges";
@@ -46,14 +43,6 @@ type Props = {
   onExit: () => void;
 };
 
-const STAGE_LABELS: Record<string, string> = {
-  detect_source: "Detecting source type...",
-  ingest: "Reading file...",
-  persist: "Saving to database...",
-  analyze: "Analyzing with provider (this may take a minute)...",
-  write: "Writing note...",
-};
-
 const EMPTY_BORDER: BorderCharacters = {
   topLeft: "",
   bottomLeft: "",
@@ -68,26 +57,11 @@ const EMPTY_BORDER: BorderCharacters = {
   rightT: "",
 };
 
-function stageLabel(stage: string | null): string {
-  if (!stage) return "Starting...";
-  return STAGE_LABELS[stage] ?? stage;
-}
-
 function accentColor(submitting: boolean, lastResult: AnalysisResult | null, error: string | null): string {
   if (error) return "#e06c75";
   if (submitting) return "#56b6c2";
   if (lastResult) return "#98c379";
   return "#fab283";
-}
-
-function copyToClipboard(text: string, onCopied: (v: boolean) => void) {
-  try {
-    execSync("pbcopy", { input: text });
-    onCopied(true);
-    setTimeout(() => onCopied(false), 1500);
-  } catch {
-    // silently ignore clipboard failures
-  }
 }
 
 export function FileInput({
@@ -110,7 +84,6 @@ export function FileInput({
 }: Props) {
   const [value, onInput] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
   const [activePicker, setActivePicker] = useState<"provider" | "model">("model");
   const textareaRef = useRef<TextareaRenderable>(null);
 
@@ -402,20 +375,7 @@ export function FileInput({
       </box>
 
       <box flexDirection="row" justifyContent="space-between" width={PANEL_WIDTH} style={{ marginTop: 0 }}>
-        <box flexDirection="row" alignItems="center">
-          {submitting && (
-            <>
-              <spinner name="dots" color="cyan" />
-              <text fg="#56b6c2" style={{ marginLeft: 1 }}>{stageLabel(stage)}</text>
-            </>
-          )}
-          {error && !submitting && (
-            <box flexDirection="row" gap={1} alignItems="center">
-              <text fg="#e06c75">{error}</text>
-              <text fg="#808080" onMouseDown={() => copyToClipboard(error, setCopied)}>{copied ? "copied!" : "copy"}</text>
-            </box>
-          )}
-        </box>
+        <StatusMessage submitting={submitting} stage={stage} error={error} />
 
         {!submitting && (
           <text fg="#808080">
