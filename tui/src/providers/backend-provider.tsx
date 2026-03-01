@@ -306,6 +306,8 @@ type Props = {
 export function BackendProvider({ backend, initialState, initialOnboardingState, children }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const activeRequestId = useRef(0);
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
   const updateConfig = useCallback(
     async (params: ConfigParams) => {
@@ -383,13 +385,14 @@ export function BackendProvider({ backend, initialState, initialOnboardingState,
   }, []);
 
   const confirmChapter = useCallback((chapter: Chapter) => {
-    if (state.name !== "file-input" || state.status !== "selecting-chapter") return;
+    const current = stateRef.current;
+    if (current.name !== "file-input" || current.status !== "selecting-chapter") return;
 
     const requestId = activeRequestId.current + 1;
     activeRequestId.current = requestId;
     dispatch({ type: "chapter-confirm", requestId, chapter });
-    void analyzeSource(state.input, chapter);
-  }, [state, analyzeSource]);
+    void analyzeSource(current.input, chapter);
+  }, [analyzeSource]);
 
   const cancelChapter = useCallback(() => {
     dispatch({ type: "chapter-cancel" });

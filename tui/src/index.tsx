@@ -1,10 +1,10 @@
 import { createCliRenderer } from "@opentui/core";
-import { createRoot, useKeyboard, useRenderer } from "@opentui/react";
-import { useCallback, useState } from "react";
+import { createRoot, useRenderer } from "@opentui/react";
+import { useCallback } from "react";
 
 import { Backend } from "@/backend.ts";
 import { useBackend } from "@/hooks/use-backend.ts";
-import { OnboardingProvider, useOnboardingContext } from "@/onboarding/context";
+import { OnboardingProvider } from "@/onboarding/context";
 import type { AppFlowState } from "@/providers/backend-provider.tsx";
 import { BackendProvider } from "@/providers/backend-provider.tsx";
 import { FileInput } from "@/screens/input/index.tsx";
@@ -12,46 +12,12 @@ import { Setup } from "@/screens/setup/index.tsx";
 
 function AppContent() {
   const { state, analyzeSource, cancelRequest, updateConfig, setFileInputProvider, setFileInputModel, confirmChapter, cancelChapter, shutdown } = useBackend();
-  const onboarding = useOnboardingContext();
   const renderer = useRenderer();
-  const [inputValue, setInputValue] = useState("");
 
   const handleExit = useCallback(() => {
     renderer?.destroy();
     void shutdown();
   }, [renderer, shutdown]);
-
-  const selectingChapter = state.name === "file-input" && state.status === "selecting-chapter";
-  useKeyboard((key) => {
-    if (state.name !== "file-input") {
-      return;
-    }
-
-    if (key.name === "escape" && !selectingChapter) {
-      handleExit();
-    }
-    if (key.name === "c" && key.ctrl) {
-      onboarding.onCancelUsed();
-      if (selectingChapter) {
-        cancelChapter();
-        return;
-      }
-      if (state.status === "submitting") {
-        cancelRequest();
-        return;
-      }
-      if (inputValue.length > 0) {
-        setInputValue("");
-        return;
-      }
-
-      handleExit();
-    }
-  });
-
-  const handleFileSubmit = useCallback(async (path: string) => {
-    await analyzeSource(path);
-  }, [analyzeSource]);
 
   const chapters = state.name === "file-input" && state.status === "selecting-chapter" ? state.chapters : null;
 
@@ -74,7 +40,7 @@ function AppContent() {
     case "file-input":
       return (
         <FileInput
-          onSubmit={handleFileSubmit}
+          onSubmit={analyzeSource}
           lastResult={state.lastResult}
           submitting={state.status === "submitting"}
           stage={state.status === "submitting" ? state.stage : null}
@@ -85,11 +51,11 @@ function AppContent() {
           providerModelOptions={state.providerModelOptions}
           onProviderChange={setFileInputProvider}
           onModelChange={setFileInputModel}
-          value={inputValue}
-          onInput={setInputValue}
           chapters={chapters}
           onConfirmChapter={confirmChapter}
           onCancelChapter={cancelChapter}
+          onCancelRequest={cancelRequest}
+          onExit={handleExit}
         />
       );
   }

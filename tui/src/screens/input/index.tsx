@@ -3,9 +3,12 @@ import "opentui-spinner/react";
 import { execSync } from "node:child_process";
 
 import type { BorderCharacters, TextareaRenderable } from "@opentui/core";
+import type { KeyEvent } from "@opentui/core";
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import { useFilePathAutocomplete } from "@/hooks/use-file-path-autocomplete";
+import { useKeyboardDispatch } from "@/hooks/use-keyboard-dispatch";
+import { useOnboardingContext } from "@/onboarding/context";
 import { useFileInputOnboarding } from "@/onboarding/file-input/use-file-input-onboarding";
 import { onboardingHint } from "@/onboarding/types";
 import type { AnalysisResult, Chapter } from "@/requests/analyze-source";
@@ -22,7 +25,6 @@ import { TagsSection } from "./sections/tags-section";
 import { PANEL_WIDTH } from "./styles";
 import { useInputBadges } from "./use-badges";
 import { useChapterSelection } from "./use-chapter-selection";
-import { useInputKeyboard } from "./use-input-keyboard";
 import { useModelPickerDisclosure } from "./use-model-picker-disclosure";
 
 type Props = {
@@ -162,18 +164,83 @@ export function FileInput({
   const highlight = accentColor(submitting, lastResult, error);
   const detectedBadgeLabel = badges.inputBadge ? `${badges.inputBadge.supported ? "✓" : "✕"} ${badges.inputBadge.label}` : null;
 
-  const { showOutputModal, openOutputModal, closeOutputModal } = useInputKeyboard({
-    chapterActive: chapters !== null,
-    chapterHandleKey: chapterSelection.handleKey,
-    autocompleteHandleKey: autocomplete.handleKey,
-    modelPickerOpen: modelPicker.isOpen,
-    activePicker,
-    setActivePicker,
-    providerComboboxHandleKey: providerCombobox.handleKey,
-    modelComboboxHandleKey: modelCombobox.handleKey,
-    modelPickerHandleKeyboard: modelPicker.handleKeyboard,
-    onboardingHandleKeyboard: onboarding.handleKeyboard,
-  });
+  const { onCancelUsed } = useOnboardingContext();
+  const [showOutputModal, setShowOutputModal] = useState(false);
+  const openOutputModal = useCallback(() => setShowOutputModal(true), []);
+  const closeOutputModal = useCallback(() => setShowOutputModal(false), []);
+
+  const chapterActive = chapters !== null;
+
+  const handleCtrlCEscape = useCallback(
+    (key: KeyEvent): boolean => {
+      if (key.name === "escape" && !chapterActive) {
+        onExit();
+        return true;
+      }
+      if (key.name === "c" && key.ctrl) {
+        onCancelUsed();
+        if (chapterActive) {
+          onCancelChapter();
+          return true;
+        }
+        if (submitting) {
+          onCancelRequest();
+          return true;
+        }
+        if (value.length > 0) {
+          onInput("");
+          if (textareaRef.current) textareaRef.current.setText("");
+          return true;
+        }
+        onExit();
+        return true;
+      }
+      return false;
+    },
+    [chapterActive, onCancelChapter, onCancelRequest, onCancelUsed, onExit, onInput, submitting, value.length],
+  );
+
+  const handleOutputModal = useCallback(
+    (key: KeyEvent): boolean => {
+      if (showOutputModal && (key.name === "escape" || key.name === "return")) {
+        key.preventDefault();
+        setShowOutputModal(false);
+        return true;
+      }
+      return false;
+    },
+    [showOutputModal],
+  );
+
+  const handleModelPickerTab = useCallback(
+    (key: KeyEvent): boolean => {
+      if (!modelPicker.isOpen) return false;
+      if (activePicker === "provider" && providerCombobox.handleKey(key)) return true;
+      if (activePicker === "model" && modelCombobox.handleKey(key)) return true;
+      if (key.name === "tab" || key.name === "backtab" || (key.name === "tab" && key.shift)) {
+        key.preventDefault();
+        setActivePicker(activePicker === "provider" ? "model" : "provider");
+        return true;
+      }
+      return false;
+    },
+    [activePicker, modelCombobox, modelPicker.isOpen, providerCombobox],
+  );
+
+  const keyboardHandlers = useMemo(
+    () => [
+      handleCtrlCEscape,
+      handleOutputModal,
+      chapterSelection.handleKey,
+      autocomplete.handleKey,
+      handleModelPickerTab,
+      modelPicker.handleKeyboard,
+      onboarding.handleKeyboard,
+    ],
+    [handleCtrlCEscape, handleOutputModal, chapterSelection.handleKey, autocomplete.handleKey, handleModelPickerTab, modelPicker.handleKeyboard, onboarding.handleKeyboard],
+  );
+
+  useKeyboardDispatch(keyboardHandlers);
 
   const handleSubmit = useCallback(() => {
     if (submitting) return;
