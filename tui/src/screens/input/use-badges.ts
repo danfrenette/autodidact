@@ -24,11 +24,13 @@ const SUPPORTED_FILE_EXTENSIONS = new Set([".txt", ".md", ".pdf", ".rst"]);
 
 const URL_PATTERN = /^https?:\/\//i;
 const PATH_PATTERN = /[/\\]|\.[a-z0-9]{1,5}$/i;
+const AT_QUERY_PATTERN = /^@/;
 export function detectInputKind(value: string): InputKind {
   const trimmed = value.trim();
   if (trimmed.length === 0) return "unknown";
   if (URL_PATTERN.test(trimmed)) return "url";
   if (PATH_PATTERN.test(trimmed)) return "file_path";
+  if (AT_QUERY_PATTERN.test(trimmed)) return "file_path";
 
   return "raw_text";
 }
@@ -60,6 +62,7 @@ export function useInputBadges(value: string) {
   const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(() => new Set(["study-guide"]));
 
   const inputBadge = useMemo(() => detectedInputBadge(value), [value]);
+  const inputKind = useMemo(() => detectInputKind(value), [value]);
 
   const selectedCount = selectedTagIds.size;
 
@@ -79,6 +82,7 @@ export function useInputBadges(value: string) {
 
   return {
     inputBadge,
+    inputKind,
     selectedCount,
     toggleTag,
     isSelected,

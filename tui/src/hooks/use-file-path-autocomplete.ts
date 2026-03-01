@@ -102,7 +102,7 @@ export function useFilePathAutocomplete({ value, onInput, submitting }: Params) 
 
     const trimmed = value.trim();
     if (trimmed.length === 0) {
-      return { type: "validation-error", message: "Please enter a file path" };
+      return { type: "validation-error", message: "Please enter a file path or text" };
     }
 
     return { type: "submit-path", path: trimmed };

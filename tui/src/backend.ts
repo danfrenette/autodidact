@@ -21,9 +21,9 @@ import type {
 import * as updateConfigRequest from "@/requests/update-config/index.ts";
 import type {
   NotificationHandler,
-  RpcMessage,
   ServiceResult,
 } from "@/types/rpc.ts";
+import { parseRpcMessage } from "@/types/rpc.ts";
 
 type PendingRequest = {
   resolve: (response: ServiceResult) => void;
@@ -169,7 +169,7 @@ export class Backend {
 
         if (line.length > 0) {
           try {
-            const msg: RpcMessage = JSON.parse(line);
+            const msg = parseRpcMessage(JSON.parse(line));
             if (proc === this.process) {
               this.handleMessage(msg);
             }
@@ -181,7 +181,7 @@ export class Backend {
     }
   }
 
-  private handleMessage(msg: RpcMessage) {
+  private handleMessage(msg: ReturnType<typeof parseRpcMessage>) {
     if ("id" in msg) {
       const pending = this.pending.get(msg.id);
       if (!pending) return;

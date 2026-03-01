@@ -2,8 +2,8 @@ import "opentui-spinner/react";
 
 import { execSync } from "node:child_process";
 
-import type { BorderCharacters } from "@opentui/core";
-import { useCallback, useMemo, useState } from "react";
+import type { BorderCharacters, TextareaRenderable } from "@opentui/core";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 import { useFilePathAutocomplete } from "@/hooks/use-file-path-autocomplete";
 import { useFileInputOnboarding } from "@/onboarding/file-input/use-file-input-onboarding";
@@ -37,11 +37,11 @@ type Props = {
   providerModelOptions: Record<string, string[]>;
   onProviderChange: (provider: string) => void;
   onModelChange: (model: string) => void;
-  value: string;
-  onInput: (value: string) => void;
   chapters: Chapter[] | null;
   onConfirmChapter: (chapter: Chapter) => void;
   onCancelChapter: () => void;
+  onCancelRequest: () => void;
+  onExit: () => void;
 };
 
 const STAGE_LABELS: Record<string, string> = {
@@ -100,17 +100,26 @@ export function FileInput({
   providerModelOptions,
   onProviderChange,
   onModelChange,
-  value,
-  onInput,
   chapters,
   onConfirmChapter,
   onCancelChapter,
+  onCancelRequest,
+  onExit,
 }: Props) {
+  const [value, onInput] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [activePicker, setActivePicker] = useState<"provider" | "model">("model");
+  const textareaRef = useRef<TextareaRenderable>(null);
+
+  const syncedOnInput = useCallback((nextValue: string) => {
+    if (textareaRef.current && textareaRef.current.plainText !== nextValue) {
+      textareaRef.current.setText(nextValue);
+    }
+    onInput(nextValue);
+  }, [onInput]);
   const modelPicker = useModelPickerDisclosure({ disabled: submitting });
-  const autocomplete = useFilePathAutocomplete({ value, onInput, submitting });
+  const autocomplete = useFilePathAutocomplete({ value, onInput: syncedOnInput, submitting });
   const onboarding = useFileInputOnboarding({ inputValue: value, submitting });
   const badges = useInputBadges(value);
   const chapterSelection = useChapterSelection({
@@ -168,13 +177,24 @@ export function FileInput({
 
   const handleSubmit = useCallback(() => {
     if (submitting) return;
-
+    // Read directly from textarea ref to ensure we have the latest content
+    const currentText = textareaRef.current?.plainText ?? value;
+    if (currentText !== value) {
+      onInput(currentText);
+    }
     const result = autocomplete.resolveSubmit();
     if (result.type === "validation-error") {
+      // If autocomplete sees empty, try the textarea text directly
+      if (currentText.trim().length > 0) {
+        setValidationError(null);
+        openOutputModal();
+        onboarding.onSubmitSucceeded();
+        onSubmit(currentText.trim());
+        return;
+      }
       setValidationError(result.message);
       return;
     }
-
     if (result.type === "selected-suggestion") {
       setValidationError(null);
       onboarding.onAutocompleteSelected();
@@ -185,7 +205,7 @@ export function FileInput({
     openOutputModal();
     onboarding.onSubmitSucceeded();
     onSubmit(result.path);
-  }, [autocomplete, onboarding, onSubmit, openOutputModal, submitting]);
+  }, [autocomplete, onInput, onboarding, onSubmit, openOutputModal, submitting, value]);
 
   const handleInput = useCallback((nextValue: string) => {
     if (validationError !== null) {
@@ -199,6 +219,11 @@ export function FileInput({
     onboarding.handleInput(nextValue);
     onInput(nextValue);
   }, [closeOutputModal, onInput, onboarding, showOutputModal, validationError]);
+
+  const handleContentChange = useCallback(() => {
+    const text = textareaRef.current?.plainText ?? "";
+    handleInput(text);
+  }, [handleInput]);
 
   const handleProviderPress = useCallback(() => {
     setActivePicker("provider");
@@ -248,7 +273,7 @@ export function FileInput({
         <InputSection
           value={value}
           submitting={submitting}
-          onInput={handleInput}
+          onContentChange={handleContentChange}
           onSubmit={handleSubmit}
           badgeLabel={detectedBadgeLabel}
           badgeSupported={badges.inputBadge?.supported ?? false}
@@ -262,6 +287,8 @@ export function FileInput({
           modelCombobox={{ ...modelCombobox, focused: modelPicker.isOpen && activePicker === "model" }}
           autocompleteState={autocomplete.state}
           width={PANEL_WIDTH}
+          inputKind={badges.inputKind}
+          textareaRef={textareaRef}
         />
       )}
 
@@ -327,7 +354,7 @@ export function FileInput({
           <text fg="#808080">
             {chapters
               ? "Type to filter, Up/Down navigate, Enter select, Esc cancel"
-              : autocomplete.query !== null ? "\u2191/\u2193 browse, Tab/Enter choose" : "input ready"}
+              : autocomplete.query !== null ? "↑/↓ browse, Tab/Enter choose" : badges.inputKind === "raw_text" ? "Ctrl+Enter to submit" : "input ready"}
           </text>
         )}
       </box>

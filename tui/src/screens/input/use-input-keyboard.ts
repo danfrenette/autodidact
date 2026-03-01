@@ -15,6 +15,13 @@ type Params = {
   modelComboboxHandleKey: KeyHandler;
   modelPickerHandleKeyboard: KeyHandler;
   onboardingHandleKeyboard: (key: KeyEvent) => void;
+  submitting: boolean;
+  inputValue: string;
+  onClearInput: () => void;
+  onCancelRequest: () => void;
+  onCancelChapter: () => void;
+  onCancelUsed: () => void;
+  onExit: () => void;
 };
 
 export function useInputKeyboard({

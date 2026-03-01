@@ -1,3 +1,4 @@
+import type { KeyBinding, TextareaRenderable } from "@opentui/core";
 import { Badge } from "@opentui-ui/react/badge";
 
 import { OptionsMenu } from "@/components/options-menu";
@@ -6,8 +7,18 @@ import { SectionHeader } from "@/components/section-header";
 import { uiStyles } from "@/components/ui-styles";
 import type { FilePathAutocompleteState } from "@/hooks/use-file-path-autocomplete";
 import { inputBadgeStyles } from "@/screens/input/styles";
+import type { InputKind } from "@/screens/input/use-badges";
 
 import { ComboboxSelectField } from "./combobox-select-field";
+
+const MULTILINE_BINDINGS: KeyBinding[] = [
+  { name: "return", ctrl: true, action: "submit" as const },
+  { name: "return", action: "newline" as const },
+];
+
+const SINGLE_LINE_BINDINGS: KeyBinding[] = [
+  { name: "return", action: "submit" as const },
+];
 
 type ComboboxView = {
   query: string;
@@ -23,7 +34,7 @@ type ComboboxView = {
 type Props = {
   value: string;
   submitting: boolean;
-  onInput: (value: string) => void;
+  onContentChange: () => void;
   onSubmit: () => void;
   badgeLabel: string | null;
   badgeSupported: boolean;
@@ -37,12 +48,14 @@ type Props = {
   modelCombobox: ComboboxView;
   autocompleteState: FilePathAutocompleteState;
   width: number;
+  inputKind: InputKind;
+  textareaRef: React.RefObject<TextareaRenderable | null>;
 };
 
 export function InputSection({
   value,
   submitting,
-  onInput,
+  onContentChange,
   onSubmit,
   badgeLabel,
   badgeSupported,
@@ -56,18 +69,24 @@ export function InputSection({
   modelCombobox,
   autocompleteState,
   width,
+  inputKind,
+  textareaRef,
 }: Props) {
   return (
     <SectionCard width={width} marginBottom={1} gap={0}>
       <SectionHeader icon="↥" title="INPUT" right={badgeLabel ? <Badge label={badgeLabel} styles={inputBadgeStyles(badgeSupported)} /> : undefined} />
 
       <box border borderColor={uiStyles.fieldBorder} paddingLeft={1} paddingRight={1} backgroundColor={uiStyles.fieldBackground}>
-        <input
-          value={value}
+        <textarea
+          ref={textareaRef}
+          initialValue={value}
           placeholder={'Enter a file path or input text... "./notes/chapter.txt"'}
-          onInput={onInput}
+          onContentChange={onContentChange}
           onSubmit={onSubmit}
+          keyBindings={inputKind === "raw_text" ? MULTILINE_BINDINGS : SINGLE_LINE_BINDINGS}
           focused={!submitting}
+          height={inputKind === "raw_text" ? 6 : 1}
+          wrapMode={inputKind === "raw_text" ? "word" : "none"}
           textColor="#eeeeee"
           cursorColor="#eeeeee"
           focusedBackgroundColor={uiStyles.fieldBackground}
