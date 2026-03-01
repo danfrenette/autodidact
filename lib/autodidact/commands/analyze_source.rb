@@ -5,7 +5,7 @@ module Autodidact
     class AnalyzeSource < Command
       class UnsupportedInputType < StandardError; end
 
-      SUPPORTED_INPUT_TYPES = %w[file_path raw_text].freeze
+      SUPPORTED_INPUT_TYPES = %w[url file_path raw_text].freeze
 
       def initialize(params:, notify:)
         @input = params.fetch(:input)
@@ -43,6 +43,7 @@ module Autodidact
 
       def convert
         case detect_input_type
+        when "url" then convert_url
         when "file_path" then convert_file
         when "raw_text" then convert_raw_text
         end
@@ -95,6 +96,10 @@ module Autodidact
         raise result.error[:message] if result.failure?
 
         result.payload
+      end
+
+      def convert_url
+        raise NotImplementedError, "URL conversion not yet implemented. See Phase 2."
       end
 
       def persist(conversion)
