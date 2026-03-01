@@ -99,7 +99,10 @@ module Autodidact
       end
 
       def convert_url
-        raise NotImplementedError, "URL conversion not yet implemented. See Phase 2."
+        result = Convert::UrlConverter.call(url: input)
+        raise result.error[:message] if result.failure?
+
+        result.payload
       end
 
       def persist(conversion)
