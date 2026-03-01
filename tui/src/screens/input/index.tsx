@@ -138,7 +138,7 @@ export function FileInput({
 
   const error = validationError ?? backendError;
   const highlight = accentColor(submitting, lastResult, error);
-  const detectedBadgeLabel = `${badges.inputBadge.supported ? "✓" : "✕"} ${badges.inputBadge.label}`;
+  const detectedBadgeLabel = badges.inputBadge ? `${badges.inputBadge.supported ? "✓" : "✕"} ${badges.inputBadge.label}` : null;
 
   const { showOutputModal, openOutputModal, closeOutputModal } = useInputKeyboard({
     chapterActive: chapters !== null,
@@ -238,7 +238,7 @@ export function FileInput({
           onInput={handleInput}
           onSubmit={handleSubmit}
           badgeLabel={detectedBadgeLabel}
-          badgeSupported={badges.inputBadge.supported}
+          badgeSupported={badges.inputBadge?.supported ?? false}
           model={model}
           provider={provider}
           modelPickerExpanded={modelPicker.isOpen}

@@ -25,7 +25,7 @@ type Props = {
   submitting: boolean;
   onInput: (value: string) => void;
   onSubmit: () => void;
-  badgeLabel: string;
+  badgeLabel: string | null;
   badgeSupported: boolean;
   provider: string;
   model: string;
@@ -59,7 +59,7 @@ export function InputSection({
 }: Props) {
   return (
     <SectionCard width={width} marginBottom={1} gap={0}>
-      <SectionHeader icon="↥" title="INPUT" right={<Badge label={badgeLabel} styles={inputBadgeStyles(badgeSupported)} />} />
+      <SectionHeader icon="↥" title="INPUT" right={badgeLabel ? <Badge label={badgeLabel} styles={inputBadgeStyles(badgeSupported)} /> : undefined} />
 
       <box border borderColor={uiStyles.fieldBorder} paddingLeft={1} paddingRight={1} backgroundColor={uiStyles.fieldBackground}>
         <input

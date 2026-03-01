@@ -47,7 +47,7 @@ export function detectInputKind(value: string): InputKind {
   return "unknown";
 }
 
-export function detectedInputBadge(value: string): BadgeView {
+export function detectedInputBadge(value: string): BadgeView | null {
   const kind = detectInputKind(value);
   const trimmed = value.trim().toLowerCase();
 
@@ -67,7 +67,7 @@ export function detectedInputBadge(value: string): BadgeView {
     };
   }
 
-  return { label: "unknown", supported: false };
+  return null;
 }
 
 export function useInputBadges(value: string) {
