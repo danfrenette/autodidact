@@ -24,6 +24,7 @@
     "@opentui/react": "^0.1.79",
     "opentui-spinner": "^0.0.6",
     "react": "^19.2.4",
+    "fuzzysort": "^3.1.0",
     "zod": "^3.24.1"
   }
 }
