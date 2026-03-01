@@ -13,7 +13,7 @@ type Params = {
   submitting: boolean;
 };
 
-export function useFileInputOnboarding({ inputValue, submitting }: Params) {
+export function useSourceInputOnboarding({ inputValue, submitting }: Params) {
   const onboarding = useOnboardingContext();
   const [showHelp, setShowHelp] = useState(false);
 

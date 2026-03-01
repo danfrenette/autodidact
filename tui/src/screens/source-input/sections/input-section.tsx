@@ -6,8 +6,8 @@ import { SectionCard } from "@/components/section-card";
 import { SectionHeader } from "@/components/section-header";
 import { uiStyles } from "@/components/ui-styles";
 import type { FilePathAutocompleteState } from "@/hooks/use-file-path-autocomplete";
-import { inputBadgeStyles } from "@/screens/input/styles";
-import type { InputKind } from "@/screens/input/use-badges";
+import { inputBadgeStyles } from "@/screens/source-input/styles";
+import type { InputKind } from "@/screens/source-input/use-badges";
 
 import { ComboboxSelectField } from "./combobox-select-field";
 

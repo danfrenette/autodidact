@@ -1,6 +1,6 @@
 import type { OnboardingHint } from "@/onboarding/types";
 
-export type FileInputHint = OnboardingHint;
+export type SourceInputHint = OnboardingHint;
 
 export type HintUiContext = {
   submitting: boolean;
@@ -9,7 +9,7 @@ export type HintUiContext = {
 };
 
 export type HintRule = {
-  hint: FileInputHint;
+  hint: SourceInputHint;
   requiresEmptyInput: boolean;
 };
 

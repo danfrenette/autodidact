@@ -38,22 +38,22 @@ type SetupState =
     error: string;
   };
 
-type FileInputBase = {
+type SourceInputBase = {
   provider: string;
   model: string;
   providerOptions: string[];
   providerModelOptions: Record<string, string[]>;
 };
 
-type FileInputState =
-  | ({ name: "file-input"; status: "idle"; lastResult: AnalysisResult | null; error: null } & FileInputBase)
-  | ({ name: "file-input"; status: "submitting"; lastResult: AnalysisResult | null; requestId: number; stage: string | null; error: null; pendingInput: string; pendingChapter?: Chapter } & FileInputBase)
-  | ({ name: "file-input"; status: "selecting-chapter"; lastResult: AnalysisResult | null; input: string; chapters: Chapter[]; error: null } & FileInputBase)
-  | ({ name: "file-input"; status: "error"; lastResult: AnalysisResult | null; error: string } & FileInputBase);
+type SourceInputState =
+  | ({ name: "source-input"; status: "idle"; lastResult: AnalysisResult | null; error: null } & SourceInputBase)
+  | ({ name: "source-input"; status: "submitting"; lastResult: AnalysisResult | null; requestId: number; stage: string | null; error: null; pendingInput: string; pendingChapter?: Chapter } & SourceInputBase)
+  | ({ name: "source-input"; status: "selecting-chapter"; lastResult: AnalysisResult | null; input: string; chapters: Chapter[]; error: null } & SourceInputBase)
+  | ({ name: "source-input"; status: "error"; lastResult: AnalysisResult | null; error: string } & SourceInputBase);
 
 export type AppFlowState =
   | SetupState
-  | FileInputState;
+  | SourceInputState;
 
 type Action =
   | { type: "setup-ready"; provider: string; model: string }
@@ -67,25 +67,25 @@ type Action =
   | { type: "cancel" }
   | { type: "chapter-confirm"; requestId: number; chapter: Chapter }
   | { type: "chapter-cancel" }
-  | { type: "file-input-provider-changed"; provider: string }
-  | { type: "file-input-model-changed"; model: string };
+  | { type: "source-input-provider-changed"; provider: string }
+  | { type: "source-input-model-changed"; model: string };
 
-type SubmittingState = Extract<FileInputState, { status: "submitting" }>;
+type SubmittingState = Extract<SourceInputState, { status: "submitting" }>;
 
 function isActiveRequest(state: AppFlowState, requestId: number): state is SubmittingState {
   return (
-    state.name === "file-input" &&
+    state.name === "source-input" &&
     state.status === "submitting" &&
     state.requestId === requestId
   );
 }
 
 function lastResultFrom(state: AppFlowState): AnalysisResult | null {
-  return state.name === "file-input" ? state.lastResult : null;
+  return state.name === "source-input" ? state.lastResult : null;
 }
 
-function fileInputOptionsFrom(state: AppFlowState) {
-  if (state.name === "file-input") {
+function sourceInputOptionsFrom(state: AppFlowState) {
+  if (state.name === "source-input") {
     return {
       providerOptions: state.providerOptions,
       providerModelOptions: state.providerModelOptions,
@@ -102,7 +102,7 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
   switch (action.type) {
     case "setup-ready":
       return {
-        name: "file-input",
+        name: "source-input",
         status: "idle",
         lastResult: null,
         error: null,
@@ -138,9 +138,9 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
         error: action.message,
       };
     case "submit": {
-      const options = fileInputOptionsFrom(state);
+      const options = sourceInputOptionsFrom(state);
       return {
-        name: "file-input",
+        name: "source-input",
         status: "submitting",
         lastResult: lastResultFrom(state),
         requestId: action.requestId,
@@ -148,8 +148,8 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
         error: null,
         pendingInput: action.input,
         pendingChapter: action.chapter,
-        provider: state.name === "file-input" ? state.provider : state.prefill.provider,
-        model: state.name === "file-input" ? state.model : state.prefill.modelId,
+        provider: state.name === "source-input" ? state.provider : state.prefill.provider,
+        model: state.name === "source-input" ? state.model : state.prefill.modelId,
         ...options,
       };
     }
@@ -165,7 +165,7 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
       }
 
       return {
-        name: "file-input",
+        name: "source-input",
         status: "selecting-chapter",
         lastResult: lastResultFrom(state),
         input: action.input,
@@ -183,7 +183,7 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
       }
 
       return {
-        name: "file-input",
+        name: "source-input",
         status: "idle",
         lastResult: action.result,
         error: null,
@@ -198,7 +198,7 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
       }
 
       return {
-        name: "file-input",
+        name: "source-input",
         status: "error",
         lastResult: lastResultFrom(state),
         error: action.message,
@@ -208,12 +208,12 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
         providerModelOptions: state.providerModelOptions,
       };
     case "cancel":
-      if (state.name !== "file-input" || (state.status !== "submitting" && state.status !== "selecting-chapter")) {
+      if (state.name !== "source-input" || (state.status !== "submitting" && state.status !== "selecting-chapter")) {
         return state;
       }
 
       return {
-        name: "file-input",
+        name: "source-input",
         status: "idle",
         lastResult: lastResultFrom(state),
         error: null,
@@ -224,7 +224,7 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
       };
 
     case "chapter-confirm":
-      if (state.name !== "file-input" || state.status !== "selecting-chapter") {
+      if (state.name !== "source-input" || state.status !== "selecting-chapter") {
         return state;
       }
 
@@ -240,12 +240,12 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
       };
 
     case "chapter-cancel":
-      if (state.name !== "file-input" || state.status !== "selecting-chapter") {
+      if (state.name !== "source-input" || state.status !== "selecting-chapter") {
         return state;
       }
 
       return {
-        name: "file-input",
+        name: "source-input",
         status: "idle",
         lastResult: lastResultFrom(state),
         error: null,
@@ -254,8 +254,8 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
         providerOptions: state.providerOptions,
         providerModelOptions: state.providerModelOptions,
       };
-    case "file-input-provider-changed":
-      if (state.name !== "file-input") {
+    case "source-input-provider-changed":
+      if (state.name !== "source-input") {
         return state;
       }
 
@@ -266,8 +266,8 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
           ? state.model
           : (state.providerModelOptions[action.provider]?.[0] ?? state.model),
       };
-    case "file-input-model-changed":
-      if (state.name !== "file-input") {
+    case "source-input-model-changed":
+      if (state.name !== "source-input") {
         return state;
       }
 
@@ -287,8 +287,8 @@ export type BackendContextValue = {
   cancelRequest: () => void;
   setOnboardingState: (state: OnboardingPersistedState) => Promise<void>;
   updateConfig: (params: ConfigParams) => Promise<void>;
-  setFileInputProvider: (provider: string) => void;
-  setFileInputModel: (model: string) => void;
+  setSourceInputProvider: (provider: string) => void;
+  setSourceInputModel: (model: string) => void;
   confirmChapter: (chapter: Chapter) => void;
   cancelChapter: () => void;
   shutdown: () => Promise<void>;
@@ -376,17 +376,17 @@ export function BackendProvider({ backend, initialState, initialOnboardingState,
     await backend.setOnboardingState(onboardingState);
   }, [backend]);
 
-  const setFileInputProvider = useCallback((provider: string) => {
-    dispatch({ type: "file-input-provider-changed", provider });
+  const setSourceInputProvider = useCallback((provider: string) => {
+    dispatch({ type: "source-input-provider-changed", provider });
   }, []);
 
-  const setFileInputModel = useCallback((model: string) => {
-    dispatch({ type: "file-input-model-changed", model });
+  const setSourceInputModel = useCallback((model: string) => {
+    dispatch({ type: "source-input-model-changed", model });
   }, []);
 
   const confirmChapter = useCallback((chapter: Chapter) => {
     const current = stateRef.current;
-    if (current.name !== "file-input" || current.status !== "selecting-chapter") return;
+    if (current.name !== "source-input" || current.status !== "selecting-chapter") return;
 
     const requestId = activeRequestId.current + 1;
     activeRequestId.current = requestId;
@@ -420,13 +420,13 @@ export function BackendProvider({ backend, initialState, initialOnboardingState,
       cancelRequest,
       setOnboardingState,
       updateConfig,
-      setFileInputProvider,
-      setFileInputModel,
+      setSourceInputProvider,
+      setSourceInputModel,
       confirmChapter,
       cancelChapter,
       shutdown,
     }),
-    [state, initialOnboardingState, analyzeSource, cancelRequest, setOnboardingState, updateConfig, setFileInputProvider, setFileInputModel, confirmChapter, cancelChapter, shutdown],
+    [state, initialOnboardingState, analyzeSource, cancelRequest, setOnboardingState, updateConfig, setSourceInputProvider, setSourceInputModel, confirmChapter, cancelChapter, shutdown],
   );
 
   return <BackendContext.Provider value={value}>{children}</BackendContext.Provider>;

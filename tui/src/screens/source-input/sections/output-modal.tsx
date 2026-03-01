@@ -1,5 +1,5 @@
 import type { AnalysisResult } from "@/requests/analyze-source";
-import { modalStyles } from "@/screens/input/styles";
+import { modalStyles } from "@/screens/source-input/styles";
 
 type Props = {
   visible: boolean;

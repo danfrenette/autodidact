@@ -3,8 +3,8 @@ import { Badge } from "@opentui-ui/react/badge";
 import { SectionCard } from "@/components/section-card";
 import { SectionHeader } from "@/components/section-header";
 import { uiStyles } from "@/components/ui-styles";
-import { tagBadgeStyles } from "@/screens/input/styles";
-import type { TagOption } from "@/screens/input/use-badges";
+import { tagBadgeStyles } from "@/screens/source-input/styles";
+import type { TagOption } from "@/screens/source-input/use-badges";
 
 type Props = {
   hasResult: boolean;

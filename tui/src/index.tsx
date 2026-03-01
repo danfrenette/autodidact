@@ -7,11 +7,11 @@ import { useBackend } from "@/hooks/use-backend.ts";
 import { OnboardingProvider } from "@/onboarding/context";
 import type { AppFlowState } from "@/providers/backend-provider.tsx";
 import { BackendProvider } from "@/providers/backend-provider.tsx";
-import { FileInput } from "@/screens/input/index.tsx";
 import { Setup } from "@/screens/setup/index.tsx";
+import { SourceInput } from "@/screens/source-input/index.tsx";
 
 function AppContent() {
-  const { state, analyzeSource, cancelRequest, updateConfig, setFileInputProvider, setFileInputModel, confirmChapter, cancelChapter, shutdown } = useBackend();
+  const { state, analyzeSource, cancelRequest, updateConfig, setSourceInputProvider, setSourceInputModel, confirmChapter, cancelChapter, shutdown } = useBackend();
   const renderer = useRenderer();
 
   const handleExit = useCallback(() => {
@@ -19,7 +19,7 @@ function AppContent() {
     void shutdown();
   }, [renderer, shutdown]);
 
-  const chapters = state.name === "file-input" && state.status === "selecting-chapter" ? state.chapters : null;
+  const chapters = state.name === "source-input" && state.status === "selecting-chapter" ? state.chapters : null;
 
   switch (state.name) {
     case "setup-form":
@@ -37,9 +37,9 @@ function AppContent() {
           onExit={handleExit}
         />
       );
-    case "file-input":
+    case "source-input":
       return (
-        <FileInput
+        <SourceInput
           onSubmit={analyzeSource}
           lastResult={state.lastResult}
           submitting={state.status === "submitting"}
@@ -49,8 +49,8 @@ function AppContent() {
           model={state.model}
           providerOptions={state.providerOptions}
           providerModelOptions={state.providerModelOptions}
-          onProviderChange={setFileInputProvider}
-          onModelChange={setFileInputModel}
+          onProviderChange={setSourceInputProvider}
+          onModelChange={setSourceInputModel}
           chapters={chapters}
           onConfirmChapter={confirmChapter}
           onCancelChapter={cancelChapter}
@@ -78,7 +78,7 @@ const onboardingState = await backend.getOnboardingState().catch(() => null);
 const initialState: AppFlowState =
   status.status === "ready"
     ? {
-      name: "file-input",
+      name: "source-input",
       status: "idle",
       lastResult: null,
       error: null,

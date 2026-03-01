@@ -5,7 +5,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { useFilePathAutocomplete } from "@/hooks/use-file-path-autocomplete";
 import { useKeyboardDispatch } from "@/hooks/use-keyboard-dispatch";
 import { useOnboardingContext } from "@/onboarding/context";
-import { useFileInputOnboarding } from "@/onboarding/file-input/use-file-input-onboarding";
+import { useSourceInputOnboarding } from "@/onboarding/source-input/use-source-input-onboarding";
 import { onboardingHint } from "@/onboarding/types";
 import type { AnalysisResult, Chapter } from "@/requests/analyze-source";
 import { resolveAvailableModels } from "@/screens/setup/models";
@@ -64,7 +64,7 @@ function accentColor(submitting: boolean, lastResult: AnalysisResult | null, err
   return "#fab283";
 }
 
-export function FileInput({
+export function SourceInput({
   onSubmit,
   lastResult,
   submitting,
@@ -95,7 +95,7 @@ export function FileInput({
   }, [onInput]);
   const modelPicker = useModelPickerDisclosure({ disabled: submitting });
   const autocomplete = useFilePathAutocomplete({ value, onInput: syncedOnInput, submitting });
-  const onboarding = useFileInputOnboarding({ inputValue: value, submitting });
+  const onboarding = useSourceInputOnboarding({ inputValue: value, submitting });
   const badges = useInputBadges(value);
   const chapterSelection = useChapterSelection({
     chapters: chapters ?? [],
