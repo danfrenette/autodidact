@@ -22,29 +22,15 @@ export const TAG_OPTIONS: TagOption[] = [
 
 const SUPPORTED_FILE_EXTENSIONS = new Set([".txt", ".md", ".pdf", ".rst"]);
 
+const URL_PATTERN = /^https?:\/\//i;
+const PATH_PATTERN = /[/\\]|\.[a-z0-9]{1,5}$/i;
 export function detectInputKind(value: string): InputKind {
   const trimmed = value.trim();
   if (trimmed.length === 0) return "unknown";
+  if (URL_PATTERN.test(trimmed)) return "url";
+  if (PATH_PATTERN.test(trimmed)) return "file_path";
 
-  if (/^https?:\/\//i.test(trimmed)) {
-    return "url";
-  }
-
-  if (trimmed.includes("\n")) {
-    return "raw_text";
-  }
-
-  const sentenceLike = /[A-Za-z].*\s+.*[A-Za-z]/.test(trimmed);
-  const pathLike = trimmed.includes("/") || trimmed.includes("\\") || /^\.?\.?\/?\w+/.test(trimmed);
-  if (sentenceLike && !pathLike) {
-    return "raw_text";
-  }
-
-  if (pathLike) {
-    return "file_path";
-  }
-
-  return "unknown";
+  return "raw_text";
 }
 
 export function detectedInputBadge(value: string): BadgeView | null {

@@ -1,5 +1,7 @@
 import "opentui-spinner/react";
 
+import { execSync } from "node:child_process";
+
 import type { BorderCharacters } from "@opentui/core";
 import { useCallback, useMemo, useState } from "react";
 
@@ -76,6 +78,16 @@ function accentColor(submitting: boolean, lastResult: AnalysisResult | null, err
   return "#fab283";
 }
 
+function copyToClipboard(text: string, onCopied: (v: boolean) => void) {
+  try {
+    execSync("pbcopy", { input: text });
+    onCopied(true);
+    setTimeout(() => onCopied(false), 1500);
+  } catch {
+    // silently ignore clipboard failures
+  }
+}
+
 export function FileInput({
   onSubmit,
   lastResult,
@@ -95,6 +107,7 @@ export function FileInput({
   onCancelChapter,
 }: Props) {
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const [activePicker, setActivePicker] = useState<"provider" | "model">("model");
   const modelPicker = useModelPickerDisclosure({ disabled: submitting });
   const autocomplete = useFilePathAutocomplete({ value, onInput, submitting });
@@ -303,7 +316,10 @@ export function FileInput({
             </>
           )}
           {error && !submitting && (
-            <text fg="#e06c75">{error}</text>
+            <box flexDirection="row" gap={1} alignItems="center">
+              <text fg="#e06c75">{error}</text>
+              <text fg="#808080" onMouseDown={() => copyToClipboard(error, setCopied)}>{copied ? "copied!" : "copy"}</text>
+            </box>
           )}
         </box>
 

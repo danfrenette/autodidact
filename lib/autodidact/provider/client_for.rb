@@ -25,7 +25,7 @@ module Autodidact
       attr_reader :config
 
       def client_class
-        raise UnknownProviderError unless definition_supported?
+        raise UnknownProviderError, "Unknown provider: #{config.provider.inspect}" unless definition_supported?
 
         definition.runtime_client_class
       end
@@ -35,7 +35,7 @@ module Autodidact
       end
 
       def definition_supported?
-        definition.present? && definition.runtime_client_class.present?
+        !definition.nil? && !definition.runtime_client_class.nil?
       end
     end
   end
