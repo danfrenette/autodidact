@@ -4,8 +4,9 @@ import { OptionsMenu } from "@/components/options-menu";
 import { SectionCard } from "@/components/section-card";
 import { SectionHeader } from "@/components/section-header";
 import { uiStyles } from "@/components/ui-styles";
-import { tagBadgeStyles } from "@/screens/source-input/styles";
-import { isCreateOption, extractCreateName } from "@/screens/source-input/use-tag-combobox";
+
+import { tagBadgeStyles } from "./styles";
+import { extractCreateName, isCreateOption } from "./utils";
 
 type Props = {
   selectedTags: string[];

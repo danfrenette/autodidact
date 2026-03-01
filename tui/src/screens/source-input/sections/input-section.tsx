@@ -6,6 +6,7 @@ import { SectionCard } from "@/components/section-card";
 import { SectionHeader } from "@/components/section-header";
 import { uiStyles } from "@/components/ui-styles";
 import type { FilePathAutocompleteState } from "@/hooks/use-file-path-autocomplete";
+import { formatTagPreview } from "@/lib/tags/utils";
 import { inputBadgeStyles } from "@/screens/source-input/styles";
 import type { InputKind } from "@/screens/source-input/use-badges";
 
@@ -118,11 +119,7 @@ export function InputSection({
           <text fg={uiStyles.muted} onMouseDown={onChevronPress}>{modelPickerExpanded ? "⌃" : "⌄"}</text>
         </box>
         <text fg={uiStyles.muted} onMouseDown={onTagsPress}>
-          {selectedTags.length === 0
-            ? "+ Add tags"
-            : selectedTags.length <= 3
-              ? selectedTags.join(", ")
-              : `${selectedTags.slice(0, 3).join(", ")} (+${selectedTags.length - 3} more)`}
+          {formatTagPreview(selectedTags)}
         </text>
       </box>
 

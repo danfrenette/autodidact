@@ -18,7 +18,7 @@ type AutocompleteAction =
   | { type: "move-up" }
   | { type: "move-down" };
 
-type SubmitResult =
+export type SubmitResult =
   | { type: "submit-path"; path: string }
   | { type: "selected-suggestion" }
   | { type: "validation-error"; message: string };

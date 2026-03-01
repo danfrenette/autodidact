@@ -4,6 +4,8 @@ import { useCallback, useMemo, useRef, useState } from "react";
 
 import { useFilePathAutocomplete } from "@/hooks/use-file-path-autocomplete";
 import { useKeyboardDispatch } from "@/hooks/use-keyboard-dispatch";
+import { TagsSection } from "@/lib/tags/tags-section";
+import { useTagCombobox } from "@/lib/tags/use-tag-combobox";
 import { useOnboardingContext } from "@/onboarding/context";
 import { useSourceInputOnboarding } from "@/onboarding/source-input/use-source-input-onboarding";
 import { onboardingHint } from "@/onboarding/types";
@@ -18,12 +20,11 @@ import { ChapterSelectionSection } from "./sections/chapter-selection-section";
 import { InputSection } from "./sections/input-section";
 import { OutputModal } from "./sections/output-modal";
 import { StatusMessage } from "./sections/status-message";
-import { TagsSection } from "./sections/tags-section";
 import { PANEL_WIDTH } from "./styles";
 import { useInputBadges } from "./use-badges";
-import { useTagCombobox } from "./use-tag-combobox";
 import { useChapterSelection } from "./use-chapter-selection";
 import { useModelPickerDisclosure } from "./use-model-picker-disclosure";
+import { useSourceInputSubmit } from "./use-source-input-submit";
 
 type Props = {
   onSubmit: (path: string, tags: string[]) => Promise<AnalysisResult | null>;
@@ -84,7 +85,6 @@ export function SourceInput({
   onExit,
 }: Props) {
   const [value, onInput] = useState("");
-  const [validationError, setValidationError] = useState<string | null>(null);
   const [activePicker, setActivePicker] = useState<"provider" | "model">("model");
   const textareaRef = useRef<TextareaRenderable>(null);
 
@@ -129,14 +129,27 @@ export function SourceInput({
     },
   });
 
-  const error = validationError ?? backendError;
-  const highlight = accentColor(submitting, lastResult, error);
-  const detectedBadgeLabel = badges.inputBadge ? `${badges.inputBadge.supported ? "✓" : "✕"} ${badges.inputBadge.label}` : null;
-
   const { onCancelUsed } = useOnboardingContext();
   const [showOutputModal, setShowOutputModal] = useState(false);
   const openOutputModal = useCallback(() => setShowOutputModal(true), []);
   const closeOutputModal = useCallback(() => setShowOutputModal(false), []);
+
+  const submit = useSourceInputSubmit({
+    resolveSubmit: autocomplete.resolveSubmit,
+    selectedTags: tagCombobox.selectedTags,
+    textareaRef,
+    value,
+    onInput,
+    onSubmit,
+    onSubmitSucceeded: onboarding.onSubmitSucceeded,
+    onAutocompleteSelected: onboarding.onAutocompleteSelected,
+    openOutputModal,
+    submitting,
+  });
+
+  const error = submit.validationError ?? backendError;
+  const highlight = accentColor(submitting, lastResult, error);
+  const detectedBadgeLabel = badges.inputBadge ? `${badges.inputBadge.supported ? "✓" : "✕"} ${badges.inputBadge.label}` : null;
 
   const handleConfirmChapter = useCallback(async (chapter: Chapter) => {
     const result = await onConfirmChapter(chapter);
@@ -224,40 +237,8 @@ export function SourceInput({
 
   useKeyboardDispatch(keyboardHandlers);
 
-  const handleSubmit = useCallback(async () => {
-    if (submitting) return;
-    const currentText = textareaRef.current?.plainText ?? value;
-    if (currentText !== value) {
-      onInput(currentText);
-    }
-    const result = autocomplete.resolveSubmit();
-    if (result.type === "validation-error") {
-      if (currentText.trim().length > 0) {
-        setValidationError(null);
-        onboarding.onSubmitSucceeded();
-        const analysisResult = await onSubmit(currentText.trim(), tagCombobox.selectedTags);
-        if (analysisResult?.status === "completed") openOutputModal();
-        return;
-      }
-      setValidationError(result.message);
-      return;
-    }
-    if (result.type === "selected-suggestion") {
-      setValidationError(null);
-      onboarding.onAutocompleteSelected();
-      return;
-    }
-
-    setValidationError(null);
-    onboarding.onSubmitSucceeded();
-    const analysisResult = await onSubmit(result.path, tagCombobox.selectedTags);
-    if (analysisResult?.status === "completed") openOutputModal();
-  }, [autocomplete, onInput, onboarding, onSubmit, openOutputModal, submitting, value]);
-
   const handleInput = useCallback((nextValue: string) => {
-    if (validationError !== null) {
-      setValidationError(null);
-    }
+    submit.clearValidationError();
 
     if (showOutputModal) {
       closeOutputModal();
@@ -265,7 +246,7 @@ export function SourceInput({
 
     onboarding.handleInput(nextValue);
     onInput(nextValue);
-  }, [closeOutputModal, onInput, onboarding, showOutputModal, validationError]);
+  }, [closeOutputModal, onInput, onboarding, showOutputModal, submit.clearValidationError]);
 
   const handleContentChange = useCallback(() => {
     const text = textareaRef.current?.plainText ?? "";
@@ -321,7 +302,7 @@ export function SourceInput({
           value={value}
           submitting={submitting}
           onContentChange={handleContentChange}
-          onSubmit={handleSubmit}
+          onSubmit={submit.handleSubmit}
           badgeLabel={detectedBadgeLabel}
           badgeSupported={badges.inputBadge?.supported ?? false}
           model={model}

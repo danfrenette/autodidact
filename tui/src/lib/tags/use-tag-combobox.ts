@@ -3,24 +3,16 @@ import { useCallback, useMemo, useState } from "react";
 
 import { useFuzzyList } from "@/hooks/use-fuzzy-list";
 
-export const TAG_OPTIONS: string[] = [
-  "chapter-review",
-  "study-guide",
-  "key-terms",
-  "practice-quiz",
-  "summary",
-];
-
-const createSentinel = (query: string) => `create:${query}`;
-export const isCreateOption = (option: string) => option.startsWith("create:");
-export const extractCreateName = (option: string) => option.slice("create:".length);
-
-function normalizeTag(name: string): string {
-  return name.trim().toLowerCase();
-}
+import { useTagSelection } from "./use-tag-selection";
+import {
+  appendCreateOption,
+  extractCreateName,
+  isCreateOption,
+  TAG_OPTIONS,
+} from "./utils";
 
 export function useTagCombobox() {
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const { selectedTags, addTag, removeTag, clearTags } = useTagSelection();
   const [tagsExpanded, setTagsExpanded] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -31,29 +23,10 @@ export function useTagCombobox() {
 
   const fuzzy = useFuzzyList({ items: availableOptions, active: tagsExpanded });
 
-  const filteredOptions = useMemo(() => {
-    const base = fuzzy.filtered;
-    const trimmedQuery = fuzzy.query.trim();
-
-    if (
-      trimmedQuery.length > 0 &&
-      !base.some((o) => o.toLowerCase() === trimmedQuery.toLowerCase())
-    ) {
-      return [...base, createSentinel(trimmedQuery)];
-    }
-
-    return base;
-  }, [fuzzy.filtered, fuzzy.query]);
-
-  const addTag = useCallback((name: string) => {
-    const normalized = normalizeTag(name);
-    if (!normalized) return;
-    setSelectedTags((prev) => (prev.includes(normalized) ? prev : [...prev, normalized]));
-  }, []);
-
-  const removeTag = useCallback((name: string) => {
-    setSelectedTags((prev) => prev.filter((t) => t !== name));
-  }, []);
+  const filteredOptions = useMemo(
+    () => appendCreateOption(fuzzy.filtered, fuzzy.query),
+    [fuzzy.filtered, fuzzy.query],
+  );
 
   const openTags = useCallback(() => setTagsExpanded(true), []);
 
@@ -61,14 +34,14 @@ export function useTagCombobox() {
     setTagsExpanded(false);
     setIsDropdownOpen(false);
     fuzzy.reset();
-  }, [fuzzy]);
+  }, [fuzzy.reset]);
 
   const handleInput = useCallback(
     (value: string) => {
       fuzzy.handleInput(value);
       setIsDropdownOpen(value.trim().length > 0);
     },
-    [fuzzy],
+    [fuzzy.handleInput],
   );
 
   const submitTag = useCallback((): boolean => {
@@ -82,16 +55,16 @@ export function useTagCombobox() {
       return true;
     }
 
-    const rawQuery = normalizeTag(fuzzy.query);
-    if (rawQuery) {
-      addTag(rawQuery);
+    const trimmedQuery = fuzzy.query.trim();
+    if (trimmedQuery) {
+      addTag(trimmedQuery);
       fuzzy.reset();
       setIsDropdownOpen(false);
       return true;
     }
 
     return false;
-  }, [filteredOptions, fuzzy, addTag]);
+  }, [filteredOptions, fuzzy.highlightedIndex, fuzzy.query, fuzzy.reset, addTag]);
 
   const handleKey = useCallback(
     (key: KeyEvent): boolean => {
@@ -123,13 +96,14 @@ export function useTagCombobox() {
 
       return false;
     },
-    [tagsExpanded, isDropdownOpen, fuzzy, closeTags],
+    [tagsExpanded, isDropdownOpen, fuzzy.moveUp, fuzzy.moveDown, fuzzy.reset, closeTags],
   );
 
   return {
     selectedTags,
     addTag,
     removeTag,
+    clearTags,
     tagsExpanded,
     openTags,
     closeTags,
