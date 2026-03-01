@@ -21,11 +21,12 @@ import { StatusMessage } from "./sections/status-message";
 import { TagsSection } from "./sections/tags-section";
 import { PANEL_WIDTH } from "./styles";
 import { useInputBadges } from "./use-badges";
+import { useTagCombobox } from "./use-tag-combobox";
 import { useChapterSelection } from "./use-chapter-selection";
 import { useModelPickerDisclosure } from "./use-model-picker-disclosure";
 
 type Props = {
-  onSubmit: (path: string) => void;
+  onSubmit: (path: string, tags: string[]) => Promise<AnalysisResult | null>;
   lastResult: AnalysisResult | null;
   submitting: boolean;
   stage: string | null;
@@ -37,7 +38,7 @@ type Props = {
   onProviderChange: (provider: string) => void;
   onModelChange: (model: string) => void;
   chapters: Chapter[] | null;
-  onConfirmChapter: (chapter: Chapter) => void;
+  onConfirmChapter: (chapter: Chapter) => Promise<AnalysisResult | null>;
   onCancelChapter: () => void;
   onCancelRequest: () => void;
   onExit: () => void;
@@ -97,12 +98,7 @@ export function SourceInput({
   const autocomplete = useFilePathAutocomplete({ value, onInput: syncedOnInput, submitting });
   const onboarding = useSourceInputOnboarding({ inputValue: value, submitting });
   const badges = useInputBadges(value);
-  const chapterSelection = useChapterSelection({
-    chapters: chapters ?? [],
-    onConfirm: onConfirmChapter,
-    onCancel: onCancelChapter,
-    active: chapters !== null,
-  });
+  const tagCombobox = useTagCombobox();
 
   const resolvedProviderOptions = useMemo(
     () => resolveAvailableProviders(providerOptions),
@@ -141,6 +137,18 @@ export function SourceInput({
   const [showOutputModal, setShowOutputModal] = useState(false);
   const openOutputModal = useCallback(() => setShowOutputModal(true), []);
   const closeOutputModal = useCallback(() => setShowOutputModal(false), []);
+
+  const handleConfirmChapter = useCallback(async (chapter: Chapter) => {
+    const result = await onConfirmChapter(chapter);
+    if (result?.status === "completed") openOutputModal();
+  }, [onConfirmChapter, openOutputModal]);
+
+  const chapterSelection = useChapterSelection({
+    chapters: chapters ?? [],
+    onConfirm: handleConfirmChapter,
+    onCancel: onCancelChapter,
+    active: chapters !== null,
+  });
 
   const chapterActive = chapters !== null;
 
@@ -206,30 +214,29 @@ export function SourceInput({
       handleOutputModal,
       chapterSelection.handleKey,
       autocomplete.handleKey,
+      tagCombobox.handleKey,
       handleModelPickerTab,
       modelPicker.handleKeyboard,
       onboarding.handleKeyboard,
     ],
-    [handleCtrlCEscape, handleOutputModal, chapterSelection.handleKey, autocomplete.handleKey, handleModelPickerTab, modelPicker.handleKeyboard, onboarding.handleKeyboard],
+    [handleCtrlCEscape, handleOutputModal, chapterSelection.handleKey, autocomplete.handleKey, tagCombobox.handleKey, handleModelPickerTab, modelPicker.handleKeyboard, onboarding.handleKeyboard],
   );
 
   useKeyboardDispatch(keyboardHandlers);
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     if (submitting) return;
-    // Read directly from textarea ref to ensure we have the latest content
     const currentText = textareaRef.current?.plainText ?? value;
     if (currentText !== value) {
       onInput(currentText);
     }
     const result = autocomplete.resolveSubmit();
     if (result.type === "validation-error") {
-      // If autocomplete sees empty, try the textarea text directly
       if (currentText.trim().length > 0) {
         setValidationError(null);
-        openOutputModal();
         onboarding.onSubmitSucceeded();
-        onSubmit(currentText.trim());
+        const analysisResult = await onSubmit(currentText.trim(), tagCombobox.selectedTags);
+        if (analysisResult?.status === "completed") openOutputModal();
         return;
       }
       setValidationError(result.message);
@@ -242,9 +249,9 @@ export function SourceInput({
     }
 
     setValidationError(null);
-    openOutputModal();
     onboarding.onSubmitSucceeded();
-    onSubmit(result.path);
+    const analysisResult = await onSubmit(result.path, tagCombobox.selectedTags);
+    if (analysisResult?.status === "completed") openOutputModal();
   }, [autocomplete, onInput, onboarding, onSubmit, openOutputModal, submitting, value]);
 
   const handleInput = useCallback((nextValue: string) => {
@@ -329,17 +336,25 @@ export function SourceInput({
           width={PANEL_WIDTH}
           inputKind={badges.inputKind}
           textareaRef={textareaRef}
+          selectedTags={tagCombobox.selectedTags}
+          onTagsPress={tagCombobox.openTags}
         />
       )}
 
-      <TagsSection
-        hasResult={lastResult !== null}
-        selectedCount={badges.selectedCount}
-        tags={badges.tags}
-        isSelected={badges.isSelected}
-        onToggle={badges.toggleTag}
-        width={PANEL_WIDTH}
-      />
+      {tagCombobox.tagsExpanded && (
+        <TagsSection
+          selectedTags={tagCombobox.selectedTags}
+          onRemove={tagCombobox.removeTag}
+          query={tagCombobox.query}
+          filteredOptions={tagCombobox.filteredOptions}
+          highlightedIndex={tagCombobox.highlightedIndex}
+          isDropdownOpen={tagCombobox.isDropdownOpen}
+          onInput={tagCombobox.handleInput}
+          onSubmit={tagCombobox.submitTag}
+          focused={tagCombobox.tagsExpanded}
+          width={PANEL_WIDTH}
+        />
+      )}
 
       <OnboardingNudge
         visible={onboarding.showAtHint}
@@ -381,7 +396,7 @@ export function SourceInput({
           <text fg="#808080">
             {chapters
               ? "Type to filter, Up/Down navigate, Enter select, Esc cancel"
-              : autocomplete.query !== null ? "↑/↓ browse, Tab/Enter choose" : badges.inputKind === "raw_text" ? "Ctrl+Enter to submit" : "input ready"}
+              : autocomplete.query !== null ? "↑/↓ browse, Tab/Enter choose" : tagCombobox.tagsExpanded ? "Esc close tags" : badges.inputKind === "raw_text" ? "Ctrl+Enter to submit" : "input ready"}
           </text>
         )}
       </box>

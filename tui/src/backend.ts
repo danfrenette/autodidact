@@ -63,8 +63,10 @@ export class Backend {
     return detectSourceRequest.toSourceInfo(wire);
   }
 
-  async analyzeSource(input: string, chapter?: Chapter): Promise<AnalysisResult> {
-    const params = chapter ? { input, chapter } : { input };
+  async analyzeSource(input: string, chapter?: Chapter, tags?: string[]): Promise<AnalysisResult> {
+    const params: Record<string, unknown> = { input };
+    if (chapter) params.chapter = chapter;
+    if (tags?.length) params.tags = tags;
     const result = await this.send(analyzeSourceRequest.method, params);
     const wire = analyzeSourceRequest.decode(result);
     return analyzeSourceRequest.toAnalysisResult(wire);

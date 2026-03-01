@@ -7,7 +7,7 @@ import type { Chapter } from "@/requests/analyze-source";
 
 type Params = {
   chapters: Chapter[];
-  onConfirm: (chapter: Chapter) => void;
+  onConfirm: (chapter: Chapter) => void | Promise<unknown>;
   onCancel: () => void;
   active: boolean;
 };

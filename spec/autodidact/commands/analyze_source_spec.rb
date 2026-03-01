@@ -124,6 +124,46 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
     end
   end
 
+  describe "tags flow through pipeline" do
+    it "passes tags to PersistSourceBlob and RenderNote" do
+      file = Tempfile.new(["sample", ".txt"])
+      file.write("some content")
+      file.flush
+
+      allow(Autodidact::Storage::PersistSourceBlob).to receive(:call).and_return(blob)
+      allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call).and_return(success_result("## Notes"))
+
+      result = described_class.call(
+        params: {input: file.path, tags: %w[study-guide chapter-review]},
+        notify: notify
+      )
+
+      expect(result).to be_success
+      expect(Autodidact::Storage::PersistSourceBlob).to have_received(:call).with(
+        hash_including(tags: %w[study-guide chapter-review])
+      )
+    ensure
+      file.close!
+    end
+
+    it "defaults to empty tags when none provided" do
+      file = Tempfile.new(["sample", ".txt"])
+      file.write("some content")
+      file.flush
+
+      allow(Autodidact::Storage::PersistSourceBlob).to receive(:call).and_return(blob)
+      allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call).and_return(success_result("## Notes"))
+
+      described_class.call(params: {input: file.path}, notify: notify)
+
+      expect(Autodidact::Storage::PersistSourceBlob).to have_received(:call).with(
+        hash_including(tags: [])
+      )
+    ensure
+      file.close!
+    end
+  end
+
   describe "notify progress" do
     it "emits progress stages in order" do
       file = Tempfile.new(["sample", ".txt"])

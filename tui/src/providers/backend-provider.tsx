@@ -47,8 +47,8 @@ type SourceInputBase = {
 
 type SourceInputState =
   | ({ name: "source-input"; status: "idle"; lastResult: AnalysisResult | null; error: null } & SourceInputBase)
-  | ({ name: "source-input"; status: "submitting"; lastResult: AnalysisResult | null; requestId: number; stage: string | null; error: null; pendingInput: string; pendingChapter?: Chapter } & SourceInputBase)
-  | ({ name: "source-input"; status: "selecting-chapter"; lastResult: AnalysisResult | null; input: string; chapters: Chapter[]; error: null } & SourceInputBase)
+  | ({ name: "source-input"; status: "submitting"; lastResult: AnalysisResult | null; requestId: number; stage: string | null; error: null; pendingInput: string; pendingChapter?: Chapter; pendingTags: string[] } & SourceInputBase)
+  | ({ name: "source-input"; status: "selecting-chapter"; lastResult: AnalysisResult | null; input: string; chapters: Chapter[]; tags: string[]; error: null } & SourceInputBase)
   | ({ name: "source-input"; status: "error"; lastResult: AnalysisResult | null; error: string } & SourceInputBase);
 
 export type AppFlowState =
@@ -59,10 +59,10 @@ type Action =
   | { type: "setup-ready"; provider: string; model: string }
   | { type: "setup-save" }
   | { type: "setup-save-failed"; message: string; missingFields?: string[] }
-  | { type: "submit"; requestId: number; input: string; chapter?: Chapter }
+  | { type: "submit"; requestId: number; input: string; chapter?: Chapter; tags: string[] }
   | { type: "progress"; requestId: number; stage: string }
   | { type: "success"; requestId: number; result: AnalysisResult }
-  | { type: "pending-selection"; requestId: number; input: string; chapters: Chapter[] }
+  | { type: "pending-selection"; requestId: number; input: string; chapters: Chapter[]; tags: string[] }
   | { type: "failure"; requestId: number; message: string }
   | { type: "cancel" }
   | { type: "chapter-confirm"; requestId: number; chapter: Chapter }
@@ -148,6 +148,7 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
         error: null,
         pendingInput: action.input,
         pendingChapter: action.chapter,
+        pendingTags: action.tags,
         provider: state.name === "source-input" ? state.provider : state.prefill.provider,
         model: state.name === "source-input" ? state.model : state.prefill.modelId,
         ...options,
@@ -170,6 +171,7 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
         lastResult: lastResultFrom(state),
         input: action.input,
         chapters: action.chapters,
+        tags: action.tags,
         error: null,
         provider: state.provider,
         model: state.model,
@@ -237,6 +239,7 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
         error: null,
         pendingInput: state.input,
         pendingChapter: action.chapter,
+        pendingTags: state.tags,
       };
 
     case "chapter-cancel":
@@ -283,13 +286,13 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
 export type BackendContextValue = {
   state: AppFlowState;
   onboardingState: OnboardingPersistedState | null;
-  analyzeSource: (input: string) => Promise<void>;
+  analyzeSource: (input: string, tags?: string[]) => Promise<AnalysisResult | null>;
   cancelRequest: () => void;
   setOnboardingState: (state: OnboardingPersistedState) => Promise<void>;
   updateConfig: (params: ConfigParams) => Promise<void>;
   setSourceInputProvider: (provider: string) => void;
   setSourceInputModel: (model: string) => void;
-  confirmChapter: (chapter: Chapter) => void;
+  confirmChapter: (chapter: Chapter) => Promise<AnalysisResult | null>;
   cancelChapter: () => void;
   shutdown: () => Promise<void>;
 };
@@ -339,29 +342,32 @@ export function BackendProvider({ backend, initialState, initialOnboardingState,
   }, [backend]);
 
   const analyzeSource = useCallback(
-    async (input: string, chapter?: Chapter) => {
+    async (input: string, tags?: string[], chapter?: Chapter): Promise<AnalysisResult | null> => {
       const requestId = activeRequestId.current + 1;
       activeRequestId.current = requestId;
-      dispatch({ type: "submit", requestId, input, chapter });
+      dispatch({ type: "submit", requestId, input, chapter, tags: tags ?? [] });
 
       try {
-        const result = await backend.analyzeSource(input, chapter);
+        const result = await backend.analyzeSource(input, chapter, tags);
         if (activeRequestId.current !== requestId) {
-          return;
+          return null;
         }
 
         if (result.status === "pending_selection") {
-          dispatch({ type: "pending-selection", requestId, input, chapters: result.chapters });
+          dispatch({ type: "pending-selection", requestId, input, chapters: result.chapters, tags: tags ?? [] });
         } else {
           dispatch({ type: "success", requestId, result });
         }
+
+        return result;
       } catch (error) {
         if (activeRequestId.current !== requestId) {
-          return;
+          return null;
         }
 
         const message = error instanceof Error ? error.message : "Unknown error";
         dispatch({ type: "failure", requestId, message });
+        return null;
       }
     },
     [backend],
@@ -384,14 +390,14 @@ export function BackendProvider({ backend, initialState, initialOnboardingState,
     dispatch({ type: "source-input-model-changed", model });
   }, []);
 
-  const confirmChapter = useCallback((chapter: Chapter) => {
+  const confirmChapter = useCallback(async (chapter: Chapter): Promise<AnalysisResult | null> => {
     const current = stateRef.current;
-    if (current.name !== "source-input" || current.status !== "selecting-chapter") return;
+    if (current.name !== "source-input" || current.status !== "selecting-chapter") return null;
 
     const requestId = activeRequestId.current + 1;
     activeRequestId.current = requestId;
     dispatch({ type: "chapter-confirm", requestId, chapter });
-    void analyzeSource(current.input, chapter);
+    return analyzeSource(current.input, current.tags, chapter);
   }, [analyzeSource]);
 
   const cancelChapter = useCallback(() => {

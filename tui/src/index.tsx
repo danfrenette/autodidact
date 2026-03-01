@@ -40,7 +40,7 @@ function AppContent() {
     case "source-input":
       return (
         <SourceInput
-          onSubmit={analyzeSource}
+          onSubmit={(input, tags) => analyzeSource(input, tags)}
           lastResult={state.lastResult}
           submitting={state.status === "submitting"}
           stage={state.status === "submitting" ? state.stage : null}

@@ -9,6 +9,7 @@ module Autodidact
 
       def initialize(params:, notify:)
         @input = params.fetch(:input)
+        @tags = Array(params[:tags])
         @chapter = params[:chapter]
         @notify = notify
       end
@@ -34,7 +35,7 @@ module Autodidact
 
       private
 
-      attr_reader :input, :chapter, :notify
+      attr_reader :input, :tags, :chapter, :notify
 
       def validate_config!
         raise "Configuration is incomplete. Run setup first." unless Autodidact.config.ready?
@@ -102,7 +103,8 @@ module Autodidact
           source_type: conversion.source_type,
           selection_kind: conversion.selection_kind,
           raw_text: conversion.raw_text,
-          selection_payload: conversion.selection_payload
+          selection_payload: conversion.selection_payload,
+          tags: tags
         )
       end
 
@@ -115,7 +117,7 @@ module Autodidact
 
       def render_and_write(conversion, content)
         rendered = Output::RenderNote.call(
-          tag: "autodidact",
+          tags: tags,
           source_path: conversion.source_path || "raw_text://inline",
           content: content,
           created_at: Time.now

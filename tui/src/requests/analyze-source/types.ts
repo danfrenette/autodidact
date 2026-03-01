@@ -9,6 +9,7 @@ const chapterSchema = z.object({
 export const paramsSchema = z.object({
   input: z.string(),
   chapter: chapterSchema.optional(),
+  tags: z.array(z.string()).optional(),
 });
 
 const completedSchema = z.object({

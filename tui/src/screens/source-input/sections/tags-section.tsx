@@ -1,48 +1,81 @@
 import { Badge } from "@opentui-ui/react/badge";
 
+import { OptionsMenu } from "@/components/options-menu";
 import { SectionCard } from "@/components/section-card";
 import { SectionHeader } from "@/components/section-header";
 import { uiStyles } from "@/components/ui-styles";
 import { tagBadgeStyles } from "@/screens/source-input/styles";
-import type { TagOption } from "@/screens/source-input/use-badges";
+import { isCreateOption, extractCreateName } from "@/screens/source-input/use-tag-combobox";
 
 type Props = {
-  hasResult: boolean;
-  selectedCount: number;
-  tags: TagOption[];
-  isSelected: (id: string) => boolean;
-  onToggle: (id: string) => void;
+  selectedTags: string[];
+  onRemove: (name: string) => void;
+  query: string;
+  filteredOptions: string[];
+  highlightedIndex: number;
+  isDropdownOpen: boolean;
+  onInput: (value: string) => void;
+  onSubmit: () => void;
+  focused: boolean;
   width: number;
 };
 
-function TagBadge({ option, selected, onToggle }: { option: TagOption; selected: boolean; onToggle: (id: string) => void }) {
-  return (
-    <box key={option.id} onMouseDown={() => onToggle(option.id)}>
-      <Badge label={selected ? `✓ ${option.label}` : option.label} styles={tagBadgeStyles(selected)} />
-    </box>
+export function TagsSection({
+  selectedTags,
+  onRemove,
+  query,
+  filteredOptions,
+  highlightedIndex,
+  isDropdownOpen,
+  onInput,
+  onSubmit,
+  focused,
+  width,
+}: Props) {
+  const displayOptions = filteredOptions.map((o) =>
+    isCreateOption(o) ? `Create "${extractCreateName(o)}"` : o,
   );
-}
 
-export function TagsSection({ hasResult, selectedCount, tags, isSelected, onToggle, width }: Props) {
   return (
     <SectionCard width={width} marginBottom={1}>
-      <SectionHeader icon="⌂" title="TAGS" right={<text fg={uiStyles.muted}>{`${selectedCount} selected`}</text>} alignItems="flex-start" />
+      <SectionHeader
+        icon="⌂"
+        title="TAGS"
+        right={<text fg={uiStyles.muted}>{`${selectedTags.length} selected`}</text>}
+        alignItems="flex-start"
+      />
 
-      {hasResult ? (
-        <>
-          <box flexDirection="row" gap={1}>
-            {tags.slice(0, 4).map((tag) => (
-              <TagBadge key={tag.id} option={tag} selected={isSelected(tag.id)} onToggle={onToggle} />
-            ))}
-          </box>
-          <box flexDirection="row" gap={1}>
-            {tags.slice(4).map((tag) => (
-              <TagBadge key={tag.id} option={tag} selected={isSelected(tag.id)} onToggle={onToggle} />
-            ))}
-          </box>
-        </>
-      ) : (
-        <text fg={uiStyles.label}>Tags appear after analysis</text>
+      {selectedTags.length > 0 && (
+        <box flexDirection="row" gap={1}>
+          {selectedTags.map((tag) => (
+            <box key={tag} onMouseDown={() => onRemove(tag)}>
+              <Badge label={`x ${tag}`} styles={tagBadgeStyles(true)} />
+            </box>
+          ))}
+        </box>
+      )}
+
+      <box
+        border
+        borderColor={focused ? uiStyles.comboboxMenuBorder : uiStyles.fieldBorder}
+        paddingLeft={1}
+        paddingRight={1}
+      >
+        <input
+          value={query}
+          placeholder="Search or create tags..."
+          onInput={onInput}
+          onSubmit={onSubmit}
+          focused={focused}
+        />
+      </box>
+
+      {isDropdownOpen && (
+        <OptionsMenu
+          items={displayOptions}
+          highlightedIndex={highlightedIndex}
+          showSelectionMarker={false}
+        />
       )}
     </SectionCard>
   );

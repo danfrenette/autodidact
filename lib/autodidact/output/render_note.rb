@@ -5,12 +5,12 @@ require "erb"
 module Autodidact
   module Output
     class RenderNote
-      def self.call(tag:, source_path:, content:, created_at:)
-        new(tag: tag, source_path: source_path, content: content, created_at: created_at).call
+      def self.call(tags:, source_path:, content:, created_at:)
+        new(tags: tags, source_path: source_path, content: content, created_at: created_at).call
       end
 
-      def initialize(tag:, source_path:, content:, created_at:)
-        @tag = tag
+      def initialize(tags:, source_path:, content:, created_at:)
+        @tags = tags
         @source_path = source_path
         @content = content
         @created_at = created_at
@@ -22,7 +22,7 @@ module Autodidact
 
       private
 
-      attr_reader :tag, :source_path, :content, :created_at
+      attr_reader :tags, :source_path, :content, :created_at
 
       def template
         File.read(Autodidact.root.join("templates", "learning_note.md.erb"))

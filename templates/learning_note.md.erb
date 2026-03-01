@@ -1,6 +1,8 @@
 ---
 tags:
-  - <%= tag %>
+<% tags.each do |t| -%>
+  - <%= t %>
+<% end -%>
 source: "<%= source_path %>"
 created: "<%= created_at %>"
 ---

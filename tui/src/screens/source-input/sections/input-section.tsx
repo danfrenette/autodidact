@@ -50,6 +50,8 @@ type Props = {
   width: number;
   inputKind: InputKind;
   textareaRef: React.RefObject<TextareaRenderable | null>;
+  selectedTags: string[];
+  onTagsPress: () => void;
 };
 
 export function InputSection({
@@ -71,6 +73,8 @@ export function InputSection({
   width,
   inputKind,
   textareaRef,
+  selectedTags,
+  onTagsPress,
 }: Props) {
   return (
     <SectionCard width={width} marginBottom={1} gap={0}>
@@ -106,11 +110,20 @@ export function InputSection({
         <OptionsMenu items={autocompleteState.items} highlightedIndex={autocompleteState.selectedIndex} showSelectionMarker={false} maxItems={6} />
       )}
 
-      <box flexDirection="row" alignItems="center" gap={1}>
-        <text fg={uiStyles.muted} onMouseDown={onModelPress}>{model}</text>
-        <text fg={uiStyles.label}>/</text>
-        <text fg={uiStyles.muted} onMouseDown={onProviderPress}>{provider}</text>
-        <text fg={uiStyles.muted} onMouseDown={onChevronPress}>{modelPickerExpanded ? "⌃" : "⌄"}</text>
+      <box flexDirection="row" alignItems="center" justifyContent="space-between">
+        <box flexDirection="row" alignItems="center" gap={1}>
+          <text fg={uiStyles.muted} onMouseDown={onModelPress}>{model}</text>
+          <text fg={uiStyles.label}>/</text>
+          <text fg={uiStyles.muted} onMouseDown={onProviderPress}>{provider}</text>
+          <text fg={uiStyles.muted} onMouseDown={onChevronPress}>{modelPickerExpanded ? "⌃" : "⌄"}</text>
+        </box>
+        <text fg={uiStyles.muted} onMouseDown={onTagsPress}>
+          {selectedTags.length === 0
+            ? "+ Add tags"
+            : selectedTags.length <= 3
+              ? selectedTags.join(", ")
+              : `${selectedTags.slice(0, 3).join(", ")} (+${selectedTags.length - 3} more)`}
+        </text>
       </box>
 
       {modelPickerExpanded && (
