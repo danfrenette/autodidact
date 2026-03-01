@@ -10,9 +10,6 @@ import { useOnboardingContext } from "@/onboarding/context";
 import { useSourceInputOnboarding } from "@/onboarding/source-input/use-source-input-onboarding";
 import { onboardingHint } from "@/onboarding/types";
 import type { AnalysisResult, Chapter } from "@/requests/analyze-source";
-import { resolveAvailableModels } from "@/screens/setup/models";
-import { resolveAvailableProviders } from "@/screens/setup/providers";
-import { useCombobox } from "@/screens/setup/wizard/use-combobox";
 
 import { OnboardingFirstRun } from "./onboarding-first-run";
 import { OnboardingNudge } from "./onboarding-nudge";
@@ -23,7 +20,7 @@ import { StatusMessage } from "./sections/status-message";
 import { PANEL_WIDTH } from "./styles";
 import { useInputBadges } from "./use-badges";
 import { useChapterSelection } from "./use-chapter-selection";
-import { useModelPickerDisclosure } from "./use-model-picker-disclosure";
+import { useModelPicker } from "./use-model-picker";
 import { useSourceInputSubmit } from "./use-source-input-submit";
 
 type Props = {
@@ -85,7 +82,6 @@ export function SourceInput({
   onExit,
 }: Props) {
   const [value, onInput] = useState("");
-  const [activePicker, setActivePicker] = useState<"provider" | "model">("model");
   const textareaRef = useRef<TextareaRenderable>(null);
 
   const syncedOnInput = useCallback((nextValue: string) => {
@@ -94,39 +90,18 @@ export function SourceInput({
     }
     onInput(nextValue);
   }, [onInput]);
-  const modelPicker = useModelPickerDisclosure({ disabled: submitting });
   const autocomplete = useFilePathAutocomplete({ value, onInput: syncedOnInput, submitting });
   const onboarding = useSourceInputOnboarding({ inputValue: value, submitting });
   const badges = useInputBadges(value);
   const tagCombobox = useTagCombobox();
-
-  const resolvedProviderOptions = useMemo(
-    () => resolveAvailableProviders(providerOptions),
-    [providerOptions],
-  );
-
-  const resolvedModelOptions = useMemo(
-    () => resolveAvailableModels(providerModelOptions[provider] ?? []),
-    [provider, providerModelOptions],
-  );
-
-  const providerCombobox = useCombobox({
-    options: resolvedProviderOptions,
-    selectedValue: provider,
-    focused: modelPicker.isOpen && activePicker === "provider",
-    onCommit: (nextValue) => {
-      onProviderChange(nextValue);
-      setActivePicker("model");
-    },
-  });
-
-  const modelCombobox = useCombobox({
-    options: resolvedModelOptions,
-    selectedValue: model,
-    focused: modelPicker.isOpen && activePicker === "model",
-    onCommit: (nextValue) => {
-      onModelChange(nextValue);
-    },
+  const modelPickerCombobox = useModelPicker({
+    provider,
+    model,
+    providerOptions,
+    providerModelOptions,
+    onProviderChange,
+    onModelChange,
+    submitting,
   });
 
   const { onCancelUsed } = useOnboardingContext();
@@ -206,21 +181,6 @@ export function SourceInput({
     [showOutputModal],
   );
 
-  const handleModelPickerTab = useCallback(
-    (key: KeyEvent): boolean => {
-      if (!modelPicker.isOpen) return false;
-      if (activePicker === "provider" && providerCombobox.handleKey(key)) return true;
-      if (activePicker === "model" && modelCombobox.handleKey(key)) return true;
-      if (key.name === "tab" || key.name === "backtab" || (key.name === "tab" && key.shift)) {
-        key.preventDefault();
-        setActivePicker(activePicker === "provider" ? "model" : "provider");
-        return true;
-      }
-      return false;
-    },
-    [activePicker, modelCombobox, modelPicker.isOpen, providerCombobox],
-  );
-
   const keyboardHandlers = useMemo(
     () => [
       handleCtrlCEscape,
@@ -228,11 +188,11 @@ export function SourceInput({
       chapterSelection.handleKey,
       autocomplete.handleKey,
       tagCombobox.handleKey,
-      handleModelPickerTab,
-      modelPicker.handleKeyboard,
+      modelPickerCombobox.handleKey,
+      modelPickerCombobox.handleKeyboard,
       onboarding.handleKeyboard,
     ],
-    [handleCtrlCEscape, handleOutputModal, chapterSelection.handleKey, autocomplete.handleKey, tagCombobox.handleKey, handleModelPickerTab, modelPicker.handleKeyboard, onboarding.handleKeyboard],
+    [handleCtrlCEscape, handleOutputModal, chapterSelection.handleKey, autocomplete.handleKey, tagCombobox.handleKey, modelPickerCombobox.handleKey, modelPickerCombobox.handleKeyboard, onboarding.handleKeyboard],
   );
 
   useKeyboardDispatch(keyboardHandlers);
@@ -253,25 +213,7 @@ export function SourceInput({
     handleInput(text);
   }, [handleInput]);
 
-  const handleProviderPress = useCallback(() => {
-    setActivePicker("provider");
-    modelPicker.open();
-  }, [modelPicker]);
 
-  const handleModelPress = useCallback(() => {
-    setActivePicker("model");
-    modelPicker.open();
-  }, [modelPicker]);
-
-  const handleChevronPress = useCallback(() => {
-    if (modelPicker.isOpen) {
-      modelPicker.close();
-      return;
-    }
-
-    setActivePicker("model");
-    modelPicker.open();
-  }, [modelPicker]);
 
   return (
     <box flexDirection="column" alignItems="center" justifyContent="center" flexGrow={1}>
@@ -307,12 +249,12 @@ export function SourceInput({
           badgeSupported={badges.inputBadge?.supported ?? false}
           model={model}
           provider={provider}
-          modelPickerExpanded={modelPicker.isOpen}
-          onProviderPress={handleProviderPress}
-          onModelPress={handleModelPress}
-          onChevronPress={handleChevronPress}
-          providerCombobox={{ ...providerCombobox, focused: modelPicker.isOpen && activePicker === "provider" }}
-          modelCombobox={{ ...modelCombobox, focused: modelPicker.isOpen && activePicker === "model" }}
+          modelPickerExpanded={modelPickerCombobox.isOpen}
+          onProviderPress={modelPickerCombobox.onProviderPress}
+          onModelPress={modelPickerCombobox.onModelPress}
+          onChevronPress={modelPickerCombobox.onChevronPress}
+          providerCombobox={modelPickerCombobox.providerCombobox}
+          modelCombobox={modelPickerCombobox.modelCombobox}
           autocompleteState={autocomplete.state}
           width={PANEL_WIDTH}
           inputKind={badges.inputKind}
