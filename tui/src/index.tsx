@@ -1,6 +1,6 @@
 import { createCliRenderer } from "@opentui/core";
 import { createRoot, useKeyboard, useRenderer } from "@opentui/react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { Backend } from "@/backend.ts";
 import { useBackend } from "@/hooks/use-backend.ts";
@@ -11,7 +11,7 @@ import { FileInput } from "@/screens/input/index.tsx";
 import { Setup } from "@/screens/setup/index.tsx";
 
 function AppContent() {
-  const { state, analyzeSource, cancelRequest, updateConfig, setFileInputProvider, setFileInputModel, selectChapterUp, selectChapterDown, confirmChapter, cancelChapter, shutdown } = useBackend();
+  const { state, analyzeSource, cancelRequest, updateConfig, setFileInputProvider, setFileInputModel, confirmChapter, cancelChapter, shutdown } = useBackend();
   const onboarding = useOnboardingContext();
   const renderer = useRenderer();
   const [inputValue, setInputValue] = useState("");
@@ -53,20 +53,7 @@ function AppContent() {
     await analyzeSource(path);
   }, [analyzeSource]);
 
-  const chapterSelection = useMemo(() => {
-    if (state.name !== "file-input" || state.status !== "selecting-chapter") {
-      return null;
-    }
-
-    return {
-      chapters: state.chapters,
-      selectedIndex: state.selectedIndex,
-      onUp: selectChapterUp,
-      onDown: selectChapterDown,
-      onConfirm: confirmChapter,
-      onCancel: cancelChapter,
-    };
-  }, [state, selectChapterUp, selectChapterDown, confirmChapter, cancelChapter]);
+  const chapters = state.name === "file-input" && state.status === "selecting-chapter" ? state.chapters : null;
 
   switch (state.name) {
     case "setup-form":
@@ -100,7 +87,9 @@ function AppContent() {
           onModelChange={setFileInputModel}
           value={inputValue}
           onInput={setInputValue}
-          chapterSelection={chapterSelection}
+          chapters={chapters}
+          onConfirmChapter={confirmChapter}
+          onCancelChapter={cancelChapter}
         />
       );
   }

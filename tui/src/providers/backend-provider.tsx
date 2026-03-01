@@ -48,7 +48,7 @@ type FileInputBase = {
 type FileInputState =
   | ({ name: "file-input"; status: "idle"; lastResult: AnalysisResult | null; error: null } & FileInputBase)
   | ({ name: "file-input"; status: "submitting"; lastResult: AnalysisResult | null; requestId: number; stage: string | null; error: null; pendingInput: string; pendingChapter?: Chapter } & FileInputBase)
-  | ({ name: "file-input"; status: "selecting-chapter"; lastResult: AnalysisResult | null; input: string; chapters: Chapter[]; selectedIndex: number; error: null } & FileInputBase)
+  | ({ name: "file-input"; status: "selecting-chapter"; lastResult: AnalysisResult | null; input: string; chapters: Chapter[]; error: null } & FileInputBase)
   | ({ name: "file-input"; status: "error"; lastResult: AnalysisResult | null; error: string } & FileInputBase);
 
 export type AppFlowState =
@@ -65,9 +65,7 @@ type Action =
   | { type: "pending-selection"; requestId: number; input: string; chapters: Chapter[] }
   | { type: "failure"; requestId: number; message: string }
   | { type: "cancel" }
-  | { type: "chapter-up" }
-  | { type: "chapter-down" }
-  | { type: "chapter-confirm"; requestId: number }
+  | { type: "chapter-confirm"; requestId: number; chapter: Chapter }
   | { type: "chapter-cancel" }
   | { type: "file-input-provider-changed"; provider: string }
   | { type: "file-input-model-changed"; model: string };
@@ -172,7 +170,6 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
         lastResult: lastResultFrom(state),
         input: action.input,
         chapters: action.chapters,
-        selectedIndex: 0,
         error: null,
         provider: state.provider,
         model: state.model,
@@ -226,26 +223,6 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
         providerModelOptions: state.providerModelOptions,
       };
 
-    case "chapter-up":
-      if (state.name !== "file-input" || state.status !== "selecting-chapter") {
-        return state;
-      }
-
-      return {
-        ...state,
-        selectedIndex: state.selectedIndex > 0 ? state.selectedIndex - 1 : state.chapters.length - 1,
-      };
-
-    case "chapter-down":
-      if (state.name !== "file-input" || state.status !== "selecting-chapter") {
-        return state;
-      }
-
-      return {
-        ...state,
-        selectedIndex: state.selectedIndex < state.chapters.length - 1 ? state.selectedIndex + 1 : 0,
-      };
-
     case "chapter-confirm":
       if (state.name !== "file-input" || state.status !== "selecting-chapter") {
         return state;
@@ -259,7 +236,7 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
         stage: null,
         error: null,
         pendingInput: state.input,
-        pendingChapter: state.chapters[state.selectedIndex],
+        pendingChapter: action.chapter,
       };
 
     case "chapter-cancel":
@@ -312,9 +289,7 @@ export type BackendContextValue = {
   updateConfig: (params: ConfigParams) => Promise<void>;
   setFileInputProvider: (provider: string) => void;
   setFileInputModel: (model: string) => void;
-  selectChapterUp: () => void;
-  selectChapterDown: () => void;
-  confirmChapter: () => void;
+  confirmChapter: (chapter: Chapter) => void;
   cancelChapter: () => void;
   shutdown: () => Promise<void>;
 };
@@ -407,23 +382,13 @@ export function BackendProvider({ backend, initialState, initialOnboardingState,
     dispatch({ type: "file-input-model-changed", model });
   }, []);
 
-  const selectChapterUp = useCallback(() => {
-    dispatch({ type: "chapter-up" });
-  }, []);
+  const confirmChapter = useCallback((chapter: Chapter) => {
+    if (state.name !== "file-input" || state.status !== "selecting-chapter") return;
 
-  const selectChapterDown = useCallback(() => {
-    dispatch({ type: "chapter-down" });
-  }, []);
-
-  const confirmChapter = useCallback(() => {
     const requestId = activeRequestId.current + 1;
     activeRequestId.current = requestId;
-    dispatch({ type: "chapter-confirm", requestId });
-
-    if (state.name === "file-input" && state.status === "selecting-chapter") {
-      const selectedChapter = state.chapters[state.selectedIndex];
-      void analyzeSource(state.input, selectedChapter);
-    }
+    dispatch({ type: "chapter-confirm", requestId, chapter });
+    void analyzeSource(state.input, chapter);
   }, [state, analyzeSource]);
 
   const cancelChapter = useCallback(() => {
@@ -454,13 +419,11 @@ export function BackendProvider({ backend, initialState, initialOnboardingState,
       updateConfig,
       setFileInputProvider,
       setFileInputModel,
-      selectChapterUp,
-      selectChapterDown,
       confirmChapter,
       cancelChapter,
       shutdown,
     }),
-    [state, initialOnboardingState, analyzeSource, cancelRequest, setOnboardingState, updateConfig, setFileInputProvider, setFileInputModel, selectChapterUp, selectChapterDown, confirmChapter, cancelChapter, shutdown],
+    [state, initialOnboardingState, analyzeSource, cancelRequest, setOnboardingState, updateConfig, setFileInputProvider, setFileInputModel, confirmChapter, cancelChapter, shutdown],
   );
 
   return <BackendContext.Provider value={value}>{children}</BackendContext.Provider>;

@@ -1,6 +1,7 @@
 import type { KeyEvent } from "@opentui/core";
-import fuzzysort from "fuzzysort";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+
+import { useFuzzyList } from "@/hooks/use-fuzzy-list";
 
 type CommitReason = "enter" | "tab";
 
@@ -12,71 +13,36 @@ type Params = {
 };
 
 export function useCombobox({ options, selectedValue, focused, onCommit }: Params) {
-  const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const fuzzy = useFuzzyList({ items: options, active: focused });
 
-  const filteredOptions = useMemo(() => {
-    const normalizedQuery = query.trim();
-    if (normalizedQuery.length === 0) {
-      return options;
-    }
-
-const results = fuzzysort.go(normalizedQuery, options, { limit: options.length });
-return results.map((result) => result.target);
-  }, [options, query]);
-
-  useEffect(() => {
-    if (!focused) {
-      setIsOpen(false);
-      setQuery("");
-      setHighlightedIndex(0);
-    }
-  }, [focused]);
-
-  const moveUp = useCallback(() => {
-    setHighlightedIndex((current) => {
-      if (filteredOptions.length === 0) {
-        return 0;
-      }
-
-      return current === 0 ? filteredOptions.length - 1 : current - 1;
-    });
-  }, [filteredOptions]);
-
-  const moveDown = useCallback(() => {
-    setHighlightedIndex((current) => {
-      if (filteredOptions.length === 0) {
-        return 0;
-      }
-
-      return (current + 1) % filteredOptions.length;
-    });
-  }, [filteredOptions]);
+  // Close dropdown when unfocused (sync with fuzzy reset)
+  const wasFocused = useRef(focused);
+  if (wasFocused.current && !focused) {
+    setIsOpen(false);
+  }
+  wasFocused.current = focused;
 
   const commit = useCallback((reason: CommitReason) => {
-    if (filteredOptions.length === 0) {
+    if (fuzzy.filtered.length === 0) {
       return false;
     }
 
-    const safeIndex = highlightedIndex >= filteredOptions.length ? 0 : highlightedIndex;
-    const nextValue = filteredOptions[safeIndex] ?? selectedValue;
+    const nextValue = fuzzy.filtered[fuzzy.highlightedIndex] ?? selectedValue;
     if (!nextValue) {
       return false;
     }
 
     onCommit(nextValue, reason);
-    setQuery("");
+    fuzzy.reset();
     setIsOpen(false);
-    setHighlightedIndex(0);
     return true;
-  }, [filteredOptions, highlightedIndex, onCommit, selectedValue]);
+  }, [fuzzy, onCommit, selectedValue]);
 
   const handleInput = useCallback((value: string) => {
-    setQuery(value);
+    fuzzy.handleInput(value);
     setIsOpen(value.length > 0);
-    setHighlightedIndex(0);
-  }, []);
+  }, [fuzzy]);
 
   const handleKey = useCallback((key: KeyEvent) => {
     if (!focused) {
@@ -84,13 +50,13 @@ return results.map((result) => result.target);
     }
 
     if (key.name === "up") {
-      moveUp();
+      fuzzy.moveUp();
       key.preventDefault();
       return true;
     }
 
     if (key.name === "down") {
-      moveDown();
+      fuzzy.moveDown();
       key.preventDefault();
       return true;
     }
@@ -117,14 +83,13 @@ return results.map((result) => result.target);
       }
 
       setIsOpen(false);
-      setQuery("");
-      setHighlightedIndex(0);
+      fuzzy.reset();
       key.preventDefault();
       return true;
     }
 
     return false;
-  }, [commit, focused, isOpen, moveDown, moveUp]);
+  }, [commit, focused, fuzzy, isOpen]);
 
   const submitFromInput = useCallback(() => {
     return commit("enter");
@@ -132,10 +97,10 @@ return results.map((result) => result.target);
 
   return {
     isOpen,
-    query,
+    query: fuzzy.query,
     selectedValue,
-    filteredOptions,
-    highlightedIndex,
+    filteredOptions: fuzzy.filtered,
+    highlightedIndex: fuzzy.highlightedIndex,
     handleInput,
     handleKey,
     submitFromInput,
