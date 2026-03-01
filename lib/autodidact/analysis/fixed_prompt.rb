@@ -3,7 +3,8 @@
 module Autodidact
   module Analysis
     module FixedPrompt
-      def self.call(raw_text:)
+      def self.call(raw_text:, related_chunks: [])
+        Array(related_chunks)
         <<~PROMPT
           You are a study partner and technical analyst. When given a piece of
           content (book chapter, blog post, video transcript, lesson,
@@ -189,9 +190,35 @@ module Autodidact
           - The output should be raw markdown text, not rendered. The reader will
           paste it into a note-taking app.
 
-          Source text:
+          #{related_material_section(related_chunks)}Source text:
           #{raw_text}
         PROMPT
+      end
+
+      def self.related_material_section(chunks)
+        return "" if chunks.empty?
+
+        grouped = chunks.group_by(&:source_path)
+
+        sections = grouped.map do |source_path, source_chunks|
+          header = "### #{source_path}"
+          body = source_chunks.map { |c| c.content }.join("\n\n")
+          "#{header}\n\n#{body}"
+        end
+
+        <<~SECTION
+          ## Related Material
+
+          The following excerpts are from other sources you have previously studied
+          that share tags with the current material. Use them when writing Tier 4
+          Connections questions — draw specific, concrete links between the current
+          source and these passages rather than making generic cross-domain guesses.
+
+          #{sections.join("\n\n---\n\n")}
+
+          ---
+
+        SECTION
       end
     end
   end

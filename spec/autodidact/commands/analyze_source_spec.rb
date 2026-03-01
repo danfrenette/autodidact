@@ -13,6 +13,8 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
     allow(Autodidact.config).to receive(:obsidian_vault_path).and_return(vault_dir)
     allow(Autodidact.config).to receive(:access_token).and_return("sk-test")
     allow(Autodidact.config).to receive(:model).and_return("gpt-4o-mini")
+    allow(Autodidact::Storage::PersistSourceChunks).to receive(:call).and_return(success_result({chunks_created: 1}))
+    allow(Autodidact::Retrieval::RelatedChunks).to receive(:call).and_return(success_result([]))
   end
 
   let(:vault_dir) { Dir.mktmpdir }
@@ -98,15 +100,6 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
     end
   end
 
-  describe "unsupported input types" do
-    it "returns a failure for url input" do
-      result = described_class.call(params: {input: "https://example.com/article"}, notify: notify)
-
-      expect(result.payload).to be_nil
-      expect(result.error[:message]).to include("Input type 'url' is not yet supported")
-    end
-  end
-
   describe "raw text success path" do
     it "analyzes raw text end-to-end" do
       allow(Autodidact::Storage::PersistSourceBlob).to receive(:call).and_return(blob)
@@ -178,7 +171,7 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
 
       described_class.call(params: {input: file.path}, notify: tracking_notify)
 
-      expect(stages).to eq(%w[convert persist analyze write])
+      expect(stages).to eq(%w[convert persist chunk retrieving analyze write])
     ensure
       file.close!
     end

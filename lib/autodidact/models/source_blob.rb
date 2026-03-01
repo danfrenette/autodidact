@@ -9,6 +9,7 @@ module Autodidact
       plugin :timestamps, update_on_create: true
 
       many_to_many :tags, join_table: :source_blob_tags
+      one_to_many :source_chunks
 
       def validate
         super

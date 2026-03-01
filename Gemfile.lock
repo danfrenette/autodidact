@@ -9,6 +9,7 @@ PATH
       hexapdf
       nous
       pg
+      pgvector
       ruby-openai
       sequel
       zeitwerk
@@ -127,6 +128,7 @@ GEM
     pg (1.6.3-x86_64-darwin)
     pg (1.6.3-x86_64-linux)
     pg (1.6.3-x86_64-linux-musl)
+    pgvector (0.3.2)
     prism (1.9.0)
     protocol-hpack (1.5.1)
     protocol-http (0.59.0)

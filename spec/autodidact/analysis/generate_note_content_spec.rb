@@ -8,7 +8,8 @@ RSpec.describe Autodidact::Analysis::GenerateNoteContent do
 
   before do
     allow(Autodidact::Provider::ClientFor).to receive(:call).and_return(client)
-    allow(Autodidact::Analysis::FixedPrompt).to receive(:call).and_return(prompt)
+    allow(Autodidact::Analysis::FixedPrompt).to receive(:call).with(raw_text: anything,
+      related_chunks: anything).and_return(prompt)
   end
 
   describe "#call" do

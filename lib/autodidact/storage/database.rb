@@ -11,6 +11,7 @@ module Autodidact
         db = Sequel.connect(Autodidact.config.database_url)
         db.extension(:pg_enum)
         db.extension(:pg_json)
+        db.extension(:pgvector)
         ::Sequel::Model.db = db
         run_migrations(db)
         db

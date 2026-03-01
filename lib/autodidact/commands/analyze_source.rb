@@ -24,8 +24,14 @@ module Autodidact
         notify.call(stage: "persist")
         blob = persist(conversion)
 
+        notify.call(stage: "chunk")
+        persist_chunks(blob, conversion)
+
+        notify.call(stage: "retrieving")
+        related_chunks = retrieve_related_chunks(blob)
+
         notify.call(stage: "analyze")
-        content = analyze(conversion)
+        content = analyze(conversion, related_chunks)
 
         notify.call(stage: "write")
         note_path = render_and_write(conversion, content)
@@ -116,8 +122,31 @@ module Autodidact
         )
       end
 
-      def analyze(conversion)
-        result = Analysis::GenerateNoteContent.call(raw_text: conversion.raw_text)
+      def persist_chunks(blob, conversion)
+        result = Storage::PersistSourceChunks.call(
+          source_blob_id: blob.id,
+          raw_text: conversion.raw_text
+        )
+        raise result.error[:message] if result.failure?
+
+        result.payload
+      end
+
+      def retrieve_related_chunks(blob)
+        result = Retrieval::RelatedChunks.call(
+          source_blob_id: blob.id,
+          tags: tags
+        )
+        raise result.error[:message] if result.failure?
+
+        result.payload
+      end
+
+      def analyze(conversion, related_chunks)
+        result = Analysis::GenerateNoteContent.call(
+          raw_text: conversion.raw_text,
+          related_chunks: related_chunks
+        )
         raise result.error[:message] if result.failure?
 
         result.payload
