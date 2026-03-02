@@ -12,6 +12,7 @@ module Autodidact
       def call
         pages = fetch_pages
         content = pages.first.content
+        title = pages.first.title
 
         success(payload: ConversionResult.new(
           raw_text: content,
@@ -20,9 +21,9 @@ module Autodidact
           selection_kind: "full",
           selection_payload: {
             input_type: "url",
-            title: pages.first.title
+            title: title
           },
-          note_filename: NoteFilename.new.call
+          note_filename: NoteFilename.new(path: title || url).call
         ))
       end
 
