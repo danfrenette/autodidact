@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 Sequel.migration do
-  change do
-    create_enum(:source_type, %w[text pdf])
-    create_enum(:selection_kind, %w[chapter page_range line_range full])
+  up do
+    run "CREATE TYPE source_type AS ENUM ('text', 'pdf')"
+    run "CREATE TYPE selection_kind AS ENUM ('chapter', 'page_range', 'line_range', 'full')"
 
     create_table(:source_blobs) do
       column :id, :uuid, default: Sequel.lit("gen_random_uuid()"), primary_key: true
@@ -14,5 +14,11 @@ Sequel.migration do
       column :raw_text, :text, null: false
       column :created_at, DateTime, default: Sequel::CURRENT_TIMESTAMP
     end
+  end
+
+  down do
+    drop_table(:source_blobs)
+    run "DROP TYPE source_type"
+    run "DROP TYPE selection_kind"
   end
 end

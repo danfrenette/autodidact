@@ -5,31 +5,50 @@ module Autodidact
     DEFAULTS = {
       database_url: "postgres://localhost:5432/autodidact",
       model: "gpt-4o-mini",
-      provider: "openai"
+      provider: "openai",
+      embedding_provider: "openai",
+      embedding_model: "text-embedding-3-small"
     }.freeze
 
     ENV_KEYS = {
       database_url: "DATABASE_URL",
       obsidian_vault_path: "OBSIDIAN_VAULT_PATH",
-      access_token: "ACCESS_TOKEN",
-      model: "MODEL",
-      provider: "AUTODIDACT_PROVIDER"
+      model: "AUTODIDACT_MODEL",
+      provider: "AUTODIDACT_PROVIDER",
+      embedding_provider: "AUTODIDACT_EMBEDDING_PROVIDER",
+      embedding_model: "AUTODIDACT_EMBEDDING_MODEL"
     }.freeze
 
-    attr_reader :database_url, :obsidian_vault_path,
-      :access_token, :model, :provider
+    CHAT_PROVIDERS = %w[openai anthropic dev].freeze
+    EMBEDDING_PROVIDERS = %w[openai voyage].freeze
+
+    attr_reader :database_url, :obsidian_vault_path, :model, :provider,
+      :embedding_provider, :embedding_model
 
     def initialize
-      data = DEFAULTS
+      config = DEFAULTS
         .merge(Config::Store.read_config)
-        .merge(Config::Store.read_secrets)
         .merge(env_overrides)
 
-      @database_url = data[:database_url]
-      @obsidian_vault_path = data[:obsidian_vault_path]
-      @access_token = data[:access_token]
-      @model = data[:model]
-      @provider = data[:provider]
+      @database_url = config[:database_url]
+      @obsidian_vault_path = config[:obsidian_vault_path]
+      @model = config[:model]
+      @provider = config[:provider]
+      @embedding_provider = config[:embedding_provider]
+      @embedding_model = config[:embedding_model]
+      @tokens = Config::Store.read_secrets
+    end
+
+    def access_token
+      token_for(provider)
+    end
+
+    def embedding_access_token
+      token_for(embedding_provider)
+    end
+
+    def token_for(provider_id)
+      @tokens[:"token_#{provider_id}"]
     end
 
     def ready?
@@ -37,9 +56,14 @@ module Autodidact
     end
 
     def to_h
-      ENV_KEYS.keys.each_with_object({}) do |key, hash|
-        hash[key] = public_send(key)
-      end
+      {
+        database_url: database_url,
+        obsidian_vault_path: obsidian_vault_path,
+        model: model,
+        provider: provider,
+        embedding_provider: embedding_provider,
+        embedding_model: embedding_model
+      }
     end
 
     private

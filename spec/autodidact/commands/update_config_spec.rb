@@ -19,11 +19,11 @@ RSpec.describe Autodidact::Commands::UpdateConfig do
 
   after { FileUtils.rm_rf(config_dir) }
 
-  it "persists config and secrets to separate files" do
+  it "persists config and separates tokens by provider" do
     params = {
       database_url: "postgres://localhost/test",
       obsidian_vault_path: "/vault",
-      access_token: "sk-test"
+      tokens: {"openai" => "sk-test"}
     }
 
     described_class.call(params: params, notify: notify)
@@ -33,16 +33,18 @@ RSpec.describe Autodidact::Commands::UpdateConfig do
 
     expect(config_data["database_url"]).to eq("postgres://localhost/test")
     expect(config_data["obsidian_vault_path"]).to eq("/vault")
-    expect(secrets_data["access_token"]).to eq("sk-test")
+    expect(secrets_data["token_openai"]).to eq("sk-test")
   end
 
   it "returns ready when saved config is complete" do
     params = {
       database_url: "postgres://localhost/test",
       obsidian_vault_path: "/vault",
-      access_token: "sk-test",
       provider: "openai",
-      model: "gpt-4o-mini"
+      model: "gpt-4o-mini",
+      embedding_provider: "openai",
+      embedding_model: "text-embedding-3-small",
+      tokens: {"openai" => "sk-test"}
     }
 
     result = described_class.call(params: params, notify: notify)
@@ -58,5 +60,22 @@ RSpec.describe Autodidact::Commands::UpdateConfig do
 
     expect(result.payload[:status]).to eq("needs_setup")
     expect(result.payload[:missing_fields]).to include(:obsidian_vault_path, :access_token)
+  end
+
+  it "preserves existing tokens when updating other fields" do
+    FileUtils.mkdir_p(config_path)
+    File.write(
+      File.join(config_path, "secrets.yml"),
+      YAML.dump("token_anthropic" => "sk-anthropic")
+    )
+
+    described_class.call(
+      params: {tokens: {"openai" => "sk-openai"}},
+      notify: notify
+    )
+
+    secrets_data = YAML.safe_load_file(File.join(config_path, "secrets.yml"))
+    expect(secrets_data["token_openai"]).to eq("sk-openai")
+    expect(secrets_data["token_anthropic"]).to eq("sk-anthropic")
   end
 end

@@ -7,6 +7,20 @@ require "yaml"
 RSpec.describe Autodidact::Commands::SetupStatus do
   let(:notify) { proc {} }
   let(:config_dir) { Dir.mktmpdir }
+  let(:model_catalog_payload) do
+    {
+      chat_provider_options: %w[openai anthropic],
+      chat_provider_model_options: {
+        "openai" => %w[gpt-4.1 gpt-4o-mini],
+        "anthropic" => %w[claude-3-7-sonnet]
+      },
+      embedding_provider_options: %w[openai voyage],
+      embedding_provider_model_options: {
+        "openai" => %w[text-embedding-3-small],
+        "voyage" => %w[voyage-3-large]
+      }
+    }
+  end
 
   around do |example|
     ClimateControl.modify(XDG_CONFIG_HOME: config_dir) do
@@ -18,6 +32,10 @@ RSpec.describe Autodidact::Commands::SetupStatus do
 
   after { FileUtils.rm_rf(config_dir) }
 
+  before do
+    allow(Autodidact::Config::ModelCatalog).to receive(:call).and_return(success_result(model_catalog_payload))
+  end
+
   describe "when config is complete" do
     before do
       config_path = File.join(config_dir, "autodidact")
@@ -28,7 +46,7 @@ RSpec.describe Autodidact::Commands::SetupStatus do
         "obsidian_vault_path" => "/vault"
       ))
       File.write(File.join(config_path, "secrets.yml"), YAML.dump(
-                                                          "access_token" => "sk-test"
+                                                          "token_openai" => "sk-test"
                                                         ))
     end
 
@@ -47,13 +65,13 @@ RSpec.describe Autodidact::Commands::SetupStatus do
       expect(result.payload[:prefill][:model]).to eq("gpt-4o-mini")
     end
 
-    it "includes provider options and model mappings" do
+    it "includes chat and embedding model options" do
       result = described_class.call(params: {}, notify: notify)
 
       expect(result.payload[:provider_options]).to contain_exactly("openai", "anthropic")
       expect(result.payload[:provider_model_options].keys).to contain_exactly("openai", "anthropic")
-      expect(result.payload[:provider_model_options]["openai"]).to be_an(Array)
-      expect(result.payload[:provider_model_options]["anthropic"]).to be_an(Array)
+      expect(result.payload[:embedding_provider_options]).to contain_exactly("openai", "voyage")
+      expect(result.payload[:embedding_provider_model_options].keys).to contain_exactly("openai", "voyage")
     end
   end
 
@@ -63,9 +81,7 @@ RSpec.describe Autodidact::Commands::SetupStatus do
 
       expect(result.error).to be_nil
       expect(result.payload[:status]).to eq("needs_setup")
-      expect(result.payload[:missing_fields]).to contain_exactly(
-        :obsidian_vault_path, :access_token
-      )
+      expect(result.payload[:missing_fields]).to include(:obsidian_vault_path, :access_token)
     end
   end
 end

@@ -1,7 +1,11 @@
 # frozen_string_literal: true
 
 Sequel.migration do
-  change do
-    add_enum_value(:source_type, "url")
+  up do
+    run "ALTER TYPE source_type ADD VALUE IF NOT EXISTS 'url'"
+  end
+
+  down do
+    # PostgreSQL does not support removing enum values
   end
 end

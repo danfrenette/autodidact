@@ -12,22 +12,28 @@ RSpec.describe Autodidact::Configuration do
 
   describe "#access_token" do
     it "returns token from secrets file" do
-      allow(Autodidact::Config::Store).to receive(:read_secrets).and_return(access_token: "sk-from-file")
+      allow(Autodidact::Config::Store).to receive(:read_secrets).and_return(token_openai: "sk-from-file")
 
       expect(config.access_token).to eq("sk-from-file")
     end
 
-    it "prefers ENV over secrets file" do
-      allow(Autodidact::Config::Store).to receive(:read_secrets).and_return(access_token: "sk-from-file")
-
-      ClimateControl.modify(ACCESS_TOKEN: "sk-from-env") do
-        config = described_class.new
-        expect(config.access_token).to eq("sk-from-env")
-      end
-    end
-
     it "returns nil when missing everywhere" do
       expect(config.access_token).to be_nil
+    end
+  end
+
+  describe "#embedding_access_token" do
+    it "returns openai token when embedding_provider is openai" do
+      allow(Autodidact::Config::Store).to receive(:read_secrets).and_return(token_openai: "sk-openai")
+
+      expect(config.embedding_access_token).to eq("sk-openai")
+    end
+
+    it "returns voyage token when embedding_provider is voyage" do
+      allow(Autodidact::Config::Store).to receive(:read_config).and_return(embedding_provider: "voyage")
+      allow(Autodidact::Config::Store).to receive(:read_secrets).and_return(token_voyage: "pa-voyage")
+
+      expect(config.embedding_access_token).to eq("pa-voyage")
     end
   end
 
@@ -45,7 +51,7 @@ RSpec.describe Autodidact::Configuration do
     it "prefers ENV over config file" do
       allow(Autodidact::Config::Store).to receive(:read_config).and_return(model: "gpt-4o")
 
-      ClimateControl.modify(MODEL: "gpt-4-turbo") do
+      ClimateControl.modify(AUTODIDACT_MODEL: "gpt-4-turbo") do
         config = described_class.new
         expect(config.model).to eq("gpt-4-turbo")
       end
@@ -69,6 +75,27 @@ RSpec.describe Autodidact::Configuration do
       ClimateControl.modify(AUTODIDACT_PROVIDER: "openai") do
         config = described_class.new
         expect(config.provider).to eq("openai")
+      end
+    end
+  end
+
+  describe "#embedding_provider" do
+    it "defaults to openai" do
+      expect(config.embedding_provider).to eq("openai")
+    end
+
+    it "reads from config file" do
+      allow(Autodidact::Config::Store).to receive(:read_config).and_return(embedding_provider: "voyage")
+
+      expect(config.embedding_provider).to eq("voyage")
+    end
+
+    it "prefers ENV over config file" do
+      allow(Autodidact::Config::Store).to receive(:read_config).and_return(embedding_provider: "openai")
+
+      ClimateControl.modify(AUTODIDACT_EMBEDDING_PROVIDER: "voyage") do
+        config = described_class.new
+        expect(config.embedding_provider).to eq("voyage")
       end
     end
   end
@@ -104,7 +131,7 @@ RSpec.describe Autodidact::Configuration do
         obsidian_vault_path: "/vault"
       )
       allow(Autodidact::Config::Store).to receive(:read_secrets).and_return(
-        access_token: "sk-test"
+        token_openai: "sk-test"
       )
 
       expect(config.ready?).to be true
@@ -127,21 +154,13 @@ RSpec.describe Autodidact::Configuration do
   end
 
   describe "precedence" do
-    it "ENV > secrets > config > defaults" do
+    it "ENV > config > defaults for model" do
       allow(Autodidact::Config::Store).to receive(:read_config).and_return(model: "from-config")
-      allow(Autodidact::Config::Store).to receive(:read_secrets).and_return(model: "from-secrets")
 
-      ClimateControl.modify(MODEL: "from-env") do
+      ClimateControl.modify(AUTODIDACT_MODEL: "from-env") do
         config = described_class.new
         expect(config.model).to eq("from-env")
       end
-    end
-
-    it "secrets override config" do
-      allow(Autodidact::Config::Store).to receive(:read_config).and_return(model: "from-config")
-      allow(Autodidact::Config::Store).to receive(:read_secrets).and_return(model: "from-secrets")
-
-      expect(config.model).to eq("from-secrets")
     end
 
     it "config overrides defaults" do

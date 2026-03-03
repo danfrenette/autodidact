@@ -41,10 +41,9 @@ module Autodidact
       end
 
       def generate_embedding(text)
-        result = Provider::GenerateEmbedding.call(
-          text: text,
-          access_token: Autodidact.config.access_token
-        )
+        return if Autodidact.config.provider == "dev"
+
+        result = Provider::GenerateEmbedding.call(text: text)
         raise result.error[:message] if result.failure?
 
         result.payload

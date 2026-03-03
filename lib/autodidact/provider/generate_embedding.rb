@@ -5,34 +5,36 @@ require "openai"
 module Autodidact
   module Provider
     class GenerateEmbedding < Query
-      MODEL = "text-embedding-3-small"
-
-      def initialize(text:, access_token:)
+      def initialize(text:)
         @text = text
-        @access_token = access_token
       end
 
       def call
-        response = client.embeddings(parameters: {model: MODEL, input: text})
-        embedding = extract_embedding(response)
+        embedding = client.embed(text: text)
         success(payload: embedding)
-      rescue Faraday::Error => e
+      rescue ProviderError, Faraday::Error => e
         failure(e)
       end
 
       private
 
-      attr_reader :text, :access_token
+      attr_reader :text
 
       def client
-        OpenAI::Client.new(access_token: access_token)
-      end
-
-      def extract_embedding(response)
-        embedding = response.dig("data", 0, "embedding")
-        raise ProviderError, "Embedding response was empty" if embedding.nil? || embedding.empty?
-
-        embedding
+        case Autodidact.config.embedding_provider
+        when "openai"
+          OpenaiEmbeddingClient.new(
+            access_token: Autodidact.config.embedding_access_token,
+            model: Autodidact.config.embedding_model
+          )
+        when "voyage"
+          VoyageClient.new(
+            access_token: Autodidact.config.embedding_access_token,
+            model: Autodidact.config.embedding_model
+          )
+        else
+          raise ProviderError, "Unknown embedding provider: #{Autodidact.config.embedding_provider}"
+        end
       end
     end
   end

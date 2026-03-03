@@ -9,8 +9,10 @@ module Autodidact
           status: status.ready? ? "ready" : "needs_setup",
           missing_fields: status.missing_fields,
           prefill: prefill_data,
-          provider_options: Config::Providers::Catalog.setup_visible_ids,
-          provider_model_options: provider_model_options
+          provider_options: model_catalog.fetch(:chat_provider_options),
+          provider_model_options: model_catalog.fetch(:chat_provider_model_options),
+          embedding_provider_options: model_catalog.fetch(:embedding_provider_options),
+          embedding_provider_model_options: model_catalog.fetch(:embedding_provider_model_options)
         })
       end
 
@@ -27,10 +29,11 @@ module Autodidact
         value.nil? || value.to_s.strip.empty?
       end
 
-      def provider_model_options
-        Config::Providers::Catalog.setup_visible.each_with_object({}) do |provider, map|
-          map[provider.id] = provider.model_options
-        end
+      def model_catalog
+        result = Config::ModelCatalog.call
+        raise result.error[:message] if result.failure?
+
+        result.payload
       end
     end
   end

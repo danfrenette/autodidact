@@ -12,38 +12,38 @@ module Autodidact
       OPEN_TIMEOUT_SECONDS = 2
       REQUEST_TIMEOUT_SECONDS = 2
 
-      def self.call(provider_id:)
-        new.call(provider_id: provider_id)
+      def self.call(provider_id:, families: nil)
+        new.call(provider_id: provider_id, families: families)
       end
 
-      def call(provider_id:)
-        models_by_provider[provider_id.to_s] || []
+      def call(provider_id:, families: nil)
+        extract_model_ids(models: models_for_provider(provider_id), families: families)
       end
 
       private
 
-      def models_by_provider
-        @models_by_provider ||= cached_models || refreshed_models || {}
+      def payload
+        @payload ||= cached_payload || refreshed_payload || {}
       end
 
-      def cached_models
+      def cached_payload
         return nil unless fresh_cache?
 
-        parse_cache(File.read(cache_path))
+        parse_payload(File.read(cache_path))
       end
 
-      def refreshed_models
-        models = parse_remote(fetch_remote_payload)
-        write_cache(models)
-        models
+      def refreshed_payload
+        fetched_payload = parse_payload(fetch_remote_payload)
+        write_cache(fetched_payload)
+        fetched_payload
       rescue LoadOptionsError
-        stale_cached_models
+        stale_cached_payload
       end
 
-      def stale_cached_models
+      def stale_cached_payload
         return nil unless File.file?(cache_path)
 
-        parse_cache(File.read(cache_path))
+        parse_payload(File.read(cache_path))
       rescue LoadOptionsError
         nil
       end
@@ -65,35 +65,53 @@ module Autodidact
         )
       end
 
-      def parse_remote(payload)
-        parsed = JSON.parse(payload)
-        parsed.each_with_object({}) do |(provider_id, provider_data), out|
-          models = provider_data.fetch("models", {}).values
-          out[provider_id] = parse_models(models)
-        end
-      rescue JSON::ParserError, NoMethodError => e
+      def parse_payload(raw_payload)
+        JSON.parse(raw_payload)
+      rescue JSON::ParserError => e
         raise LoadOptionsError, e.message
       end
 
-      def parse_cache(payload)
-        parsed = JSON.parse(payload)
-        parsed.each_with_object({}) do |(provider_id, models), out|
-          out[provider_id] = parse_models(models)
-        end
-      rescue JSON::ParserError, NoMethodError => e
+      def models_for_provider(provider_id)
+        provider_payload = payload.fetch(provider_id.to_s, {})
+        return normalize_cached_models(provider_payload) if provider_payload.is_a?(Array)
+
+        model_map = provider_payload.fetch("models", {})
+        return [] unless model_map.is_a?(Hash)
+
+        model_map.values.filter_map { |model| normalize_model(model) }
+      rescue NoMethodError, TypeError => e
         raise LoadOptionsError, e.message
       end
 
-      def parse_models(models)
+      def normalize_cached_models(provider_payload)
+        provider_payload.filter_map { |model| normalize_model(model) }
+      end
+
+      def normalize_model(model)
+        model_id = model["id"]
+        return nil if model_id.nil?
+
+        {
+          "id" => model_id,
+          "family" => model.fetch("family", "")
+        }
+      end
+
+      def extract_model_ids(models:, families:)
         options = models.filter_map do |model|
-          model_id = model["id"]
           family = model.fetch("family", "")
-          next if model_id.nil? || family.start_with?("text-embedding")
+          next unless family_match?(family: family, families: families)
 
-          model_id
+          model["id"]
         end
 
         options.uniq.sort
+      end
+
+      def family_match?(family:, families:)
+        return true if families.nil?
+
+        families.include?(family)
       end
 
       def cache_path
@@ -104,19 +122,11 @@ module Autodidact
         File.file?(cache_path) && (Time.now - File.mtime(cache_path)) < CACHE_TTL_SECONDS
       end
 
-      def write_cache(models_by_provider)
-        return if models_by_provider.empty?
+      def write_cache(payload)
+        return if payload.empty?
 
         Path.ensure_directory
-
-        cache_data = models_by_provider.transform_values do |models|
-          models.map { |model| {"id" => model, "family" => model_family(model)} }
-        end
-        File.write(cache_path, JSON.dump(cache_data))
-      end
-
-      def model_family(model)
-        model.start_with?("text-embedding") ? "text-embedding" : ""
+        File.write(cache_path, JSON.dump(payload))
       end
     end
   end
