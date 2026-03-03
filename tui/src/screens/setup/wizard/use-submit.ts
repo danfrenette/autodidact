@@ -7,8 +7,11 @@ import { validateSetupDraft } from "./types";
 type Params = {
   obsidianVaultPath: string;
   provider: string;
-  accessToken: string;
   modelId: string;
+  chatToken: string;
+  embeddingProvider: string;
+  embeddingModel: string;
+  embeddingToken: string;
   backendError: string | null;
   onSubmit: (params: ConfigParams) => void;
 };
@@ -16,8 +19,11 @@ type Params = {
 export function useSubmit({
   obsidianVaultPath,
   provider,
-  accessToken,
   modelId: currentModelId,
+  chatToken,
+  embeddingProvider,
+  embeddingModel,
+  embeddingToken,
   backendError,
   onSubmit,
 }: Params) {
@@ -35,8 +41,11 @@ export function useSubmit({
     const result = validateSetupDraft({
       obsidianVaultPath,
       provider,
-      accessToken,
       modelId,
+      chatToken,
+      embeddingProvider,
+      embeddingModel,
+      embeddingToken,
     });
 
     if (!result.ok) {
@@ -46,7 +55,7 @@ export function useSubmit({
 
     setValidationError(null);
     onSubmit(result.payload);
-  }, [obsidianVaultPath, onSubmit, accessToken, provider, currentModelId]);
+  }, [obsidianVaultPath, onSubmit, provider, currentModelId, chatToken, embeddingProvider, embeddingModel, embeddingToken]);
 
   return {
     error,

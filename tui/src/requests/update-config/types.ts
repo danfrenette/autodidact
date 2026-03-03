@@ -4,8 +4,10 @@ export const paramsSchema = z.object({
   database_url: z.string().optional(),
   provider: z.string(),
   obsidian_vault_path: z.string(),
-  access_token: z.string().optional(),
   model: z.string().optional(),
+  embedding_provider: z.string().optional(),
+  embedding_model: z.string().optional(),
+  tokens: z.record(z.string()).optional(),
 });
 
 export const resultSchema = z.object({
@@ -22,8 +24,10 @@ export type ResultWire = z.infer<typeof resultSchema>;
 export type ConfigParams = {
   provider: string;
   obsidianVaultPath: string;
-  accessToken?: string;
   modelId?: string;
+  embeddingProvider?: string;
+  embeddingModelId?: string;
+  tokens?: Record<string, string>;
 };
 
 export type UpdateConfigResult = {

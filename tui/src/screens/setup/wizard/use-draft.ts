@@ -20,20 +20,50 @@ type Params = {
   missingFields: string[];
   providerOptions: string[];
   providerModelOptions: Record<string, string[]>;
+  embeddingProviderOptions: string[];
+  embeddingProviderModelOptions: Record<string, string[]>;
+  storedTokens: Record<string, string>;
 };
 
-export function useDraft({ prefill, missingFields, providerOptions, providerModelOptions }: Params) {
+export function useDraft({
+  prefill,
+  missingFields,
+  providerOptions,
+  providerModelOptions,
+  embeddingProviderOptions,
+  embeddingProviderModelOptions,
+  storedTokens,
+}: Params) {
+  // --- chat provider / model ---
   const availableProviders = useMemo(() => resolveAvailableProviders(providerOptions), [providerOptions]);
-  const modelsForProvider = (nextProvider: string) => {
-    return providerModelOptions[nextProvider] ?? [];
-  };
+  const chatModelsForProvider = (p: string) => providerModelOptions[p] ?? [];
 
   const [provider, setProviderState] = useState(() => resolveInitialProvider(prefill.provider, availableProviders));
   const [obsidianVaultPath, setObsidianVaultPath] = useState(prefill.obsidianVaultPath ?? "");
-  const [accessToken, setAccessToken] = useState(prefill.accessToken ?? "");
-  const modelValues = useMemo(() => modelsForProvider(provider), [provider, providerModelOptions]);
-  const [modelId, setModelId] = useState(() => resolveInitialModel(prefill.modelId, modelValues));
+  const [chatToken, setChatToken] = useState(() => storedTokens[prefill.provider] ?? "");
+  const chatModelValues = useMemo(() => chatModelsForProvider(provider), [provider, providerModelOptions]);
+  const [modelId, setModelId] = useState(() => resolveInitialModel(prefill.modelId, chatModelValues));
 
+  // --- embedding provider / model ---
+  const availableEmbeddingProviders = useMemo(
+    () => resolveAvailableProviders(embeddingProviderOptions),
+    [embeddingProviderOptions],
+  );
+  const embeddingModelsForProvider = (p: string) => embeddingProviderModelOptions[p] ?? [];
+
+  const [embeddingProvider, setEmbeddingProviderState] = useState(() =>
+    resolveInitialProvider(prefill.embeddingProvider, availableEmbeddingProviders),
+  );
+  const [embeddingToken, setEmbeddingToken] = useState(() => storedTokens[prefill.embeddingProvider] ?? "");
+  const embeddingModelValues = useMemo(
+    () => embeddingModelsForProvider(embeddingProvider),
+    [embeddingProvider, embeddingProviderModelOptions],
+  );
+  const [embeddingModel, setEmbeddingModelState] = useState(() =>
+    resolveInitialModel(prefill.embeddingModel, embeddingModelValues),
+  );
+
+  // --- step / focus ---
   const [stepIndex, setStepIndex] = useState(() => initialStepIndex(missingFields));
   const [focusIndex, setFocusIndex] = useState(() => {
     const step = setupSteps[initialStepIndex(missingFields)] ?? setupSteps[0];
@@ -42,18 +72,27 @@ export function useDraft({ prefill, missingFields, providerOptions, providerMode
 
   const currentStep = setupSteps[stepIndex] ?? setupSteps[0];
 
+  // --- setters ---
   const setProvider = (nextProvider: string) => {
     setProviderState(nextProvider);
-    const nextModels = modelsForProvider(nextProvider);
-    setModelId((currentModel) => {
-      if (nextModels.includes(currentModel)) {
-        return currentModel;
-      }
-
-      return resolveInitialModel(prefill.modelId, nextModels);
-    });
+    // auto-fill token from storedTokens if available, but don't clobber user-entered value
+    setChatToken((current) => (current.length === 0 ? (storedTokens[nextProvider] ?? "") : current));
+    const nextModels = chatModelsForProvider(nextProvider);
+    setModelId((currentModel) =>
+      nextModels.includes(currentModel) ? currentModel : resolveInitialModel(prefill.modelId, nextModels),
+    );
   };
 
+  const setEmbeddingProvider = (nextProvider: string) => {
+    setEmbeddingProviderState(nextProvider);
+    setEmbeddingToken((current) => (current.length === 0 ? (storedTokens[nextProvider] ?? "") : current));
+    const nextModels = embeddingModelsForProvider(nextProvider);
+    setEmbeddingModelState((currentModel) =>
+      nextModels.includes(currentModel) ? currentModel : resolveInitialModel(prefill.embeddingModel, nextModels),
+    );
+  };
+
+  // --- focus helpers (unchanged logic, new field set) ---
   const focusByField = (field: SetupField) => {
     const index = setupFields.indexOf(field);
     if (index === -1) {
@@ -118,19 +157,31 @@ export function useDraft({ prefill, missingFields, providerOptions, providerMode
   };
 
   return {
-    provider,
+    // vault
     obsidianVaultPath,
-    accessToken,
+    setObsidianVaultPath,
+    // chat
+    provider,
     modelId,
+    chatToken,
+    providerValues: availableProviders,
+    modelValues: chatModelValues,
+    setProvider,
+    setModelId,
+    setChatToken,
+    // embedding
+    embeddingProvider,
+    embeddingModel,
+    embeddingToken,
+    embeddingProviderValues: availableEmbeddingProviders,
+    embeddingModelValues,
+    setEmbeddingProvider,
+    setEmbeddingModel: setEmbeddingModelState,
+    setEmbeddingToken,
+    // navigation
     currentStep,
     stepIndex,
     focusIndex,
-    providerValues: availableProviders,
-    modelValues,
-    setProvider,
-    setObsidianVaultPath,
-    setAccessToken,
-    setModelId,
     focusByField,
     focusNext,
     focusPrevious,

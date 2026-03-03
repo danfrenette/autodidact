@@ -17,11 +17,15 @@ export function toSetupStatus(wire: ReturnType<typeof decode>): SetupStatus {
     prefill: {
       databaseUrl: wire.prefill.database_url,
       obsidianVaultPath: wire.prefill.obsidian_vault_path,
-      accessToken: wire.prefill.access_token,
       modelId: wire.prefill.model,
       provider: wire.prefill.provider,
+      embeddingProvider: wire.prefill.embedding_provider,
+      embeddingModel: wire.prefill.embedding_model,
     },
     providerOptions: wire.provider_options,
     providerModelOptions: wire.provider_model_options,
+    embeddingProviderOptions: wire.embedding_provider_options,
+    embeddingProviderModelOptions: wire.embedding_provider_model_options,
+    storedTokens: wire.stored_tokens,
   };
 }
