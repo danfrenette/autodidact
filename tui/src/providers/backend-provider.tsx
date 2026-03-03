@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { createContext, useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 
+import type { AnalyzeSourceParams } from "@/backend.ts";
+
 import { Backend } from "@/backend.ts";
 import type { OnboardingPersistedState } from "@/onboarding/types";
 import type {
@@ -12,31 +14,20 @@ import type { ConfigParams } from "@/requests/update-config/index.ts";
 
 export type SetupPrefill = SetupStatus["prefill"];
 
+type SetupStateBase = {
+  prefill: SetupPrefill;
+  missingFields: string[];
+  providerOptions: string[];
+  providerModelOptions: Record<string, string[]>;
+  embeddingProviderOptions: string[];
+  embeddingProviderModelOptions: Record<string, string[]>;
+  storedTokens: Record<string, string>;
+};
+
 type SetupState =
-  | {
-    name: "setup-form";
-    prefill: SetupPrefill;
-    missingFields: string[];
-    providerOptions: string[];
-    providerModelOptions: Record<string, string[]>;
-    error: null;
-  }
-  | {
-    name: "setup-saving";
-    prefill: SetupPrefill;
-    missingFields: string[];
-    providerOptions: string[];
-    providerModelOptions: Record<string, string[]>;
-    error: null;
-  }
-  | {
-    name: "setup-error";
-    prefill: SetupPrefill;
-    missingFields: string[];
-    providerOptions: string[];
-    providerModelOptions: Record<string, string[]>;
-    error: string;
-  };
+  | ({ name: "setup-form"; error: null } & SetupStateBase)
+  | ({ name: "setup-saving"; error: null } & SetupStateBase)
+  | ({ name: "setup-error"; error: string } & SetupStateBase);
 
 type SourceInputBase = {
   provider: string;
@@ -122,6 +113,9 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
         missingFields: state.missingFields,
         providerOptions: state.providerOptions,
         providerModelOptions: state.providerModelOptions,
+        embeddingProviderOptions: state.embeddingProviderOptions,
+        embeddingProviderModelOptions: state.embeddingProviderModelOptions,
+        storedTokens: state.storedTokens,
         error: null,
       };
     case "setup-save-failed":
@@ -135,6 +129,9 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
         missingFields: action.missingFields ?? state.missingFields,
         providerOptions: state.providerOptions,
         providerModelOptions: state.providerModelOptions,
+        embeddingProviderOptions: state.embeddingProviderOptions,
+        embeddingProviderModelOptions: state.embeddingProviderModelOptions,
+        storedTokens: state.storedTokens,
         error: action.message,
       };
     case "submit": {
@@ -286,7 +283,7 @@ function reducer(state: AppFlowState, action: Action): AppFlowState {
 export type BackendContextValue = {
   state: AppFlowState;
   onboardingState: OnboardingPersistedState | null;
-  analyzeSource: (input: string, tags?: string[]) => Promise<AnalysisResult | null>;
+  analyzeSource: (params: AnalyzeSourceParams) => Promise<AnalysisResult | null>;
   cancelRequest: () => void;
   setOnboardingState: (state: OnboardingPersistedState) => Promise<void>;
   updateConfig: (params: ConfigParams) => Promise<void>;
@@ -342,19 +339,20 @@ export function BackendProvider({ backend, initialState, initialOnboardingState,
   }, [backend]);
 
   const analyzeSource = useCallback(
-    async (input: string, tags?: string[], chapter?: Chapter): Promise<AnalysisResult | null> => {
+    async ({ input, tags, chapter }: AnalyzeSourceParams): Promise<AnalysisResult | null> => {
+      const normalizedTags = tags ?? [];
       const requestId = activeRequestId.current + 1;
       activeRequestId.current = requestId;
-      dispatch({ type: "submit", requestId, input, chapter, tags: tags ?? [] });
+      dispatch({ type: "submit", requestId, input, chapter, tags: normalizedTags });
 
       try {
-        const result = await backend.analyzeSource(input, chapter, tags);
+        const result = await backend.analyzeSource({ input, chapter, tags: normalizedTags });
         if (activeRequestId.current !== requestId) {
           return null;
         }
 
         if (result.status === "pending_selection") {
-          dispatch({ type: "pending-selection", requestId, input, chapters: result.chapters, tags: tags ?? [] });
+          dispatch({ type: "pending-selection", requestId, input, chapters: result.chapters, tags: normalizedTags });
         } else {
           dispatch({ type: "success", requestId, result });
         }
@@ -397,7 +395,7 @@ export function BackendProvider({ backend, initialState, initialOnboardingState,
     const requestId = activeRequestId.current + 1;
     activeRequestId.current = requestId;
     dispatch({ type: "chapter-confirm", requestId, chapter });
-    return analyzeSource(current.input, current.tags, chapter);
+    return analyzeSource({ input: current.input, tags: current.tags, chapter });
   }, [analyzeSource]);
 
   const cancelChapter = useCallback(() => {

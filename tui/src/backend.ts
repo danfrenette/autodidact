@@ -41,6 +41,12 @@ function spawnBackend() {
 
 type BackendProcess = ReturnType<typeof spawnBackend>;
 
+export type AnalyzeSourceParams = {
+  input: string;
+  chapter?: Chapter;
+  tags?: string[];
+};
+
 export class Backend {
   private process: BackendProcess;
   private nextId = 1;
@@ -63,9 +69,9 @@ export class Backend {
     return detectSourceRequest.toSourceInfo(wire);
   }
 
-  async analyzeSource(input: string, chapter?: Chapter, tags?: string[]): Promise<AnalysisResult> {
-    const params = analyzeSourceRequest.paramsSchema.parse({ input, chapter, tags });
-    const result = await this.send(analyzeSourceRequest.method, params);
+  async analyzeSource(params: AnalyzeSourceParams): Promise<AnalysisResult> {
+    const wireParams = analyzeSourceRequest.paramsSchema.parse(params);
+    const result = await this.send(analyzeSourceRequest.method, wireParams);
     const wire = analyzeSourceRequest.decode(result);
     return analyzeSourceRequest.toAnalysisResult(wire);
   }

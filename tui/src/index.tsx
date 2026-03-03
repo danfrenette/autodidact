@@ -31,6 +31,9 @@ function AppContent() {
           missingFields={state.missingFields}
           providerOptions={state.providerOptions}
           providerModelOptions={state.providerModelOptions}
+          embeddingProviderOptions={state.embeddingProviderOptions}
+          embeddingProviderModelOptions={state.embeddingProviderModelOptions}
+          storedTokens={state.storedTokens}
           saving={state.name === "setup-saving"}
           error={state.name === "setup-error" ? state.error : null}
           onSubmit={updateConfig}
@@ -40,7 +43,7 @@ function AppContent() {
     case "source-input":
       return (
         <SourceInput
-          onSubmit={(input, tags) => analyzeSource(input, tags)}
+          onSubmit={(params) => analyzeSource(params)}
           lastResult={state.lastResult}
           submitting={state.status === "submitting"}
           stage={state.status === "submitting" ? state.stage : null}
@@ -93,6 +96,9 @@ const initialState: AppFlowState =
       missingFields: status.missingFields,
       providerOptions: status.providerOptions,
       providerModelOptions: status.providerModelOptions,
+      embeddingProviderOptions: status.embeddingProviderOptions,
+      embeddingProviderModelOptions: status.embeddingProviderModelOptions,
+      storedTokens: status.storedTokens,
       error: null,
     };
 

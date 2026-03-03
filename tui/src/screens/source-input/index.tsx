@@ -9,6 +9,7 @@ import { useTagCombobox } from "@/lib/tags/use-tag-combobox";
 import { useOnboardingContext } from "@/onboarding/context";
 import { useSourceInputOnboarding } from "@/onboarding/source-input/use-source-input-onboarding";
 import { onboardingHint } from "@/onboarding/types";
+import type { AnalyzeSourceParams } from "@/backend.ts";
 import type { AnalysisResult, Chapter } from "@/requests/analyze-source";
 
 import { OnboardingFirstRun } from "./onboarding-first-run";
@@ -24,7 +25,7 @@ import { useModelPicker } from "./use-model-picker";
 import { useSourceInputSubmit } from "./use-source-input-submit";
 
 type Props = {
-  onSubmit: (path: string, tags: string[]) => Promise<AnalysisResult | null>;
+  onSubmit: (params: AnalyzeSourceParams) => Promise<AnalysisResult | null>;
   lastResult: AnalysisResult | null;
   submitting: boolean;
   stage: string | null;

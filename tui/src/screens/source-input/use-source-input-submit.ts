@@ -1,7 +1,8 @@
 import type { TextareaRenderable } from "@opentui/core";
 import type { RefObject } from "react";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
+import type { AnalyzeSourceParams } from "@/backend.ts";
 import type { SubmitResult } from "@/hooks/use-file-path-autocomplete";
 import type { AnalysisResult } from "@/requests/analyze-source";
 
@@ -11,7 +12,7 @@ type Params = {
   textareaRef: RefObject<TextareaRenderable | null>;
   value: string;
   onInput: (v: string) => void;
-  onSubmit: (path: string, tags: string[]) => Promise<AnalysisResult | null>;
+  onSubmit: (params: AnalyzeSourceParams) => Promise<AnalysisResult | null>;
   onSubmitSucceeded: () => void;
   onAutocompleteSelected: () => void;
   openOutputModal: () => void;
@@ -31,6 +32,8 @@ export function useSourceInputSubmit({
   submitting,
 }: Params) {
   const [validationError, setValidationError] = useState<string | null>(null);
+  const latestSelectedTags = useRef(selectedTags);
+  latestSelectedTags.current = selectedTags;
 
   const clearValidationError = useCallback(() => setValidationError(null), []);
 
@@ -45,7 +48,7 @@ export function useSourceInputSubmit({
       if (currentText.trim().length > 0) {
         setValidationError(null);
         onSubmitSucceeded();
-        const analysisResult = await onSubmit(currentText.trim(), selectedTags);
+        const analysisResult = await onSubmit({ input: currentText.trim(), tags: latestSelectedTags.current });
         if (analysisResult?.status === "completed") openOutputModal();
         return;
       }
@@ -60,9 +63,9 @@ export function useSourceInputSubmit({
 
     setValidationError(null);
     onSubmitSucceeded();
-    const analysisResult = await onSubmit(result.path, selectedTags);
+    const analysisResult = await onSubmit({ input: result.path, tags: latestSelectedTags.current });
     if (analysisResult?.status === "completed") openOutputModal();
-  }, [resolveSubmit, onInput, onSubmitSucceeded, onAutocompleteSelected, onSubmit, openOutputModal, submitting, value, selectedTags, textareaRef]);
+  }, [resolveSubmit, onInput, onSubmitSucceeded, onAutocompleteSelected, onSubmit, openOutputModal, submitting, value, textareaRef]);
 
   return { handleSubmit, validationError, clearValidationError };
 }
