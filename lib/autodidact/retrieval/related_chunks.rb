@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "sequel"
+
 module Autodidact
   module Retrieval
     class RelatedChunks < Query
@@ -24,6 +26,7 @@ module Autodidact
 
       def fetch_chunks
         return [] if tags.empty?
+
         centroid = source_centroid
         return [] if centroid.nil?
 
@@ -32,14 +35,16 @@ module Autodidact
       end
 
       def source_centroid
-        DB[Sequel.lit(
-          "SELECT avg(embedding::float[])::vector AS centroid FROM source_chunks WHERE source_blob_id = ?",
-          source_blob_id
-        )].get(:centroid)
+        Autodidact::DB.connection
+          .fetch(
+            "SELECT avg(embedding)::vector AS centroid FROM source_chunks WHERE source_blob_id = ?::uuid",
+            source_blob_id
+          )
+          .get(:centroid)
       end
 
       def candidate_chunks(centroid)
-        DB[:source_chunks]
+        Autodidact::DB.connection[:source_chunks]
           .join(:source_blobs, id: :source_blob_id)
           .join(:source_blob_tags, source_blob_id: Sequel[:source_blobs][:id])
           .join(:tags, id: Sequel[:source_blob_tags][:tag_id])
@@ -49,10 +54,11 @@ module Autodidact
           .select(
             Sequel[:source_chunks][:content],
             Sequel[:source_chunks][:chunk_index],
-            Sequel[:source_blobs][:source_path]
+            Sequel[:source_blobs][:source_path],
+            Sequel.lit("source_chunks.embedding <=> ? AS distance", centroid)
           )
           .distinct
-          .order(Sequel.lit("source_chunks.embedding <=> ?", centroid))
+          .order(Sequel.lit("distance"))
           .limit(limit)
           .all
       end
