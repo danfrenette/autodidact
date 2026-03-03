@@ -46,6 +46,20 @@ RSpec.describe Autodidact::Output::RenderNote do
       expect(result).to match(/---\n\nbody text/)
     end
 
+    it "normalizes tags before rendering frontmatter" do
+      result = described_class.call(
+        tags: [" #Study ", "##chapter-review", "study", ""],
+        source_path: "/file.txt",
+        content: "body text",
+        created_at: created_at
+      )
+
+      expect(result).to include("  - study")
+      expect(result).to include("  - chapter-review")
+      expect(result.scan("  - study").size).to eq(1)
+      expect(result).not_to include("  - #")
+    end
+
     it "renders empty tags section when no tags provided" do
       result = described_class.call(
         tags: [],

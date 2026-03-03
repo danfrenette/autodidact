@@ -10,7 +10,7 @@ module Autodidact
       end
 
       def initialize(tags:, source_path:, content:, created_at:)
-        @tags = tags
+        @tags = normalize_tags(tags)
         @source_path = source_path
         @content = content
         @created_at = created_at
@@ -26,6 +26,13 @@ module Autodidact
 
       def template
         File.read(Autodidact.root.join("templates", "learning_note.md.erb"))
+      end
+
+      def normalize_tags(raw_tags)
+        Array(raw_tags)
+          .map { |tag| tag.to_s.strip.downcase.sub(/^#+/, "") }
+          .reject(&:empty?)
+          .uniq
       end
     end
   end
