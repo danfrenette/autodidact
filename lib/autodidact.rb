@@ -17,6 +17,7 @@ module Autodidact
 
   def self.loader
     @loader ||= Zeitwerk::Loader.for_gem.tap do |loader|
+      loader.inflector.inflect("db" => "DB")
       loader.collapse(root.join("lib", "autodidact", "primitives"))
       loader.setup
     end

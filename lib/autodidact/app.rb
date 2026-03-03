@@ -5,7 +5,7 @@ module Autodidact
     def call
       initialize_router
       register_commands
-      boot_database if Autodidact.config.ready?
+      boot_database
       start_server
     end
 
@@ -28,7 +28,7 @@ module Autodidact
     end
 
     def boot_database
-      Storage::Database.new.call
+      DB.connection
     end
 
     def start_server

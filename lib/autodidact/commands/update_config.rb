@@ -13,7 +13,9 @@ module Autodidact
         Config::Store.write_config(config_payload)
         Config::Store.write_secrets(secrets_payload)
         Autodidact.reset_config!
+        Autodidact::DB.reset!
         status = Config::Validator.call(config: Autodidact.config)
+        Autodidact::DB.connection if status.ready?
         success(payload: {
           status: status.ready? ? "ready" : "needs_setup",
           missing_fields: status.missing_fields,
