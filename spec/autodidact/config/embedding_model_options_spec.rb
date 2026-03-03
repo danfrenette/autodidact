@@ -25,5 +25,16 @@ RSpec.describe Autodidact::Config::EmbeddingModelOptions do
       expect(result).to be_success
       expect(result.payload).to eq(%w[voyage-3-large voyage-3-lite])
     end
+
+    it "returns google embedding models from gemini family" do
+      allow(Autodidact::Config::ModelOptions).to receive(:call)
+        .with(provider_id: "google", families: ["gemini"])
+        .and_return(%w[gemini-embedding-001])
+
+      result = described_class.call(provider_id: "google")
+
+      expect(result).to be_success
+      expect(result.payload).to eq(%w[gemini-embedding-001])
+    end
   end
 end

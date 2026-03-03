@@ -32,6 +32,11 @@ module Autodidact
             access_token: Autodidact.config.embedding_access_token,
             model: Autodidact.config.embedding_model
           )
+        when "google"
+          GoogleEmbeddingClient.new(
+            access_token: Autodidact.config.embedding_access_token,
+            model: Autodidact.config.embedding_model
+          )
         else
           raise ProviderError, "Unknown embedding provider: #{Autodidact.config.embedding_provider}"
         end

@@ -50,6 +50,33 @@ RSpec.describe Autodidact::Provider::GenerateEmbedding do
       expect(result).to be_failure
     end
 
+    context "with google embedding provider" do
+      let(:google_client) { instance_double(Autodidact::Provider::GoogleEmbeddingClient) }
+      let(:config) do
+        instance_double(
+          Autodidact::Configuration,
+          embedding_provider: "google",
+          embedding_model: "gemini-embedding-001",
+          embedding_access_token: "goog-test-key"
+        )
+      end
+
+      before do
+        allow(Autodidact::Provider::GoogleEmbeddingClient).to receive(:new)
+          .with(access_token: "goog-test-key", model: "gemini-embedding-001")
+          .and_return(google_client)
+      end
+
+      it "uses the google embedding client" do
+        allow(google_client).to receive(:embed).with(text: "hello world").and_return(embedding)
+
+        result = described_class.call(text: "hello world")
+
+        expect(result).to be_success
+        expect(result.payload).to eq(embedding)
+      end
+    end
+
     context "with voyage embedding provider" do
       let(:voyage_client) { instance_double(Autodidact::Provider::VoyageClient) }
       let(:config) do

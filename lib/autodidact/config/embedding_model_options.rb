@@ -5,7 +5,8 @@ module Autodidact
     class EmbeddingModelOptions < Query
       PROVIDER_FAMILIES = {
         "openai" => ["text-embedding"],
-        "voyage" => ["voyage"]
+        "voyage" => ["voyage"],
+        "google" => ["gemini"]
       }.freeze
 
       def initialize(provider_id:)

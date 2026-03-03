@@ -1,12 +1,13 @@
 export const PROVIDER_OPENAI = "openai";
 export const PROVIDER_ANTHROPIC = "anthropic";
+export const PROVIDER_GOOGLE = "google";
 
 export function resolveAvailableProviders(providerOptions: string[]): string[] {
   if (providerOptions.length > 0) {
     return providerOptions;
   }
 
-  return [PROVIDER_OPENAI, PROVIDER_ANTHROPIC];
+  return [PROVIDER_OPENAI, PROVIDER_ANTHROPIC, PROVIDER_GOOGLE];
 }
 
 export function resolveInitialProvider(prefillProvider: string, providers: string[]): string {

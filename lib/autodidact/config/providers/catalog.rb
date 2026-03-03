@@ -33,6 +33,13 @@ module Autodidact
               model_options_loader: -> { ModelOptions.call(provider_id: :anthropic) }
             ),
             ProviderDefinition.new(
+              id: "google",
+              label: "Google",
+              setup_visible: true,
+              runtime_client_class: Provider::GoogleClient,
+              model_options_loader: -> { ModelOptions.call(provider_id: :google) }
+            ),
+            ProviderDefinition.new(
               id: "dev",
               label: "Dev",
               setup_visible: false,

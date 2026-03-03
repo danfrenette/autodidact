@@ -9,15 +9,17 @@ RSpec.describe Autodidact::Commands::SetupStatus do
   let(:config_dir) { Dir.mktmpdir }
   let(:model_catalog_payload) do
     {
-      chat_provider_options: %w[openai anthropic],
+      chat_provider_options: %w[openai anthropic google],
       chat_provider_model_options: {
         "openai" => %w[gpt-4.1 gpt-4o-mini],
-        "anthropic" => %w[claude-3-7-sonnet]
+        "anthropic" => %w[claude-3-7-sonnet],
+        "google" => %w[gemini-2.0-flash]
       },
-      embedding_provider_options: %w[openai voyage],
+      embedding_provider_options: %w[openai voyage google],
       embedding_provider_model_options: {
         "openai" => %w[text-embedding-3-small],
-        "voyage" => %w[voyage-3-large]
+        "voyage" => %w[voyage-3-large],
+        "google" => %w[gemini-embedding-001]
       }
     }
   end
@@ -68,10 +70,10 @@ RSpec.describe Autodidact::Commands::SetupStatus do
     it "includes chat and embedding model options" do
       result = described_class.call(params: {}, notify: notify)
 
-      expect(result.payload[:provider_options]).to contain_exactly("openai", "anthropic")
-      expect(result.payload[:provider_model_options].keys).to contain_exactly("openai", "anthropic")
-      expect(result.payload[:embedding_provider_options]).to contain_exactly("openai", "voyage")
-      expect(result.payload[:embedding_provider_model_options].keys).to contain_exactly("openai", "voyage")
+      expect(result.payload[:provider_options]).to contain_exactly("openai", "anthropic", "google")
+      expect(result.payload[:provider_model_options].keys).to contain_exactly("openai", "anthropic", "google")
+      expect(result.payload[:embedding_provider_options]).to contain_exactly("openai", "voyage", "google")
+      expect(result.payload[:embedding_provider_model_options].keys).to contain_exactly("openai", "voyage", "google")
     end
   end
 

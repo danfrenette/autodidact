@@ -19,8 +19,8 @@ module Autodidact
       embedding_model: "AUTODIDACT_EMBEDDING_MODEL"
     }.freeze
 
-    CHAT_PROVIDERS = %w[openai anthropic dev].freeze
-    EMBEDDING_PROVIDERS = %w[openai voyage].freeze
+    CHAT_PROVIDERS = %w[openai anthropic google dev].freeze
+    EMBEDDING_PROVIDERS = %w[openai voyage google].freeze
 
     attr_reader :database_url, :obsidian_vault_path, :model, :provider,
       :embedding_provider, :embedding_model

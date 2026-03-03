@@ -33,6 +33,16 @@ RSpec.describe Autodidact::Provider::ClientFor do
       end
     end
 
+    context "when provider is 'google'" do
+      let(:provider) { "google" }
+
+      it "returns a GoogleClient instance" do
+        result = described_class.call(config: config)
+
+        expect(result).to be_a(Autodidact::Provider::GoogleClient)
+      end
+    end
+
     context "when provider is 'dev'" do
       let(:provider) { "dev" }
 

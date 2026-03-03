@@ -5,7 +5,8 @@ module Autodidact
     class ChatModelOptions < Query
       PROVIDER_FAMILIES = {
         "openai" => %w[gpt gpt-pro],
-        "anthropic" => %w[claude-sonnet claude-haiku claude-opus]
+        "anthropic" => %w[claude-sonnet claude-haiku claude-opus],
+        "google" => %w[gemini gemini-flash gemini-flash-lite gemini-pro]
       }.freeze
 
       def initialize(provider_id:)
