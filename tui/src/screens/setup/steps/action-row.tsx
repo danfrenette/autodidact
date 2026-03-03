@@ -5,8 +5,8 @@ type Props = {
 };
 
 export function ActionRow({ step }: Props) {
-  const primary = step === "accessToken" ? "Enter save" : "Enter continue";
-  const secondary = step === "providerModel" ? "Type filter" : "Tab focus";
+  const primary = step === "embedding" ? "Enter save" : "Enter continue";
+  const secondary = step === "chat" ? "Type filter" : "Tab focus";
 
   return (
     <box flexDirection="row" justifyContent="center" style={{ marginTop: 1 }}>

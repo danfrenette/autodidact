@@ -1,4 +1,4 @@
-import { SetupComboboxField } from "@/screens/setup/fields";
+import { SetupComboboxField, SetupTextInputField } from "@/screens/setup/fields";
 
 type ComboboxView = {
   query: string;
@@ -15,24 +15,34 @@ type Props = {
   model: ComboboxView;
   providerFocused: boolean;
   modelFocused: boolean;
+  tokenFocused: boolean;
+  tokenValue: string;
   onProviderInput: (value: string) => void;
   onModelInput: (value: string) => void;
+  onTokenInput: (value: string) => void;
+  onTokenSubmit: () => void;
 };
 
-export function ProviderModelStep({
+export function EmbeddingStep({
   provider,
   model,
   providerFocused,
   modelFocused,
+  tokenFocused,
+  tokenValue,
   onProviderInput,
   onModelInput,
+  onTokenInput,
+  onTokenSubmit,
 }: Props) {
+  const tokenLabel = provider.selectedValue ? `${provider.selectedValue} API key` : "API key";
+
   return (
     <box flexDirection="column">
-      <text fg="#a5a5a5" style={{ marginBottom: 1 }}>Choose your AI provider and model. Type to fuzzy search.</text>
+      <text fg="#a5a5a5" style={{ marginBottom: 1 }}>Choose your embedding provider and model. Type to fuzzy search.</text>
 
       <SetupComboboxField
-        title="Provider"
+        title="Embedding provider"
         query={provider.query}
         selectedValue={provider.selectedValue}
         options={provider.filteredOptions}
@@ -46,7 +56,7 @@ export function ProviderModelStep({
       />
 
       <SetupComboboxField
-        title="Model"
+        title="Embedding model"
         query={model.query}
         selectedValue={model.selectedValue}
         options={model.filteredOptions}
@@ -57,6 +67,15 @@ export function ProviderModelStep({
         onSubmit={() => {
           model.submitFromInput();
         }}
+      />
+
+      <SetupTextInputField
+        title={tokenLabel}
+        placeholder="sk-..."
+        value={tokenValue}
+        focused={tokenFocused}
+        onInput={onTokenInput}
+        onSubmit={onTokenSubmit}
       />
     </box>
   );

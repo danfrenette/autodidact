@@ -4,9 +4,9 @@ import type { SetupPrefill } from "@/providers/backend-provider.tsx";
 import type { ConfigParams } from "@/requests/update-config/index.ts";
 
 import { SetupStatusFooter } from "./status-footer";
-import { AccessTokenStep } from "./steps/access-token-step";
 import { ActionRow } from "./steps/action-row";
-import { ProviderModelStep } from "./steps/provider-model-step";
+import { ChatStep } from "./steps/chat-step";
+import { EmbeddingStep } from "./steps/embedding-step";
 import { StepTabs } from "./steps/step-tabs";
 import { VaultStep } from "./steps/vault-step";
 import { setupFields } from "./wizard/types";
@@ -20,6 +20,9 @@ type Props = {
   missingFields: string[];
   providerOptions: string[];
   providerModelOptions: Record<string, string[]>;
+  embeddingProviderOptions: string[];
+  embeddingProviderModelOptions: Record<string, string[]>;
+  storedTokens: Record<string, string>;
   saving: boolean;
   error: string | null;
   onSubmit: (params: ConfigParams) => void;
@@ -31,22 +34,39 @@ export function Setup({
   missingFields,
   providerOptions,
   providerModelOptions,
+  embeddingProviderOptions,
+  embeddingProviderModelOptions,
+  storedTokens,
   saving,
   error: backendError,
   onSubmit,
   onExit,
 }: Props) {
-  const draft = useDraft({ prefill, missingFields, providerOptions, providerModelOptions });
+  const draft = useDraft({
+    prefill,
+    missingFields,
+    providerOptions,
+    providerModelOptions,
+    embeddingProviderOptions,
+    embeddingProviderModelOptions,
+    storedTokens,
+  });
+
   const submission = useSubmit({
     obsidianVaultPath: draft.obsidianVaultPath,
     provider: draft.provider,
-    accessToken: draft.accessToken,
     modelId: draft.modelId,
+    chatToken: draft.chatToken,
+    embeddingProvider: draft.embeddingProvider,
+    embeddingModel: draft.embeddingModel,
+    embeddingToken: draft.embeddingToken,
     backendError,
     onSubmit,
   });
 
   const focusedField = setupFields[draft.focusIndex] ?? setupFields[0];
+
+  // chat comboboxes
   const providerFocused = focusedField === "provider";
   const modelFocused = focusedField === "modelId";
 
@@ -70,7 +90,36 @@ export function Setup({
       draft.setModelId(value);
 
       if (reason === "enter" || reason === "tab") {
-        draft.goNextStep();
+        draft.focusByField("chatToken");
+      }
+    },
+  });
+
+  // embedding comboboxes
+  const embeddingProviderFocused = focusedField === "embeddingProvider";
+  const embeddingModelFocused = focusedField === "embeddingModel";
+
+  const embeddingProviderCombobox = useCombobox({
+    options: draft.embeddingProviderValues,
+    selectedValue: draft.embeddingProvider,
+    focused: embeddingProviderFocused,
+    onCommit: (value) => {
+      submission.clearValidationError();
+      draft.setEmbeddingProvider(value);
+      draft.focusByField("embeddingModel");
+    },
+  });
+
+  const embeddingModelCombobox = useCombobox({
+    options: draft.embeddingModelValues,
+    selectedValue: draft.embeddingModel,
+    focused: embeddingModelFocused,
+    onCommit: (value, reason) => {
+      submission.clearValidationError();
+      draft.setEmbeddingModel(value);
+
+      if (reason === "enter" || reason === "tab") {
+        draft.focusByField("embeddingToken");
       }
     },
   });
@@ -78,8 +127,12 @@ export function Setup({
   useNavigation({
     providerFocused,
     modelFocused,
+    embeddingProviderFocused,
+    embeddingModelFocused,
     providerHandleKey: providerCombobox.handleKey,
     modelHandleKey: modelCombobox.handleKey,
+    embeddingProviderHandleKey: embeddingProviderCombobox.handleKey,
+    embeddingModelHandleKey: embeddingModelCombobox.handleKey,
     focusNext: draft.focusNext,
     focusPrevious: draft.focusPrevious,
     goPreviousStep: draft.goPreviousStep,
@@ -107,12 +160,14 @@ export function Setup({
           />
         )}
 
-        {draft.currentStep === "providerModel" && (
-          <ProviderModelStep
+        {draft.currentStep === "chat" && (
+          <ChatStep
             provider={providerCombobox}
             model={modelCombobox}
             providerFocused={providerFocused}
             modelFocused={modelFocused}
+            tokenFocused={focusedField === "chatToken"}
+            tokenValue={draft.chatToken}
             onProviderInput={(value) => {
               submission.clearValidationError();
               providerCombobox.handleInput(value);
@@ -121,21 +176,37 @@ export function Setup({
               submission.clearValidationError();
               modelCombobox.handleInput(value);
             }}
+            onTokenInput={(value) => {
+              submission.clearValidationError();
+              draft.setChatToken(value);
+            }}
+            onTokenSubmit={() => {
+              draft.goNextStep();
+            }}
           />
         )}
 
-        {draft.currentStep === "accessToken" && (
-          <AccessTokenStep
-            value={draft.accessToken}
-            provider={draft.provider}
-            modelId={draft.modelId}
-            vaultPath={draft.obsidianVaultPath}
-            focused={focusedField === "accessToken"}
-            onInput={(value) => {
+        {draft.currentStep === "embedding" && (
+          <EmbeddingStep
+            provider={embeddingProviderCombobox}
+            model={embeddingModelCombobox}
+            providerFocused={embeddingProviderFocused}
+            modelFocused={embeddingModelFocused}
+            tokenFocused={focusedField === "embeddingToken"}
+            tokenValue={draft.embeddingToken}
+            onProviderInput={(value) => {
               submission.clearValidationError();
-              draft.setAccessToken(value);
+              embeddingProviderCombobox.handleInput(value);
             }}
-            onSubmit={() => {
+            onModelInput={(value) => {
+              submission.clearValidationError();
+              embeddingModelCombobox.handleInput(value);
+            }}
+            onTokenInput={(value) => {
+              submission.clearValidationError();
+              draft.setEmbeddingToken(value);
+            }}
+            onTokenSubmit={() => {
               submission.submit();
             }}
           />

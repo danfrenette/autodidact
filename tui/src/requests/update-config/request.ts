@@ -14,8 +14,10 @@ export function toWireParams(params: ConfigParams): Record<string, unknown> {
   return {
     provider: params.provider,
     obsidian_vault_path: params.obsidianVaultPath,
-    access_token: params.accessToken,
     model: params.modelId,
+    embedding_provider: params.embeddingProvider,
+    embedding_model: params.embeddingModelId,
+    tokens: params.tokens,
   };
 }
 
