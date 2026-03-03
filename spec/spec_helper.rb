@@ -3,6 +3,7 @@
 require "autodidact"
 require "climate_control"
 require "support/result_helpers"
+require "support/database"
 
 RSpec.configure do |config|
   config.include ResultHelpers
