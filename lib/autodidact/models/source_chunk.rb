@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "sequel"
+require "pgvector"
 
 module Autodidact
   module Models
@@ -9,6 +10,14 @@ module Autodidact
       plugin :pgvector, :embedding
 
       many_to_one :source_blob
+
+      def embedding=(value)
+        if value.nil?
+          @values[:embedding] = nil
+        else
+          self[:embedding] = value
+        end
+      end
     end
   end
 end

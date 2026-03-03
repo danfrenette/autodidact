@@ -41,7 +41,7 @@ module Autodidact
       end
 
       def generate_embedding(text)
-        return if Autodidact.config.provider == "dev"
+        return if Autodidact.config.embedding_provider == "dev"
 
         result = Provider::GenerateEmbedding.call(text: text)
         raise result.error[:message] if result.failure?

@@ -10,8 +10,8 @@ RSpec.describe Autodidact::Storage::PersistSourceChunks do
   end
 
   describe ".call" do
-    context "when provider is dev" do
-      let(:config) { instance_double(Autodidact::Configuration, provider: "dev") }
+    context "when embedding_provider is dev" do
+      let(:config) { instance_double(Autodidact::Configuration, embedding_provider: "dev") }
 
       before { allow(Autodidact).to receive(:config).and_return(config) }
 
@@ -33,9 +33,9 @@ RSpec.describe Autodidact::Storage::PersistSourceChunks do
       end
     end
 
-    context "when provider is openai" do
+    context "when embedding_provider is openai" do
       let(:embedding) { [0.1, 0.2, 0.3] }
-      let(:config) { instance_double(Autodidact::Configuration, provider: "openai") }
+      let(:config) { instance_double(Autodidact::Configuration, embedding_provider: "openai") }
 
       before { allow(Autodidact).to receive(:config).and_return(config) }
 
