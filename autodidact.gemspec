@@ -24,5 +24,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency "pgvector"
   spec.add_dependency "ruby-openai"
   spec.add_dependency "sequel"
+  spec.add_dependency "tomos"
   spec.add_dependency "zeitwerk"
 end

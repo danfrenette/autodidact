@@ -12,6 +12,7 @@ PATH
       pgvector
       ruby-openai
       sequel
+      tomos
       zeitwerk
 
 GEM
@@ -148,6 +149,9 @@ GEM
     public_suffix (7.0.2)
     racc (1.8.1)
     rainbow (3.1.1)
+    rake-compiler-dock (1.11.0)
+    rb_sys (0.9.124)
+      rake-compiler-dock (= 1.11.0)
     regexp_parser (2.11.3)
     reline (0.6.3)
       io-console (~> 0.5)
@@ -208,6 +212,8 @@ GEM
       lint_roller (~> 1.1)
       rubocop-performance (~> 1.26.0)
     strscan (3.1.7)
+    tomos (0.1.0)
+      rb_sys
     traces (0.18.2)
     unicode-display_width (3.2.0)
       unicode-emoji (~> 4.1)
