@@ -14,10 +14,10 @@ module Autodidact
       end
 
       def embed(text:)
-        response = connection.post do |req|
+        response = connection("embedContent").post do |req|
           req.body = JSON.dump(
             content: {parts: [{text: text}]},
-            output_dimensionality: 1536
+            output_dimensionality: EMBEDDING_DIMENSIONS
           )
         end
 
@@ -28,25 +28,54 @@ module Autodidact
         raise ProviderError, e.message
       end
 
+      def embed_batch(texts:)
+        response = connection("batchEmbedContents").post do |req|
+          req.body = JSON.dump(
+            requests: texts.map do |text|
+              {
+                model: "models/#{model}",
+                content: {parts: [{text: text}]},
+                output_dimensionality: EMBEDDING_DIMENSIONS
+              }
+            end
+          )
+        end
+
+        raise ProviderError, "Google batch embedding failed: #{response.status}" unless response.success?
+
+        parse_batch_embeddings(response.body)
+      rescue Faraday::Error => e
+        raise ProviderError, e.message
+      end
+
       private
 
       attr_reader :access_token, :model
 
-      def connection
-        url = "#{API_BASE}/#{model}:embedContent?key=#{access_token}"
-        Faraday.new(url: url) do |conn|
+      def connection(action)
+        Faraday.new(url: "#{API_BASE}/#{model}:#{action}?key=#{access_token}") do |conn|
           conn.headers["Content-Type"] = "application/json"
         end
       end
 
+      def parse_response(body)
+        JSON.parse(body)
+      rescue JSON::ParserError => e
+        raise ProviderError, "Failed to parse Google embedding response: #{e.message}"
+      end
+
       def parse_embedding(body)
-        parsed = JSON.parse(body)
-        embedding = parsed.dig("embedding", "values")
+        embedding = parse_response(body).dig("embedding", "values")
         raise ProviderError, "Embedding response was empty" if embedding.nil? || embedding.empty?
 
         embedding
-      rescue JSON::ParserError => e
-        raise ProviderError, "Failed to parse Google embedding response: #{e.message}"
+      end
+
+      def parse_batch_embeddings(body)
+        embeddings = parse_response(body)["embeddings"]
+        raise ProviderError, "Batch embedding response was empty" if embeddings.nil? || embeddings.empty?
+
+        embeddings.map { |e| e["values"] }
       end
     end
   end

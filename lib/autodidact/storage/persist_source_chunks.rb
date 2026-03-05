@@ -10,7 +10,8 @@ module Autodidact
 
       def call
         chunks = chunk_text
-        insert_chunks(chunks)
+        embeddings = generate_embeddings(chunks)
+        insert_chunks(chunks, embeddings)
         success(payload: {chunks_created: chunks.size})
       rescue Sequel::Error => e
         failure(e)
@@ -27,26 +28,25 @@ module Autodidact
         result.payload
       end
 
-      def insert_chunks(chunks)
-        chunks.each { |chunk| persist_chunk(chunk) }
-      end
+      def generate_embeddings(chunks)
+        return Array.new(chunks.size) if Autodidact.config.embedding_provider == "dev"
 
-      def persist_chunk(chunk)
-        Models::SourceChunk.create(
-          source_blob_id: source_blob_id,
-          chunk_index: chunk.chunk_index,
-          content: chunk.content,
-          embedding: generate_embedding(chunk.content)
-        )
-      end
-
-      def generate_embedding(text)
-        return if Autodidact.config.embedding_provider == "dev"
-
-        result = Provider::GenerateEmbedding.call(text: text)
+        texts = chunks.map(&:content)
+        result = Provider::GenerateBatchEmbeddings.call(texts: texts)
         raise result.error[:message] if result.failure?
 
         result.payload
+      end
+
+      def insert_chunks(chunks, embeddings)
+        chunks.each_with_index do |chunk, idx|
+          Models::SourceChunk.create(
+            source_blob_id: source_blob_id,
+            chunk_index: chunk.chunk_index,
+            content: chunk.content,
+            embedding: embeddings[idx]
+          )
+        end
       end
     end
   end

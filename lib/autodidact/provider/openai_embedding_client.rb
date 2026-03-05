@@ -11,8 +11,13 @@ module Autodidact
       end
 
       def embed(text:)
-        response = client.embeddings(parameters: {model: model, input: text})
-        extract_embedding(response)
+        extract_embeddings(client.embeddings(parameters: {model: model, input: text})).first
+      rescue Faraday::Error => e
+        raise ProviderError, e.message
+      end
+
+      def embed_batch(texts:)
+        extract_embeddings(client.embeddings(parameters: {model: model, input: texts}))
       rescue Faraday::Error => e
         raise ProviderError, e.message
       end
@@ -25,11 +30,11 @@ module Autodidact
         OpenAI::Client.new(access_token: access_token)
       end
 
-      def extract_embedding(response)
-        embedding = response.dig("data", 0, "embedding")
-        raise ProviderError, "Embedding response was empty" if embedding.nil? || embedding.empty?
+      def extract_embeddings(response)
+        data = response["data"]
+        raise ProviderError, "Embedding response was empty" if data.nil? || data.empty?
 
-        embedding
+        data.sort_by { |d| d["index"] }.map { |d| d["embedding"] }
       end
     end
   end

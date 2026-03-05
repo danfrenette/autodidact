@@ -14,13 +14,13 @@ module Autodidact
       end
 
       def embed(text:)
-        response = connection.post do |req|
-          req.body = JSON.dump(input: [text], model: model)
-        end
+        parse_embeddings(post(input: [text])).first
+      rescue Faraday::Error => e
+        raise ProviderError, e.message
+      end
 
-        raise ProviderError, "Voyage request failed: #{response.status}" unless response.success?
-
-        parse_embedding(response.body)
+      def embed_batch(texts:)
+        parse_embeddings(post(input: texts))
       rescue Faraday::Error => e
         raise ProviderError, e.message
       end
@@ -37,12 +37,20 @@ module Autodidact
         end
       end
 
-      def parse_embedding(body)
-        parsed = JSON.parse(body)
-        embedding = parsed.dig("data", 0, "embedding")
-        raise ProviderError, "Embedding response was empty" if embedding.nil? || embedding.empty?
+      def post(input:)
+        response = connection.post do |req|
+          req.body = JSON.dump(input: input, model: model)
+        end
+        raise ProviderError, "Voyage request failed: #{response.status}" unless response.success?
 
-        embedding
+        response.body
+      end
+
+      def parse_embeddings(body)
+        data = JSON.parse(body)["data"]
+        raise ProviderError, "Batch embedding response was empty" if data.nil? || data.empty?
+
+        data.sort_by { |d| d["index"] }.map { |d| d["embedding"] }
       end
     end
   end

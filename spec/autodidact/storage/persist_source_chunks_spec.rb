@@ -3,10 +3,15 @@
 require "spec_helper"
 
 RSpec.describe Autodidact::Storage::PersistSourceChunks do
-  let(:chunk) { Autodidact::TextChunk.new(content: "chunk content", chunk_index: 0) }
+  let(:chunk_a) { Autodidact::TextChunk.new(content: "chunk one", chunk_index: 0) }
+  let(:chunk_b) { Autodidact::TextChunk.new(content: "chunk two", chunk_index: 1) }
+  let(:embedding_a) { Array.new(Autodidact::Provider::EMBEDDING_DIMENSIONS) { rand } }
+  let(:embedding_b) { Array.new(Autodidact::Provider::EMBEDDING_DIMENSIONS) { rand } }
 
   before do
-    allow(Autodidact::Chunking::TextChunker).to receive(:call).and_return(success_result([chunk]))
+    allow(Autodidact::Chunking::TextChunker).to receive(:call)
+      .and_return(success_result([chunk_a, chunk_b]))
+    allow(Autodidact::Models::SourceChunk).to receive(:create)
   end
 
   describe ".call" do
@@ -15,46 +20,46 @@ RSpec.describe Autodidact::Storage::PersistSourceChunks do
 
       before { allow(Autodidact).to receive(:config).and_return(config) }
 
-      it "persists chunks without calling embeddings API" do
-        allow(Autodidact::Provider::GenerateEmbedding).to receive(:call)
-        allow(Autodidact::Models::SourceChunk).to receive(:create)
+      it "persists chunks without calling the embeddings API" do
+        allow(Autodidact::Provider::GenerateBatchEmbeddings).to receive(:call)
 
         result = described_class.call(source_blob_id: "blob-1", raw_text: "raw text")
 
         expect(result).to be_success
-        expect(result.payload).to eq(chunks_created: 1)
-        expect(Autodidact::Provider::GenerateEmbedding).not_to have_received(:call)
-        expect(Autodidact::Models::SourceChunk).to have_received(:create).with(
-          source_blob_id: "blob-1",
-          chunk_index: 0,
-          content: "chunk content",
-          embedding: nil
-        )
+        expect(result.payload).to eq(chunks_created: 2)
+        expect(Autodidact::Provider::GenerateBatchEmbeddings).not_to have_received(:call)
+        expect(Autodidact::Models::SourceChunk).to have_received(:create).twice
       end
     end
 
     context "when embedding_provider is openai" do
-      let(:embedding) { [0.1, 0.2, 0.3] }
       let(:config) { instance_double(Autodidact::Configuration, embedding_provider: "openai") }
 
       before { allow(Autodidact).to receive(:config).and_return(config) }
 
-      it "generates embeddings and persists them" do
-        allow(Autodidact::Provider::GenerateEmbedding).to receive(:call)
-          .with(text: "chunk content")
-          .and_return(success_result(embedding))
-        allow(Autodidact::Models::SourceChunk).to receive(:create)
+      it "generates all embeddings in one batch call and aligns them with their chunks" do
+        allow(Autodidact::Provider::GenerateBatchEmbeddings).to receive(:call)
+          .with(texts: ["chunk one", "chunk two"])
+          .and_return(success_result([embedding_a, embedding_b]))
 
         result = described_class.call(source_blob_id: "blob-1", raw_text: "raw text")
 
         expect(result).to be_success
-        expect(Autodidact::Provider::GenerateEmbedding).to have_received(:call).with(text: "chunk content")
+        expect(result.payload).to eq(chunks_created: 2)
+        expect(Autodidact::Provider::GenerateBatchEmbeddings).to have_received(:call).once
         expect(Autodidact::Models::SourceChunk).to have_received(:create).with(
-          source_blob_id: "blob-1",
-          chunk_index: 0,
-          content: "chunk content",
-          embedding: embedding
+          hash_including(content: "chunk one", embedding: embedding_a)
         )
+        expect(Autodidact::Models::SourceChunk).to have_received(:create).with(
+          hash_including(content: "chunk two", embedding: embedding_b)
+        )
+      end
+
+      it "returns failure when the batch embedding call fails" do
+        allow(Autodidact::Provider::GenerateBatchEmbeddings).to receive(:call)
+          .and_return(error_result("Batch embedding response was empty"))
+
+        expect(described_class.call(source_blob_id: "blob-1", raw_text: "raw text")).to be_failure
       end
     end
   end
