@@ -29,6 +29,7 @@ module Autodidact
 
         notify.call(stage: "retrieving")
         related_chunks = retrieve_related_chunks(blob)
+        related_chunks = apply_context_budget(conversion, related_chunks)
 
         notify.call(stage: "analyze")
         content = analyze(conversion, related_chunks)
@@ -137,6 +138,26 @@ module Autodidact
           source_blob_id: blob.id,
           tags: tags
         )
+        raise result.error[:message] if result.failure?
+
+        result.payload
+      end
+
+      def apply_context_budget(conversion, related_chunks)
+        source_tokens = count_source_tokens(conversion.raw_text)
+        result = Analysis::ContextBudget.call(
+          provider: Autodidact.config.provider,
+          model: Autodidact.config.model,
+          source_text_tokens: source_tokens,
+          related_chunks: related_chunks
+        )
+        raise result.error[:message] if result.failure?
+
+        result.payload
+      end
+
+      def count_source_tokens(raw_text)
+        result = Analysis::TokenCounter.call(text: raw_text)
         raise result.error[:message] if result.failure?
 
         result.payload

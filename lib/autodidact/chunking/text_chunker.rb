@@ -38,7 +38,7 @@ module Autodidact
       end
 
       def splitter
-        @splitter ||= Tomos::Markdown.new(MODEL, TARGET_TOKENS, OVERLAP_TOKENS)
+        @splitter ||= Tomos::Markdown.new(model: MODEL, capacity: TARGET_TOKENS, overlap: OVERLAP_TOKENS)
       end
     end
   end

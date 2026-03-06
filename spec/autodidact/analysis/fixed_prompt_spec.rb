@@ -25,7 +25,8 @@ RSpec.describe Autodidact::Analysis::FixedPrompt do
         Autodidact::RetrievedChunk.new(
           content: "Chunk A from book one.",
           chunk_index: 0,
-          source_path: "/books/ruby.pdf"
+          source_path: "/books/ruby.pdf",
+          token_count: 6
         )
       end
 
@@ -33,7 +34,8 @@ RSpec.describe Autodidact::Analysis::FixedPrompt do
         Autodidact::RetrievedChunk.new(
           content: "Chunk B from book one.",
           chunk_index: 1,
-          source_path: "/books/ruby.pdf"
+          source_path: "/books/ruby.pdf",
+          token_count: 6
         )
       end
 
@@ -41,7 +43,8 @@ RSpec.describe Autodidact::Analysis::FixedPrompt do
         Autodidact::RetrievedChunk.new(
           content: "Chunk C from another book.",
           chunk_index: 0,
-          source_path: "/books/testing.pdf"
+          source_path: "/books/testing.pdf",
+          token_count: 6
         )
       end
 

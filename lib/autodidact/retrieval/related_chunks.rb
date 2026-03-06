@@ -50,10 +50,10 @@ module Autodidact
           .join(:tags, id: Sequel[:source_blob_tags][:tag_id])
           .where(Sequel[:tags][:name] => tags)
           .exclude(Sequel[:source_chunks][:source_blob_id] => source_blob_id)
-          .where(Sequel.lit("source_chunks.embedding IS NOT NULL"))
           .select(
             Sequel[:source_chunks][:content],
             Sequel[:source_chunks][:chunk_index],
+            Sequel[:source_chunks][:token_count],
             Sequel[:source_blobs][:source_path],
             Sequel.lit("source_chunks.embedding <=> ? AS distance", centroid)
           )
@@ -67,7 +67,8 @@ module Autodidact
         RetrievedChunk.new(
           content: row[:content],
           chunk_index: row[:chunk_index],
-          source_path: row[:source_path]
+          source_path: row[:source_path],
+          token_count: row[:token_count]
         )
       end
     end
