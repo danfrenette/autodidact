@@ -4,6 +4,8 @@ source "https://rubygems.org"
 
 gemspec
 
+gem "tomos", path: "../tomos"
+
 group :development, :test do
   gem "drb"
   gem "pry"
