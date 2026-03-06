@@ -17,8 +17,15 @@ module Autodidact
         return success(payload: []) if blank?
 
         chunks = splitter.chunks(raw_text)
-        success(payload: chunks.each_with_index.map do |content, idx|
-          TextChunk.new(content: content, chunk_index: idx)
+        success(payload: chunks.each_with_index.map do |chunk, idx|
+          TextChunk.new(
+            content: chunk.text,
+            chunk_index: idx,
+            token_count: chunk.token_count,
+            chunk_id: chunk.chunk_id,
+            byte_offset: chunk.byte_offset,
+            byte_length: chunk.byte_length
+          )
         end)
       end
 

@@ -18,7 +18,7 @@ RSpec.describe Autodidact::Chunking::TextChunker do
       expect(result.payload).to eq([])
     end
 
-    it "returns TextChunk objects with sequential indices" do
+    it "returns TextChunk objects with sequential indices and metadata" do
       text = "A sentence about one topic. " * 200
       result = described_class.call(raw_text: text)
 
@@ -29,6 +29,13 @@ RSpec.describe Autodidact::Chunking::TextChunker do
         expect(chunk).to be_a(Autodidact::TextChunk)
         expect(chunk.chunk_index).to eq(idx)
         expect(chunk.content).not_to be_empty
+        expect(chunk.token_count).to be_a(Integer)
+        expect(chunk.token_count).to be > 0
+        expect(chunk.chunk_id).to be_a(String)
+        expect(chunk.chunk_id.length).to eq(64)
+        expect(chunk.byte_offset).to be_a(Integer)
+        expect(chunk.byte_length).to be_a(Integer)
+        expect(chunk.byte_length).to eq(chunk.content.bytesize)
       end
     end
 
@@ -37,8 +44,14 @@ RSpec.describe Autodidact::Chunking::TextChunker do
 
       expect(result).to be_success
       expect(result.payload.length).to eq(1)
-      expect(result.payload.first.content).to eq("Hello, world!")
-      expect(result.payload.first.chunk_index).to eq(0)
+
+      chunk = result.payload.first
+      expect(chunk.content).to eq("Hello, world!")
+      expect(chunk.chunk_index).to eq(0)
+      expect(chunk.token_count).to be > 0
+      expect(chunk.chunk_id).to be_a(String)
+      expect(chunk.byte_offset).to eq(0)
+      expect(chunk.byte_length).to eq("Hello, world!".bytesize)
     end
   end
 end

@@ -29,7 +29,9 @@ module Autodidact
       end
 
       def generate_embeddings(chunks)
-        return Array.new(chunks.size) if Autodidact.config.embedding_provider == "dev"
+        if Autodidact.config.embedding_provider == "dev"
+          return Array.new(chunks.size) { Array.new(Provider::EMBEDDING_DIMENSIONS, 0.0) }
+        end
 
         texts = chunks.map(&:content)
         result = Provider::GenerateBatchEmbeddings.call(texts: texts)
@@ -44,7 +46,9 @@ module Autodidact
             source_blob_id: source_blob_id,
             chunk_index: chunk.chunk_index,
             content: chunk.content,
-            embedding: embeddings[idx]
+            embedding: embeddings[idx],
+            token_count: chunk.token_count,
+            chunk_id: chunk.chunk_id
           )
         end
       end

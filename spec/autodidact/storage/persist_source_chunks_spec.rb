@@ -3,8 +3,18 @@
 require "spec_helper"
 
 RSpec.describe Autodidact::Storage::PersistSourceChunks do
-  let(:chunk_a) { Autodidact::TextChunk.new(content: "chunk one", chunk_index: 0) }
-  let(:chunk_b) { Autodidact::TextChunk.new(content: "chunk two", chunk_index: 1) }
+  let(:chunk_a) do
+    Autodidact::TextChunk.new(
+      content: "chunk one", chunk_index: 0,
+      token_count: 2, chunk_id: "abc123", byte_offset: 0, byte_length: 9
+    )
+  end
+  let(:chunk_b) do
+    Autodidact::TextChunk.new(
+      content: "chunk two", chunk_index: 1,
+      token_count: 2, chunk_id: "def456", byte_offset: 10, byte_length: 9
+    )
+  end
   let(:embedding_a) { Array.new(Autodidact::Provider::EMBEDDING_DIMENSIONS) { rand } }
   let(:embedding_b) { Array.new(Autodidact::Provider::EMBEDDING_DIMENSIONS) { rand } }
 
@@ -20,15 +30,18 @@ RSpec.describe Autodidact::Storage::PersistSourceChunks do
 
       before { allow(Autodidact).to receive(:config).and_return(config) }
 
-      it "persists chunks without calling the embeddings API" do
+      it "persists chunks with zero-vector embeddings instead of calling the API" do
         allow(Autodidact::Provider::GenerateBatchEmbeddings).to receive(:call)
+        zero_vector = Array.new(Autodidact::Provider::EMBEDDING_DIMENSIONS, 0.0)
 
         result = described_class.call(source_blob_id: "blob-1", raw_text: "raw text")
 
         expect(result).to be_success
         expect(result.payload).to eq(chunks_created: 2)
         expect(Autodidact::Provider::GenerateBatchEmbeddings).not_to have_received(:call)
-        expect(Autodidact::Models::SourceChunk).to have_received(:create).twice
+        expect(Autodidact::Models::SourceChunk).to have_received(:create).with(
+          hash_including(embedding: zero_vector)
+        ).twice
       end
     end
 
@@ -48,7 +61,10 @@ RSpec.describe Autodidact::Storage::PersistSourceChunks do
         expect(result.payload).to eq(chunks_created: 2)
         expect(Autodidact::Provider::GenerateBatchEmbeddings).to have_received(:call).once
         expect(Autodidact::Models::SourceChunk).to have_received(:create).with(
-          hash_including(content: "chunk one", embedding: embedding_a)
+          hash_including(content: "chunk one", embedding: embedding_a, token_count: 2, chunk_id: "abc123")
+        )
+        expect(Autodidact::Models::SourceChunk).to have_received(:create).with(
+          hash_including(content: "chunk two", embedding: embedding_b, token_count: 2, chunk_id: "def456")
         )
         expect(Autodidact::Models::SourceChunk).to have_received(:create).with(
           hash_including(content: "chunk two", embedding: embedding_b)
