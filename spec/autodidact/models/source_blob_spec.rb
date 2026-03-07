@@ -1,24 +1,11 @@
 # frozen_string_literal: true
 
 require "spec_helper"
-require "sequel"
 
-DB_SB_SPEC = Sequel.mock(host: "postgres")
-DB_SB_SPEC.extension(:pg_enum)
-DB_SB_SPEC.extension(:pg_json)
-
-original_db = begin
-  Sequel::Model.db
-rescue
-  nil
-end
-Sequel::Model.db = DB_SB_SPEC
-
+Sequel::Model.db = DB_TEST
 require "autodidact/models/source_blob"
 require "autodidact/models/tag"
 require "autodidact/models/source_blob_tag"
-
-Sequel::Model.db = original_db if original_db
 
 RSpec.describe Autodidact::Models::SourceBlob do
   describe "associations" do
