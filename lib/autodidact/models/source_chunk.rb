@@ -9,7 +9,8 @@ module Autodidact
       plugin :timestamps, update_on_create: true
       plugin :pgvector, :embedding
 
-      many_to_one :source_blob
+      one_to_many :source_blob_chunks
+      many_to_many :source_blobs, join_table: :source_blob_chunks
 
       def embedding=(value)
         self[:embedding] = value

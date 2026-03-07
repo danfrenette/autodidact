@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "sequel"
+Sequel.extension(:pg_array)
 
 module Autodidact
   module Retrieval
@@ -37,30 +38,45 @@ module Autodidact
       def source_centroid
         Autodidact::DB.connection
           .fetch(
-            "SELECT avg(embedding)::vector AS centroid FROM source_chunks WHERE source_blob_id = ?::uuid",
+            <<~SQL,
+              SELECT avg(sc.embedding)::vector AS centroid
+              FROM source_chunks sc
+              JOIN source_blob_chunks sbc ON sbc.source_chunk_id = sc.id
+              WHERE sbc.source_blob_id = ?::uuid
+            SQL
             source_blob_id
           )
           .get(:centroid)
       end
 
       def candidate_chunks(centroid)
-        Autodidact::DB.connection[:source_chunks]
-          .join(:source_blobs, id: :source_blob_id)
-          .join(:source_blob_tags, source_blob_id: Sequel[:source_blobs][:id])
-          .join(:tags, id: Sequel[:source_blob_tags][:tag_id])
-          .where(Sequel[:tags][:name] => tags)
-          .exclude(Sequel[:source_chunks][:source_blob_id] => source_blob_id)
-          .select(
-            Sequel[:source_chunks][:content],
-            Sequel[:source_chunks][:chunk_index],
-            Sequel[:source_chunks][:token_count],
-            Sequel[:source_blobs][:source_path],
-            Sequel.lit("source_chunks.embedding <=> ? AS distance", centroid)
-          )
-          .distinct
-          .order(Sequel.lit("distance"))
-          .limit(limit)
-          .all
+        Autodidact::DB.connection.fetch(
+          <<~SQL,
+            SELECT content, chunk_index, token_count, source_path, distance
+            FROM (
+              SELECT DISTINCT ON (sc.chunk_id)
+                sc.content,
+                sbc.chunk_index,
+                sc.token_count,
+                sb.source_path,
+                sc.embedding <=> ? AS distance
+              FROM source_chunks sc
+              JOIN source_blob_chunks sbc ON sbc.source_chunk_id = sc.id
+              JOIN source_blobs sb ON sb.id = sbc.source_blob_id
+              JOIN source_blob_tags sbt ON sbt.source_blob_id = sb.id
+              JOIN tags t ON t.id = sbt.tag_id
+              WHERE t.name = ANY(?::text[])
+                AND sbc.source_blob_id != ?::uuid
+              ORDER BY sc.chunk_id, distance
+            ) deduped
+            ORDER BY distance
+            LIMIT ?
+          SQL
+          centroid,
+          Sequel.pg_array(tags),
+          source_blob_id,
+          limit
+        ).all
       end
 
       def build_retrieved_chunk(row)

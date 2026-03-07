@@ -13,7 +13,7 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
     allow(Autodidact.config).to receive(:obsidian_vault_path).and_return(vault_dir)
     allow(Autodidact.config).to receive(:access_token).and_return("sk-test")
     allow(Autodidact.config).to receive(:model).and_return("gpt-4o-mini")
-    allow(Autodidact::Storage::PersistSourceChunks).to receive(:call).and_return(success_result({chunks_created: 1}))
+    allow(Autodidact::Storage::PersistSourceChunks).to receive(:call).and_return(success_result({chunks_created: 1, chunks_reused: 0}))
     allow(Autodidact::Retrieval::RelatedChunks).to receive(:call).and_return(success_result([]))
   end
 

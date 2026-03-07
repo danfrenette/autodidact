@@ -9,6 +9,7 @@ DB_TEST = Sequel.connect(TEST_DATABASE_URL).tap do |db|
   db.extension(:pg_enum)
   db.extension(:pg_json)
   db.extension(:pgvector)
+  db.extension(:pg_array)
   Sequel::Migrator.run(db, Autodidact.root.join("db", "migrate"))
 end
 
