@@ -8,17 +8,16 @@ import {
   appendCreateOption,
   extractCreateName,
   isCreateOption,
-  TAG_OPTIONS,
 } from "./utils";
 
-export function useTagCombobox() {
+export function useTagCombobox(availableTags: string[]) {
   const { selectedTags, addTag, removeTag, clearTags } = useTagSelection();
   const [tagsExpanded, setTagsExpanded] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const availableOptions = useMemo(
-    () => TAG_OPTIONS.filter((t) => !selectedTags.includes(t)),
-    [selectedTags],
+    () => availableTags.filter((t) => !selectedTags.includes(t)),
+    [availableTags, selectedTags],
   );
 
   const fuzzy = useFuzzyList({ items: availableOptions, active: tagsExpanded });

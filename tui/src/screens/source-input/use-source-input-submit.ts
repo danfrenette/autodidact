@@ -37,6 +37,9 @@ export function useSourceInputSubmit({
 
   const clearValidationError = useCallback(() => setValidationError(null), []);
 
+  let thing = 123;
+  console.log(thing);
+
   const handleSubmit = useCallback(async () => {
     if (submitting) return;
     const currentText = textareaRef.current?.plainText ?? value;

@@ -7,7 +7,6 @@ import {
   formatTagPreview,
   isCreateOption,
   normalizeTag,
-  TAG_OPTIONS,
 } from "./utils";
 
 describe("normalizeTag", () => {
@@ -127,18 +126,4 @@ describe("formatTagPreview", () => {
   });
 });
 
-describe("TAG_OPTIONS", () => {
-  it("is a non-empty array of strings", () => {
-    expect(TAG_OPTIONS.length).toBeGreaterThan(0);
-    for (const tag of TAG_OPTIONS) {
-      expect(typeof tag).toBe("string");
-      expect(tag.length).toBeGreaterThan(0);
-    }
-  });
 
-  it("contains only normalized values", () => {
-    for (const tag of TAG_OPTIONS) {
-      expect(normalizeTag(tag)).toBe(tag);
-    }
-  });
-});

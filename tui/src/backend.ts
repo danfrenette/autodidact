@@ -11,6 +11,7 @@ import type { SourceInfo } from "@/requests/detect-source/index.ts";
 import * as detectSourceRequest from "@/requests/detect-source/index.ts";
 import * as getOnboardingStateRequest from "@/requests/get-onboarding-state/index.ts";
 import * as pingRequest from "@/requests/ping/index.ts";
+import * as listVaultTagsRequest from "@/requests/list-vault-tags/index.ts";
 import * as setOnboardingStateRequest from "@/requests/set-onboarding-state/index.ts";
 import type { SetupStatus } from "@/requests/setup-status/index.ts";
 import * as setupStatusRequest from "@/requests/setup-status/index.ts";
@@ -61,6 +62,12 @@ export class Backend {
   async ping(): Promise<{ status: string; version: string }> {
     const result = await this.send(pingRequest.method, {});
     return pingRequest.decode(result);
+  }
+
+  async listVaultTags(): Promise<string[]> {
+    const result = await this.send(listVaultTagsRequest.method, {});
+    const wire = listVaultTagsRequest.decode(result);
+    return listVaultTagsRequest.toTagList(wire);
   }
 
   async detectSource(path: string): Promise<SourceInfo> {

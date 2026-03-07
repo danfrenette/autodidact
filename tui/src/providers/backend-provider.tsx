@@ -292,6 +292,7 @@ export type BackendContextValue = {
   confirmChapter: (chapter: Chapter) => Promise<AnalysisResult | null>;
   cancelChapter: () => void;
   shutdown: () => Promise<void>;
+  listVaultTags: () => Promise<string[]>;
 };
 
 export const BackendContext = createContext<BackendContextValue | null>(null);
@@ -388,6 +389,10 @@ export function BackendProvider({ backend, initialState, initialOnboardingState,
     dispatch({ type: "source-input-model-changed", model });
   }, []);
 
+  const listVaultTags = useCallback(async () => {
+    return backend.listVaultTags();
+  }, [backend]);
+
   const confirmChapter = useCallback(async (chapter: Chapter): Promise<AnalysisResult | null> => {
     const current = stateRef.current;
     if (current.name !== "source-input" || current.status !== "selecting-chapter") return null;
@@ -429,8 +434,9 @@ export function BackendProvider({ backend, initialState, initialOnboardingState,
       confirmChapter,
       cancelChapter,
       shutdown,
+      listVaultTags,
     }),
-    [state, initialOnboardingState, analyzeSource, cancelRequest, setOnboardingState, updateConfig, setSourceInputProvider, setSourceInputModel, confirmChapter, cancelChapter, shutdown],
+    [state, initialOnboardingState, analyzeSource, cancelRequest, setOnboardingState, updateConfig, setSourceInputProvider, setSourceInputModel, confirmChapter, cancelChapter, shutdown, listVaultTags],
   );
 
   return <BackendContext.Provider value={value}>{children}</BackendContext.Provider>;

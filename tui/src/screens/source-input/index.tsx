@@ -41,6 +41,7 @@ type Props = {
   onCancelChapter: () => void;
   onCancelRequest: () => void;
   onExit: () => void;
+  vaultTags: string[];
 };
 
 const EMPTY_BORDER: BorderCharacters = {
@@ -81,6 +82,7 @@ export function SourceInput({
   onCancelChapter,
   onCancelRequest,
   onExit,
+  vaultTags,
 }: Props) {
   const [value, onInput] = useState("");
   const textareaRef = useRef<TextareaRenderable>(null);
@@ -94,7 +96,7 @@ export function SourceInput({
   const autocomplete = useFilePathAutocomplete({ value, onInput: syncedOnInput, submitting });
   const onboarding = useSourceInputOnboarding({ inputValue: value, submitting });
   const badges = useInputBadges(value);
-  const tagCombobox = useTagCombobox();
+  const tagCombobox = useTagCombobox(vaultTags);
   const modelPickerCombobox = useModelPicker({
     provider,
     model,

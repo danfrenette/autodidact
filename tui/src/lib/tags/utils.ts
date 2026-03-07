@@ -1,10 +1,3 @@
-export const TAG_OPTIONS: string[] = [
-  "chapter-review",
-  "study-guide",
-  "key-terms",
-  "practice-quiz",
-  "summary",
-];
 
 const CREATE_SENTINEL_PREFIX = "create:";
 

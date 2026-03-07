@@ -1,6 +1,6 @@
 import { createCliRenderer } from "@opentui/core";
 import { createRoot, useRenderer } from "@opentui/react";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { Backend } from "@/backend.ts";
 import { useBackend } from "@/hooks/use-backend.ts";
@@ -11,8 +11,16 @@ import { Setup } from "@/screens/setup/index.tsx";
 import { SourceInput } from "@/screens/source-input/index.tsx";
 
 function AppContent() {
-  const { state, analyzeSource, cancelRequest, updateConfig, setSourceInputProvider, setSourceInputModel, confirmChapter, cancelChapter, shutdown } = useBackend();
+  const { state, analyzeSource, cancelRequest, updateConfig, setSourceInputProvider, setSourceInputModel, confirmChapter, cancelChapter, shutdown, listVaultTags } = useBackend();
   const renderer = useRenderer();
+
+  const [vaultTags, setVaultTags] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (state.name === "source-input") {
+      void listVaultTags().then(setVaultTags).catch(() => {});
+    }
+  }, [state.name, listVaultTags]);
 
   const handleExit = useCallback(() => {
     renderer?.destroy();
@@ -59,6 +67,7 @@ function AppContent() {
           onCancelChapter={cancelChapter}
           onCancelRequest={cancelRequest}
           onExit={handleExit}
+          vaultTags={vaultTags}
         />
       );
   }
