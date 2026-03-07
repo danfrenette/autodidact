@@ -142,5 +142,16 @@ RSpec.describe Autodidact::Retrieval::VaultTagScanner do
         expect(result).to contain_exactly("alpha", "beta")
       end
     end
+
+    it "handles frontmatter containing Date values" do
+      Dir.mktmpdir do |dir|
+        content = "---\ntags:\n  - ruby\ncreated: 2026-03-07\n---\n"
+        write_note(dir, "note.md", content)
+
+        result = described_class.new(vault_path: dir).call
+
+        expect(result).to contain_exactly("ruby")
+      end
+    end
   end
 end

@@ -34,7 +34,7 @@ module Autodidact
         return [] unless raw_tags.is_a?(Array)
 
         raw_tags.filter_map { |value| normalize(value) }
-      rescue SystemCallError
+      rescue SystemCallError, Psych::SyntaxError
         []
       end
 
@@ -60,9 +60,7 @@ module Autodidact
 
         return if lines.empty?
 
-        YAML.safe_load(lines.join)
-      rescue Psych::SyntaxError
-        nil
+        YAML.safe_load(lines.join, permitted_classes: [Date])
       end
 
       def normalize(value)
