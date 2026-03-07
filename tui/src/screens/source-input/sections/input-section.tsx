@@ -8,7 +8,7 @@ import { uiStyles } from "@/components/ui-styles";
 import type { FilePathAutocompleteState } from "@/hooks/use-file-path-autocomplete";
 import { formatTagPreview } from "@/lib/tags/utils";
 import { inputBadgeStyles } from "@/screens/source-input/styles";
-import type { InputKind } from "@/screens/source-input/use-badges";
+import type { InputKind } from "@/screens/source-input/use-input-kind";
 
 import { ComboboxSelectField } from "./combobox-select-field";
 
@@ -88,10 +88,10 @@ export function InputSection({
           placeholder={'Enter a file path or input text... "./notes/chapter.txt"'}
           onContentChange={onContentChange}
           onSubmit={onSubmit}
-          keyBindings={inputKind === "raw_text" ? MULTILINE_BINDINGS : SINGLE_LINE_BINDINGS}
+          keyBindings={inputKind === "multiline" ? MULTILINE_BINDINGS : SINGLE_LINE_BINDINGS}
           focused={!submitting}
-          height={inputKind === "raw_text" ? 6 : 1}
-          wrapMode={inputKind === "raw_text" ? "word" : "none"}
+          height={inputKind === "multiline" ? 6 : 1}
+          wrapMode={inputKind === "multiline" ? "word" : "none"}
           textColor="#eeeeee"
           cursorColor="#eeeeee"
           focusedBackgroundColor={uiStyles.fieldBackground}

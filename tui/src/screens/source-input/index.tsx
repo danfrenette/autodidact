@@ -19,7 +19,8 @@ import { InputSection } from "./sections/input-section";
 import { OutputModal } from "./sections/output-modal";
 import { StatusMessage } from "./sections/status-message";
 import { PANEL_WIDTH } from "./styles";
-import { useInputBadges } from "./use-badges";
+import { useInputKind, type InputKind } from "./use-input-kind";
+import { useInputBadge } from "./use-input-badge";
 import { useChapterSelection } from "./use-chapter-selection";
 import { useModelPicker } from "./use-model-picker";
 import { useSourceInputSubmit } from "./use-source-input-submit";
@@ -65,6 +66,22 @@ function accentColor(submitting: boolean, lastResult: AnalysisResult | null, err
   return "#fab283";
 }
 
+type HintContext = {
+  chapters: boolean;
+  autocompleteOpen: boolean;
+  tagsExpanded: boolean;
+  inputKind: InputKind;
+};
+
+function hintText({ chapters, autocompleteOpen, tagsExpanded, inputKind }: HintContext): string {
+  if (chapters) return "Type to filter, Up/Down navigate, Enter select, Esc cancel";
+  if (autocompleteOpen) return "↑/↓ browse, Tab/Enter choose";
+  if (tagsExpanded) return "Esc close tags";
+  if (inputKind === "multiline") return "Ctrl+Enter to submit";
+
+  return "input ready";
+}
+
 export function SourceInput({
   onSubmit,
   lastResult,
@@ -95,7 +112,8 @@ export function SourceInput({
   }, [onInput]);
   const autocomplete = useFilePathAutocomplete({ value, onInput: syncedOnInput, submitting });
   const onboarding = useSourceInputOnboarding({ inputValue: value, submitting });
-  const badges = useInputBadges(value);
+  const inputKind = useInputKind(value);
+  const inputBadge = useInputBadge(value);
   const tagCombobox = useTagCombobox(vaultTags);
   const modelPickerCombobox = useModelPicker({
     provider,
@@ -127,7 +145,7 @@ export function SourceInput({
 
   const error = submit.validationError ?? backendError;
   const highlight = accentColor(submitting, lastResult, error);
-  const detectedBadgeLabel = badges.inputBadge ? `${badges.inputBadge.supported ? "✓" : "✕"} ${badges.inputBadge.label}` : null;
+
 
   const handleConfirmChapter = useCallback(async (chapter: Chapter) => {
     const result = await onConfirmChapter(chapter);
@@ -248,8 +266,8 @@ export function SourceInput({
           submitting={submitting}
           onContentChange={handleContentChange}
           onSubmit={submit.handleSubmit}
-          badgeLabel={detectedBadgeLabel}
-          badgeSupported={badges.inputBadge?.supported ?? false}
+          badgeLabel={inputBadge ? `${inputBadge.supported ? "✓" : "✕"} ${inputBadge.label}` : null}
+          badgeSupported={inputBadge?.supported ?? false}
           model={model}
           provider={provider}
           modelPickerExpanded={modelPickerCombobox.isOpen}
@@ -260,7 +278,7 @@ export function SourceInput({
           modelCombobox={modelPickerCombobox.modelCombobox}
           autocompleteState={autocomplete.state}
           width={PANEL_WIDTH}
-          inputKind={badges.inputKind}
+          inputKind={inputKind}
           textareaRef={textareaRef}
           selectedTags={tagCombobox.selectedTags}
           onTagsPress={tagCombobox.openTags}
@@ -320,9 +338,7 @@ export function SourceInput({
 
         {!submitting && (
           <text fg="#808080">
-            {chapters
-              ? "Type to filter, Up/Down navigate, Enter select, Esc cancel"
-              : autocomplete.query !== null ? "↑/↓ browse, Tab/Enter choose" : tagCombobox.tagsExpanded ? "Esc close tags" : badges.inputKind === "raw_text" ? "Ctrl+Enter to submit" : "input ready"}
+            {hintText({ chapters: chapterActive, autocompleteOpen: autocomplete.query !== null, tagsExpanded: tagCombobox.tagsExpanded, inputKind })}
           </text>
         )}
       </box>

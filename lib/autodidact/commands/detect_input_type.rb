@@ -2,16 +2,16 @@
 
 module Autodidact
   module Commands
-    class DetectInputType < Command
+    class DetectInputType < Query
       URL_PATTERN = %r{\Ahttps?://\S+\z}
-      PATH_PATTERN = %r{[/\\]|\.[a-z0-9]{1,5}\z}i
+
       def initialize(input:)
-        @input = input
+        @input = input.to_s.strip
       end
 
       def call
         success(payload: {
-          input_type: classify(input)
+          input_type: classify
         })
       end
 
@@ -19,10 +19,10 @@ module Autodidact
 
       attr_reader :input
 
-      def classify(input)
-        value = input.to_s.strip
-        return "url" if value.match?(URL_PATTERN)
-        return "file_path" if value.match?(PATH_PATTERN)
+      def classify
+        return "raw_text" if input.include?("\n")
+        return "url" if input.match?(URL_PATTERN)
+        return "file_path" if File.exist?(input)
 
         "raw_text"
       end

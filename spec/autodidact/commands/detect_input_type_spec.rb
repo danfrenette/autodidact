@@ -11,7 +11,7 @@ RSpec.describe Autodidact::Commands::DetectInputType do
     expect(result.payload).to eq(input_type: "url")
   end
 
-  it "detects file_path input when file exists" do
+  it "detects file_path when the file exists" do
     file = Tempfile.new(["sample", ".txt"])
     file.write("hello")
     file.flush
@@ -24,7 +24,7 @@ RSpec.describe Autodidact::Commands::DetectInputType do
     file.close!
   end
 
-  it "detects raw_text for multiline prose" do
+  it "detects raw_text for multiline input" do
     input = "This is a sentence.\nAnd this is another sentence."
     result = described_class.call(input: input)
 
@@ -32,10 +32,32 @@ RSpec.describe Autodidact::Commands::DetectInputType do
     expect(result.payload).to eq(input_type: "raw_text")
   end
 
-  it "defaults to file_path for path-like non-existent input" do
+  it "detects raw_text for pasted markdown with frontmatter" do
+    input = <<~MARKDOWN
+      ---
+      title: "Some Article"
+      tags:
+        - "clippings"
+      ---
+      Here is the body of the article with paths like src/foo/bar.ts in it.
+    MARKDOWN
+    result = described_class.call(input: input)
+
+    expect(result.error).to be_nil
+    expect(result.payload).to eq(input_type: "raw_text")
+  end
+
+  it "detects raw_text for single-line input that looks path-like but does not exist" do
     result = described_class.call(input: "./notes/chapter1.txt")
 
     expect(result.error).to be_nil
-    expect(result.payload).to eq(input_type: "file_path")
+    expect(result.payload).to eq(input_type: "raw_text")
+  end
+
+  it "detects raw_text for plain prose" do
+    result = described_class.call(input: "Just a simple sentence.")
+
+    expect(result.error).to be_nil
+    expect(result.payload).to eq(input_type: "raw_text")
   end
 end

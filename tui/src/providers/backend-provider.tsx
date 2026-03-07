@@ -12,6 +12,7 @@ import type {
 import type { SetupStatus } from "@/requests/setup-status/index.ts";
 import type { ConfigParams } from "@/requests/update-config/index.ts";
 
+import type { InputType } from "@/requests/detect-input-type/index.ts";
 export type SetupPrefill = SetupStatus["prefill"];
 
 type SetupStateBase = {
@@ -293,6 +294,7 @@ export type BackendContextValue = {
   cancelChapter: () => void;
   shutdown: () => Promise<void>;
   listVaultTags: () => Promise<string[]>;
+  detectInputType: (input: string) => Promise<InputType>;
 };
 
 export const BackendContext = createContext<BackendContextValue | null>(null);
@@ -393,6 +395,10 @@ export function BackendProvider({ backend, initialState, initialOnboardingState,
     return backend.listVaultTags();
   }, [backend]);
 
+  const detectInputType = useCallback(async (input: string) => {
+    return backend.detectInputType(input);
+  }, [backend]);
+
   const confirmChapter = useCallback(async (chapter: Chapter): Promise<AnalysisResult | null> => {
     const current = stateRef.current;
     if (current.name !== "source-input" || current.status !== "selecting-chapter") return null;
@@ -435,8 +441,9 @@ export function BackendProvider({ backend, initialState, initialOnboardingState,
       cancelChapter,
       shutdown,
       listVaultTags,
+      detectInputType,
     }),
-    [state, initialOnboardingState, analyzeSource, cancelRequest, setOnboardingState, updateConfig, setSourceInputProvider, setSourceInputModel, confirmChapter, cancelChapter, shutdown, listVaultTags],
+    [state, initialOnboardingState, analyzeSource, cancelRequest, setOnboardingState, updateConfig, setSourceInputProvider, setSourceInputModel, confirmChapter, cancelChapter, shutdown, listVaultTags, detectInputType],
   );
 
   return <BackendContext.Provider value={value}>{children}</BackendContext.Provider>;

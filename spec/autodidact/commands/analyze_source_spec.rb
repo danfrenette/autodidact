@@ -91,12 +91,15 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
     end
   end
 
-  describe "missing file" do
-    it "returns a failure for nonexistent path" do
+  describe "nonexistent path-like input" do
+    it "treats it as raw text instead of a missing file" do
+      allow(Autodidact::Storage::PersistSourceBlob).to receive(:call).and_return(blob)
+      allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call).and_return(success_result("## Notes"))
+
       result = described_class.call(params: {input: "/nope/missing.txt"}, notify: notify)
 
-      expect(result.payload).to be_nil
-      expect(result.error[:message]).to include("File not found")
+      expect(result).to be_success
+      expect(result.payload[:note_path]).to end_with(".md")
     end
   end
 

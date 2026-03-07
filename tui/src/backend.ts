@@ -9,6 +9,8 @@ import type {
 import * as analyzeSourceRequest from "@/requests/analyze-source/index.ts";
 import type { SourceInfo } from "@/requests/detect-source/index.ts";
 import * as detectSourceRequest from "@/requests/detect-source/index.ts";
+import type { InputType } from "@/requests/detect-input-type/index.ts";
+import * as detectInputTypeRequest from "@/requests/detect-input-type/index.ts";
 import * as getOnboardingStateRequest from "@/requests/get-onboarding-state/index.ts";
 import * as pingRequest from "@/requests/ping/index.ts";
 import * as listVaultTagsRequest from "@/requests/list-vault-tags/index.ts";
@@ -68,6 +70,11 @@ export class Backend {
     const result = await this.send(listVaultTagsRequest.method, {});
     const wire = listVaultTagsRequest.decode(result);
     return listVaultTagsRequest.toTagList(wire);
+  }
+
+  async detectInputType(input: string): Promise<InputType> {
+    const result = await this.send(detectInputTypeRequest.method, { input });
+    return detectInputTypeRequest.decode(result);
   }
 
   async detectSource(path: string): Promise<SourceInfo> {

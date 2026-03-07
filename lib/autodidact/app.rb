@@ -25,6 +25,7 @@ module Autodidact
       router.register("set_onboarding_state", Commands::SetOnboardingState)
       router.register("detect_source", Commands::DetectSource)
       router.register("analyze_source", Commands::AnalyzeSource)
+      router.register("detect_input_type", Commands::DetectInputTypeRoute)
       router.register("list_vault_tags", Commands::ListVaultTags)
     end
 
