@@ -91,7 +91,7 @@ export function InputSection({
           keyBindings={inputKind === "multiline" ? MULTILINE_BINDINGS : SINGLE_LINE_BINDINGS}
           focused={!submitting}
           height={inputKind === "multiline" ? 6 : 1}
-          wrapMode={inputKind === "multiline" ? "word" : "none"}
+          wrapMode="word"
           textColor="#eeeeee"
           cursorColor="#eeeeee"
           focusedBackgroundColor={uiStyles.fieldBackground}
