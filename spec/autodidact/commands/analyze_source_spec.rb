@@ -96,6 +96,23 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
     end
   end
 
+  describe "shell-escaped file path input" do
+    it "analyzes a dropped file path with escaped spaces" do
+      Dir.mktmpdir do |dir|
+        path = File.join(dir, "sample notes.txt")
+        File.write(path, "some content")
+
+        allow(Autodidact::Storage::PersistSourceBlob).to receive(:call).and_return(blob)
+        allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call).and_return(success_result("## Notes"))
+
+        result = described_class.call(input: path.gsub(" ", "\\ "))
+
+        expect(result).to be_success
+        expect(result.payload[:note_path]).to end_with(".md")
+      end
+    end
+  end
+
   describe "raw text success path" do
     it "analyzes raw text end-to-end" do
       allow(Autodidact::Storage::PersistSourceBlob).to receive(:call).and_return(blob)

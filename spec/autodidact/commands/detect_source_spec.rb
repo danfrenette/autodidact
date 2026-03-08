@@ -73,6 +73,24 @@ RSpec.describe Autodidact::Commands::DetectSource do
     end
   end
 
+  describe "with a shell-escaped dropped path" do
+    it "unescapes the path before reading the file" do
+      Dir.mktmpdir do |dir|
+        path = File.join(dir, "sample notes.txt")
+        File.write(path, "line one\nline two\n")
+
+        result = described_class.call(path: path.gsub(" ", "\\ "))
+
+        expect(result.error).to be_nil
+        expect(result.payload).to eq(
+          path: path,
+          source_type: "text",
+          metadata: {line_count: 2}
+        )
+      end
+    end
+  end
+
   describe "with an unsupported file type" do
     it "returns a failure result" do
       file = Tempfile.new(["test", ".zip"])

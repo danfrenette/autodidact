@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "shellwords"
+
 module Autodidact
   module Commands
     class DetectSource < Command
@@ -31,7 +33,16 @@ module Autodidact
       attr_reader :path
 
       def normalize_path(path)
-        File.expand_path(path)
+        File.expand_path(shell_unescaped_path(path.to_s.strip) || path)
+      end
+
+      def shell_unescaped_path(raw_path)
+        parts = Shellwords.shellsplit(raw_path)
+        return if parts.length != 1
+
+        parts.first
+      rescue ArgumentError
+        nil
       end
 
       def validate_path!

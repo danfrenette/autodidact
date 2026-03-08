@@ -54,6 +54,19 @@ RSpec.describe Autodidact::Commands::DetectInputType do
     expect(result.payload).to eq(input_type: "raw_text")
   end
 
+  it "detects file_path for a shell-escaped dropped path" do
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, "sample notes.txt")
+      File.write(path, "hello")
+
+      escaped_path = path.gsub(" ", "\\ ")
+      result = described_class.call(input: escaped_path)
+
+      expect(result.error).to be_nil
+      expect(result.payload).to eq(input_type: "file_path")
+    end
+  end
+
   it "detects raw_text for plain prose" do
     result = described_class.call(input: "Just a simple sentence.")
 
