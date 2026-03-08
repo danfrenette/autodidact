@@ -5,15 +5,13 @@ require "tempfile"
 require "tmpdir"
 
 RSpec.describe Autodidact::Commands::DetectSource do
-  let(:notify) { proc {} }
-
   describe "with a valid text file" do
     it "returns the path, source type, and line count" do
       file = Tempfile.new(["test", ".txt"])
       file.write("line one\nline two\nline three\n")
       file.flush
 
-      result = described_class.call(params: {path: file.path}, notify: notify)
+      result = described_class.call(path: file.path)
 
       expect(result.error).to be_nil
       expect(result.payload).to eq(
@@ -32,7 +30,7 @@ RSpec.describe Autodidact::Commands::DetectSource do
       file.write("fake pdf content")
       file.flush
 
-      result = described_class.call(params: {path: file.path}, notify: notify)
+      result = described_class.call(path: file.path)
 
       expect(result.error).to be_nil
       expect(result.payload).to eq(
@@ -47,7 +45,7 @@ RSpec.describe Autodidact::Commands::DetectSource do
 
   describe "with a missing file" do
     it "returns a failure result" do
-      result = described_class.call(params: {path: "/nope/missing.txt"}, notify: notify)
+      result = described_class.call(path: "/nope/missing.txt")
 
       expect(result.payload).to be_nil
       expect(result.error[:message]).to include("File not found")
@@ -62,7 +60,7 @@ RSpec.describe Autodidact::Commands::DetectSource do
 
         Dir.chdir(dir) do
           expanded_path = File.expand_path("sample.txt")
-          result = described_class.call(params: {path: "sample.txt"}, notify: notify)
+          result = described_class.call(path: "sample.txt")
 
           expect(result.error).to be_nil
           expect(result.payload).to eq(
@@ -80,7 +78,7 @@ RSpec.describe Autodidact::Commands::DetectSource do
       file = Tempfile.new(["test", ".zip"])
       file.flush
 
-      result = described_class.call(params: {path: file.path}, notify: notify)
+      result = described_class.call(path: file.path)
 
       expect(result.payload).to be_nil
       expect(result.error[:message]).to include("Unsupported file type")

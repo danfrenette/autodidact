@@ -12,8 +12,8 @@ module Autodidact
         ".pdf" => "pdf"
       }.freeze
 
-      def initialize(params:, **)
-        @path = normalize_path(params.fetch(:path))
+      def initialize(path:)
+        @path = normalize_path(path)
       end
 
       def call

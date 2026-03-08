@@ -7,34 +7,34 @@ module Autodidact
 
       SUPPORTED_INPUT_TYPES = %w[url file_path raw_text].freeze
 
-      def initialize(params:, notify:)
-        @input = params.fetch(:input)
-        @tags = Array(params[:tags])
-        @chapter = params[:chapter]
-        @notify = notify
+      def initialize(input:, tags: [], chapter: nil, progress: nil)
+        @input = input
+        @tags = Array(tags)
+        @chapter = chapter
+        @progress = progress || proc {}
       end
 
       def call
         validate_config!
 
-        notify.call(stage: "convert")
+        progress.call(stage: "convert")
         conversion = convert
         return success(payload: conversion.to_wire) unless conversion.continue?
 
-        notify.call(stage: "persist")
+        progress.call(stage: "persist")
         blob = persist(conversion)
 
-        notify.call(stage: "chunk")
+        progress.call(stage: "chunk")
         persist_chunks(blob, conversion)
 
-        notify.call(stage: "retrieving")
+        progress.call(stage: "retrieving")
         related_chunks = retrieve_related_chunks(blob)
         related_chunks = apply_context_budget(conversion, related_chunks)
 
-        notify.call(stage: "analyze")
+        progress.call(stage: "analyze")
         content = analyze(conversion, related_chunks)
 
-        notify.call(stage: "write")
+        progress.call(stage: "write")
         note_path = render_and_write(conversion, content)
 
         success(payload: completed_payload(note_path, blob))
@@ -42,7 +42,7 @@ module Autodidact
 
       private
 
-      attr_reader :input, :tags, :chapter, :notify
+      attr_reader :input, :tags, :chapter, :progress
 
       def validate_config!
         raise "Configuration is incomplete. Run setup first." unless Autodidact.config.ready?
@@ -92,7 +92,7 @@ module Autodidact
       end
 
       def detect_source
-        result = Commands::DetectSource.call(params: {path: input}, notify: notify)
+        result = Commands::DetectSource.call(path: input)
         raise result.error[:message] if result.failure?
 
         result.payload

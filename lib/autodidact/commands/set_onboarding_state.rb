@@ -3,8 +3,8 @@
 module Autodidact
   module Commands
     class SetOnboardingState < Command
-      def initialize(params:, **)
-        @state = params.fetch(:state)
+      def initialize(state:)
+        @state = state
       end
 
       def call

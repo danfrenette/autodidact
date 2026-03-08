@@ -4,20 +4,14 @@ module Autodidact
   module Routes
     class UpdateConfig < Route
       def call
-        Commands::UpdateConfig.call(params: config_params)
-      end
-
-      private
-
-      def config_params
-        params.slice(
-          :database_url,
-          :provider,
-          :obsidian_vault_path,
-          :model,
-          :embedding_provider,
-          :embedding_model,
-          :tokens
+        Commands::UpdateConfig.call(
+          database_url: params[:database_url],
+          provider: params[:provider],
+          obsidian_vault_path: params[:obsidian_vault_path],
+          model: params[:model],
+          embedding_provider: params[:embedding_provider],
+          embedding_model: params[:embedding_model],
+          tokens: params.fetch(:tokens, {})
         )
       end
     end

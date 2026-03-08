@@ -5,8 +5,14 @@ module Autodidact
     class UpdateConfig < Command
       CONFIG_KEYS = %i[database_url provider obsidian_vault_path model embedding_provider embedding_model].freeze
 
-      def initialize(params:, **)
-        @params = params
+      def initialize(database_url: nil, provider: nil, obsidian_vault_path: nil, model: nil, embedding_provider: nil, embedding_model: nil, tokens: {})
+        @database_url = database_url
+        @provider = provider
+        @obsidian_vault_path = obsidian_vault_path
+        @model = model
+        @embedding_provider = embedding_provider
+        @embedding_model = embedding_model
+        @tokens = tokens || {}
       end
 
       def call
@@ -26,12 +32,22 @@ module Autodidact
 
       private
 
-      attr_reader :params
+      attr_reader :database_url, :provider, :obsidian_vault_path, :model,
+        :embedding_provider, :embedding_model, :tokens
 
       def config_payload
+        incoming = {
+          database_url: database_url,
+          provider: provider,
+          obsidian_vault_path: obsidian_vault_path,
+          model: model,
+          embedding_provider: embedding_provider,
+          embedding_model: embedding_model
+        }.compact
+
         Configuration::DEFAULTS
           .merge(Config::Store.read_config)
-          .merge(params.slice(*CONFIG_KEYS))
+          .merge(incoming)
       end
 
       def secrets_payload
@@ -50,8 +66,7 @@ module Autodidact
       end
 
       def incoming_token_for(provider_id)
-        incoming_tokens = params.fetch(:tokens, {})
-        token = incoming_tokens[provider_id] || incoming_tokens[provider_id.to_sym]
+        token = tokens[provider_id] || tokens[provider_id.to_sym]
         token unless token.nil? || token.strip.empty?
       end
     end

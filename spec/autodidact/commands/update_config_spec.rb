@@ -5,7 +5,6 @@ require "tmpdir"
 require "yaml"
 
 RSpec.describe Autodidact::Commands::UpdateConfig do
-  let(:notify) { proc {} }
   let(:config_dir) { Dir.mktmpdir }
   let(:config_path) { File.join(config_dir, "autodidact") }
 
@@ -20,13 +19,11 @@ RSpec.describe Autodidact::Commands::UpdateConfig do
   after { FileUtils.rm_rf(config_dir) }
 
   it "persists config and separates tokens by provider" do
-    params = {
+    described_class.call(
       database_url: "postgres://localhost/test",
       obsidian_vault_path: "/vault",
       tokens: {"openai" => "sk-test"}
-    }
-
-    described_class.call(params: params, notify: notify)
+    )
 
     config_data = YAML.safe_load_file(File.join(config_path, "config.yml"))
     secrets_data = YAML.safe_load_file(File.join(config_path, "secrets.yml"))
@@ -37,7 +34,7 @@ RSpec.describe Autodidact::Commands::UpdateConfig do
   end
 
   it "returns ready when saved config is complete" do
-    params = {
+    result = described_class.call(
       database_url: "postgres://localhost/test",
       obsidian_vault_path: "/vault",
       provider: "openai",
@@ -45,9 +42,7 @@ RSpec.describe Autodidact::Commands::UpdateConfig do
       embedding_provider: "openai",
       embedding_model: "text-embedding-3-small",
       tokens: {"openai" => "sk-test"}
-    }
-
-    result = described_class.call(params: params, notify: notify)
+    )
 
     expect(result.payload[:status]).to eq("ready")
     expect(result.payload[:missing_fields]).to be_empty
@@ -56,7 +51,7 @@ RSpec.describe Autodidact::Commands::UpdateConfig do
   end
 
   it "returns needs_setup when saved config is incomplete" do
-    result = described_class.call(params: {database_url: "postgres://localhost/test"}, notify: notify)
+    result = described_class.call(database_url: "postgres://localhost/test")
 
     expect(result.payload[:status]).to eq("needs_setup")
     expect(result.payload[:missing_fields]).to include(:obsidian_vault_path, :access_token)
@@ -69,10 +64,7 @@ RSpec.describe Autodidact::Commands::UpdateConfig do
       YAML.dump("token_anthropic" => "sk-anthropic")
     )
 
-    described_class.call(
-      params: {tokens: {"openai" => "sk-openai"}},
-      notify: notify
-    )
+    described_class.call(tokens: {"openai" => "sk-openai"})
 
     secrets_data = YAML.safe_load_file(File.join(config_path, "secrets.yml"))
     expect(secrets_data["token_openai"]).to eq("sk-openai")

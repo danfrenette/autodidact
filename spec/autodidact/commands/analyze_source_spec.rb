@@ -5,7 +5,6 @@ require "tempfile"
 require "tmpdir"
 
 RSpec.describe Autodidact::Commands::AnalyzeSource do
-  let(:notify) { proc { |**_| } }
   let(:blob) { double("SourceBlob", id: 42) }
 
   before do
@@ -30,7 +29,7 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
       allow(Autodidact::Storage::PersistSourceBlob).to receive(:call).and_return(blob)
       allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call).and_return(success_result("## Notes\n- point"))
 
-      result = described_class.call(params: {input: file.path}, notify: notify)
+      result = described_class.call(input: file.path)
 
       expect(result.error).to be_nil
       expect(result.payload[:note_path]).to end_with(".md")
@@ -43,10 +42,7 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
 
   describe "PDF with table of contents" do
     it "returns pending_selection when no chapter is specified" do
-      result = described_class.call(
-        params: {input: "spec/fixtures/with_toc.pdf"},
-        notify: notify
-      )
+      result = described_class.call(input: "spec/fixtures/with_toc.pdf")
 
       expect(result).to be_success
       expect(result.payload[:status]).to eq("pending_selection")
@@ -58,11 +54,8 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
       allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call).and_return(success_result("## Notes"))
 
       result = described_class.call(
-        params: {
-          input: "spec/fixtures/with_toc.pdf",
-          chapter: {title: "Introduction", page: 1}
-        },
-        notify: notify
+        input: "spec/fixtures/with_toc.pdf",
+        chapter: {title: "Introduction", page: 1}
       )
 
       expect(result).to be_success
@@ -82,7 +75,7 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
       allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call)
         .and_return(error_result("Provider analysis failed: rate limited"))
 
-      result = described_class.call(params: {input: file.path}, notify: notify)
+      result = described_class.call(input: file.path)
 
       expect(result.payload).to be_nil
       expect(result.error[:message]).to include("rate limited")
@@ -96,7 +89,7 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
       allow(Autodidact::Storage::PersistSourceBlob).to receive(:call).and_return(blob)
       allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call).and_return(success_result("## Notes"))
 
-      result = described_class.call(params: {input: "/nope/missing.txt"}, notify: notify)
+      result = described_class.call(input: "/nope/missing.txt")
 
       expect(result).to be_success
       expect(result.payload[:note_path]).to end_with(".md")
@@ -108,10 +101,7 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
       allow(Autodidact::Storage::PersistSourceBlob).to receive(:call).and_return(blob)
       allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call).and_return(success_result("## Notes\n- point"))
 
-      result = described_class.call(
-        params: {input: "This is a sentence.\nAnd another sentence."},
-        notify: notify
-      )
+      result = described_class.call(input: "This is a sentence.\nAnd another sentence.")
 
       expect(result.error).to be_nil
       expect(result.payload[:note_path]).to end_with(".md")
@@ -129,10 +119,7 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
       allow(Autodidact::Storage::PersistSourceBlob).to receive(:call).and_return(blob)
       allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call).and_return(success_result("## Notes"))
 
-      result = described_class.call(
-        params: {input: file.path, tags: %w[study-guide chapter-review]},
-        notify: notify
-      )
+      result = described_class.call(input: file.path, tags: %w[study-guide chapter-review])
 
       expect(result).to be_success
       expect(Autodidact::Storage::PersistSourceBlob).to have_received(:call).with(
@@ -141,7 +128,9 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
     ensure
       file.close!
     end
+  end
 
+  describe "tags default" do
     it "defaults to empty tags when none provided" do
       file = Tempfile.new(["sample", ".txt"])
       file.write("some content")
@@ -150,7 +139,7 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
       allow(Autodidact::Storage::PersistSourceBlob).to receive(:call).and_return(blob)
       allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call).and_return(success_result("## Notes"))
 
-      described_class.call(params: {input: file.path}, notify: notify)
+      described_class.call(input: file.path)
 
       expect(Autodidact::Storage::PersistSourceBlob).to have_received(:call).with(
         hash_including(tags: [])
@@ -160,7 +149,7 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
     end
   end
 
-  describe "notify progress" do
+  describe "progress callback" do
     it "emits progress stages in order" do
       file = Tempfile.new(["sample", ".txt"])
       file.write("content")
@@ -170,9 +159,7 @@ RSpec.describe Autodidact::Commands::AnalyzeSource do
       allow(Autodidact::Analysis::GenerateNoteContent).to receive(:call).and_return(success_result("notes"))
 
       stages = []
-      tracking_notify = proc { |**data| stages << data[:stage] }
-
-      described_class.call(params: {input: file.path}, notify: tracking_notify)
+      described_class.call(input: file.path, progress: proc { |stage:| stages << stage })
 
       expect(stages).to eq(%w[convert persist chunk retrieving analyze write])
     ensure

@@ -4,7 +4,7 @@ module Autodidact
   module Routes
     class SetOnboardingState < Route
       def call
-        Commands::SetOnboardingState.call(params: {state: params.fetch(:state)})
+        Commands::SetOnboardingState.call(state: params.fetch(:state))
       end
     end
   end
