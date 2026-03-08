@@ -33,9 +33,13 @@ type PendingRequest = {
   reject: (error: Error) => void;
 };
 
+export function backendCommand(binPath: string) {
+  return ["ruby", binPath];
+}
+
 function spawnBackend() {
   const binPath = resolve(import.meta.dir, "../../bin/autodidact");
-  return spawn(["ruby", binPath], {
+  return spawn(backendCommand(binPath), {
     stdin: "pipe",
     stdout: "pipe",
     stderr: "inherit",
