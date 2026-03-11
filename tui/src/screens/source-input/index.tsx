@@ -195,11 +195,12 @@ export function SourceInput({
       if (showOutputModal && (key.name === "escape" || key.name === "return")) {
         key.preventDefault();
         setShowOutputModal(false);
+        syncedOnInput("");
         return true;
       }
       return false;
     },
-    [showOutputModal],
+    [showOutputModal, syncedOnInput],
   );
 
   const keyboardHandlers = useMemo(
@@ -262,8 +263,8 @@ export function SourceInput({
         />
       ) : (
         <InputSection
+          focused={!submitting && !showOutputModal}
           value={value}
-          submitting={submitting}
           onContentChange={handleContentChange}
           onSubmit={submit.handleSubmit}
           badgeLabel={inputBadge ? `${inputBadge.supported ? "✓" : "✕"} ${inputBadge.label}` : null}

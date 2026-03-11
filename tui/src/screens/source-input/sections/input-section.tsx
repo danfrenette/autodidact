@@ -34,7 +34,7 @@ type ComboboxView = {
 
 type Props = {
   value: string;
-  submitting: boolean;
+  focused: boolean;
   onContentChange: () => void;
   onSubmit: () => void;
   badgeLabel: string | null;
@@ -57,7 +57,7 @@ type Props = {
 
 export function InputSection({
   value,
-  submitting,
+  focused,
   onContentChange,
   onSubmit,
   badgeLabel,
@@ -89,7 +89,7 @@ export function InputSection({
           onContentChange={onContentChange}
           onSubmit={onSubmit}
           keyBindings={inputKind === "multiline" ? MULTILINE_BINDINGS : SINGLE_LINE_BINDINGS}
-          focused={!submitting}
+          focused={focused}
           height={inputKind === "multiline" ? 6 : 1}
           wrapMode="word"
           textColor="#eeeeee"

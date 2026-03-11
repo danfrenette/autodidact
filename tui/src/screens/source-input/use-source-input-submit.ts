@@ -1,8 +1,9 @@
 import type { TextareaRenderable } from "@opentui/core";
 import type { RefObject } from "react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 
 import type { AnalyzeSourceParams } from "@/backend.ts";
+import { useStableEvent } from "@/hooks/use-stable-event";
 import type { SubmitResult } from "@/hooks/use-file-path-autocomplete";
 import type { AnalysisResult } from "@/requests/analyze-source";
 
@@ -19,6 +20,28 @@ type Params = {
   submitting: boolean;
 };
 
+type SubmitIntent =
+  | { type: "submit-analysis"; input: string }
+  | { type: "select-autocomplete" }
+  | { type: "validation-error"; message: string };
+
+export function resolveSubmitIntent(currentText: string, result: SubmitResult): SubmitIntent {
+  if (result.type === "selected-suggestion") {
+    return { type: "select-autocomplete" };
+  }
+
+  if (result.type === "submit-path") {
+    return { type: "submit-analysis", input: result.path };
+  }
+
+  const trimmed = currentText.trim();
+  if (trimmed.length > 0) {
+    return { type: "submit-analysis", input: trimmed };
+  }
+
+  return { type: "validation-error", message: result.message };
+}
+
 export function useSourceInputSubmit({
   resolveSubmit,
   selectedTags,
@@ -32,41 +55,39 @@ export function useSourceInputSubmit({
   submitting,
 }: Params) {
   const [validationError, setValidationError] = useState<string | null>(null);
-  const latestSelectedTags = useRef(selectedTags);
-  latestSelectedTags.current = selectedTags;
 
-  const clearValidationError = useCallback(() => setValidationError(null), []);
+  const submitAnalysis = useStableEvent(async (input: string) => {
+    onSubmitSucceeded();
+    const analysisResult = await onSubmit({ input, tags: selectedTags });
+    if (analysisResult?.status === "completed") openOutputModal();
+  });
 
-
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useStableEvent(async () => {
     if (submitting) return;
+
     const currentText = textareaRef.current?.plainText ?? value;
     if (currentText !== value) {
       onInput(currentText);
     }
-    const result = resolveSubmit();
-    if (result.type === "validation-error") {
-      if (currentText.trim().length > 0) {
-        setValidationError(null);
-        onSubmitSucceeded();
-        const analysisResult = await onSubmit({ input: currentText.trim(), tags: latestSelectedTags.current });
-        if (analysisResult?.status === "completed") openOutputModal();
-        return;
-      }
-      setValidationError(result.message);
-      return;
-    }
-    if (result.type === "selected-suggestion") {
-      setValidationError(null);
-      onAutocompleteSelected();
+
+    const intent = resolveSubmitIntent(currentText, resolveSubmit());
+
+    if (intent.type === "validation-error") {
+      setValidationError(intent.message);
       return;
     }
 
     setValidationError(null);
-    onSubmitSucceeded();
-    const analysisResult = await onSubmit({ input: result.path, tags: latestSelectedTags.current });
-    if (analysisResult?.status === "completed") openOutputModal();
-  }, [resolveSubmit, onInput, onSubmitSucceeded, onAutocompleteSelected, onSubmit, openOutputModal, submitting, value, textareaRef]);
+
+    if (intent.type === "select-autocomplete") {
+      onAutocompleteSelected();
+      return;
+    }
+
+    await submitAnalysis(intent.input);
+  });
+
+  const clearValidationError = useCallback(() => setValidationError(null), []);
 
   return { handleSubmit, validationError, clearValidationError };
 }
