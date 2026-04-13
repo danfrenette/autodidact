@@ -11,6 +11,22 @@
   --font-sans: "Karla", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "PP Neue York", "PPNeueYork", "Times New Roman", Georgia, serif;
   --font-mono: "Departure Mono", "DepartureMono", "SF Mono", "Monaco", "Inconsolata", "Fira Code", monospace;
+
+  /* Autodidast semantic colors exposed to Tailwind */
+  --color-ad-base: var(--ad-base);
+  --color-ad-sidebar: var(--ad-sidebar);
+  --color-ad-surface: var(--ad-surface);
+  --color-ad-surface-elevated: var(--ad-surface-elevated);
+  --color-ad-surface-pressed: var(--ad-surface-pressed);
+  --color-ad-border: var(--ad-border);
+  --color-ad-border-hover: var(--ad-border-hover);
+  --color-ad-text-muted: var(--ad-text-muted);
+  --color-ad-text-secondary: var(--ad-text-secondary);
+  --color-ad-text-body: var(--ad-text-body);
+  --color-ad-text-heading: var(--ad-text-heading);
+  --color-ad-accent: var(--ad-accent);
+  --color-ad-accent-hover: var(--ad-accent-hover);
+  --color-ad-accent-subtle: var(--ad-accent-subtle);
 }
 
 :root {
@@ -65,6 +81,34 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* Autodidact Semantic Color Tokens */
+  /* Base surfaces */
+  --ad-base: #0e0e11;
+  --ad-sidebar: #0e0e11;
+  --ad-surface: #131316;
+  --ad-surface-elevated: #1a1a1e;
+  --ad-surface-pressed: #232328;
+
+  /* Borders and dividers */
+  --ad-border: #2a2a30;
+  --ad-border-hover: #64646c;
+
+  /* Text hierarchy */
+  --ad-text-muted: #64646c;
+  --ad-text-secondary: #a0a0a8;
+  --ad-text-body: #c8c8d0;
+  --ad-text-heading: #e8e8ec;
+
+  /* Accent (red) */
+  --ad-accent: #c8352e;
+  --ad-accent-hover: #a02a24;
+  --ad-accent-subtle: rgba(200, 53, 46, 0.1);
+
+  /* Status colors */
+  --ad-success: #4a4a52;
+  --ad-warning: #8b4a47;
+  --ad-error: #c8352e;
 }
 
 :root[data-theme="dark"] {
