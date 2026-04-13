@@ -1,0 +1,64 @@
+{
+  "name": "autodidact-web",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.18.3",
+  "imports": {
+    "#/*": "./src/*"
+  },
+  "scripts": {
+    "dev": "dotenv -e .env.local -- sh -c \"NODE_OPTIONS='--import ./instrument.server.mjs' vite dev --port 3000\"",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "start": "dotenv -e .env.local -- node --import ./instrument.server.mjs .output/server/index.mjs"
+  },
+  "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
+    "@sentry/tanstackstart-react": "^10.42.0",
+    "@tailwindcss/vite": "^4.1.18",
+    "@tanstack/react-devtools": "latest",
+    "@tanstack/react-query": "latest",
+    "@tanstack/react-query-devtools": "latest",
+    "@tanstack/react-router": "latest",
+    "@tanstack/react-router-devtools": "latest",
+    "@tanstack/react-router-ssr-query": "latest",
+    "@tanstack/react-start": "latest",
+    "@tanstack/router-plugin": "^1.132.0",
+    "@trpc/client": "^11.11.0",
+    "@trpc/server": "^11.11.0",
+    "@trpc/tanstack-react-query": "^11.11.0",
+    "better-auth": "^1.5.3",
+    "dotenv-cli": "^11.0.0",
+    "lucide-react": "^0.545.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "superjson": "^2.2.2",
+    "tailwindcss": "^4.1.18",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.16",
+    "@tanstack/devtools-vite": "latest",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.0",
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^6.0.1",
+    "jsdom": "^28.1.0",
+    "nitro": "npm:nitro-nightly@3.0.1-20260410-164248-8ab58a4b",
+    "typescript": "^5.7.2",
+    "vite": "^8.0.0",
+    "vitest": "^3.0.5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "lightningcss"
+    ],
+    "ignoredBuiltDependencies": [
+      "@sentry/cli"
+    ]
+  }
+}
