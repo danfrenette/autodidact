@@ -6,13 +6,13 @@ import {
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 
-import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
+import { TanStackQueryDevtools } from '../providers/tanstack-query'
 
 import appCss from '../styles.css?url'
 
 import type { QueryClient } from '@tanstack/react-query'
 
-import type { TRPCRouter } from '#/integrations/trpc/router'
+import type { TRPCRouter } from '#/server/trpc/router'
 import type { TRPCOptionsProxy } from '@trpc/tanstack-react-query'
 
 interface MyRouterContext {
