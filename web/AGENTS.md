@@ -30,6 +30,34 @@ The CLI scaffold was created in a scratch directory first, then merged into `web
 - Styling: Tailwind CSS v4
 - Backend target: Rails API in `../core`, backed by Postgres
 
+## Directory Structure
+
+```
+src/
+├── providers/          # Client-side providers (TanStack Query, TRPC)
+│   ├── tanstack-query.tsx
+│   └── trpc.tsx
+├── server/             # Server-only code
+│   └── trpc/
+│       ├── init.ts     # tRPC initialization
+│       └── router.ts   # tRPC router
+├── components/
+│   ├── app/            # App shell (header, footer)
+│   ├── auth/           # Auth-related UI
+│   └── ui/             # shadcn/ui base components
+├── features/           # Feature-based modules
+│   └── auth/           # Auth feature (client.ts, etc.)
+├── lib/                # Utilities and shared code
+│   ├── auth.ts         # Better Auth server config
+│   ├── utils.ts        # cn() helper
+│   └── rails-api.ts    # Rails API client
+└── routes/             # TanStack Router file-based routes
+    ├── __root.tsx      # Root layout
+    ├── _authed/        # Protected routes (pathless layout)
+    ├── auth/           # Auth page
+    └── api/            # API routes (trpc, auth)
+```
+
 ## Intent Skills
 
 These are the TanStack Intent skills that were directly consulted before architecture changes in this project.
@@ -104,8 +132,9 @@ Optional but expected before deployment:
 
 ## Next Steps
 
-1. Replace `app.status` with real Rails-backed resources and mutations.
-2. Wire Better Auth to the shared Postgres database and create its auth-specific tables.
-3. Decide how Rails should trust Better Auth sessions or exchanged tokens.
-4. Add shared API contracts or serializers between `web/` and `core/` if the Rails API shape stabilizes.
-5. Add Sentry release/upload automation once deployment is selected.
+1. Wire up real auth check in `_authed/route.tsx` when Better Auth connects to DB
+2. Replace `app.status` with real Rails-backed resources and mutations.
+3. Wire Better Auth to the shared Postgres database and create its auth-specific tables.
+4. Decide how Rails should trust Better Auth sessions or exchanged tokens.
+5. Add shared API contracts or serializers between `web/` and `core/` if the Rails API shape stabilizes.
+6. Add Sentry release/upload automation once deployment is selected.
