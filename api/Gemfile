@@ -3,6 +3,7 @@ source "https://rubygems.org"
 ruby file: ".ruby-version"
 
 gem "rails", "~> 8.1.2"
+gem "substrate", path: "../../substrate"
 gem "bootsnap", require: false
 gem "image_processing", "~> 1.2"
 gem "kamal", require: false
