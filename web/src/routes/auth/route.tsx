@@ -39,7 +39,7 @@ function AuthPage() {
           </p>
           <div className="mt-6 flex gap-3">
             <Link
-              to="/"
+              to="/sources/new"
               className="flex-1 rounded border border-ad-border bg-ad-surface-elevated px-4 py-2.5 text-center text-sm font-medium text-ad-text-heading transition-colors hover:border-ad-border-hover hover:bg-ad-surface-pressed"
             >
               Go to Dashboard
@@ -60,7 +60,7 @@ function AuthPage() {
     setIsLoading(provider)
     setError(null)
     try {
-      const result = await authClient.signIn.social({ provider, callbackURL: '/' })
+      const result = await authClient.signIn.social({ provider, callbackURL: '/sources/new' })
       if (result.error) setError(result.error.message || 'Authentication failed')
     } catch {
       setError('An unexpected error occurred')

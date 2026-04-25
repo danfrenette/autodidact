@@ -14,6 +14,7 @@ import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api.trpc.$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as AuthedSourcesNewRouteRouteImport } from './routes/_authed/sources/new/route'
 
 const AuthRouteRoute = AuthRouteRouteImport.update({
   id: '/auth',
@@ -39,16 +40,23 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthedSourcesNewRouteRoute = AuthedSourcesNewRouteRouteImport.update({
+  id: '/sources/new',
+  path: '/sources/new',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthedIndexRoute
   '/auth': typeof AuthRouteRoute
+  '/sources/new': typeof AuthedSourcesNewRouteRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRouteRoute
   '/': typeof AuthedIndexRoute
+  '/sources/new': typeof AuthedSourcesNewRouteRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
@@ -57,19 +65,21 @@ export interface FileRoutesById {
   '/_authed': typeof AuthedRouteRouteWithChildren
   '/auth': typeof AuthRouteRoute
   '/_authed/': typeof AuthedIndexRoute
+  '/_authed/sources/new': typeof AuthedSourcesNewRouteRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/api/auth/$' | '/api/trpc/$'
+  fullPaths: '/' | '/auth' | '/sources/new' | '/api/auth/$' | '/api/trpc/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth' | '/' | '/api/auth/$' | '/api/trpc/$'
+  to: '/auth' | '/' | '/sources/new' | '/api/auth/$' | '/api/trpc/$'
   id:
     | '__root__'
     | '/_authed'
     | '/auth'
     | '/_authed/'
+    | '/_authed/sources/new'
     | '/api/auth/$'
     | '/api/trpc/$'
   fileRoutesById: FileRoutesById
@@ -118,15 +128,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authed/sources/new': {
+      id: '/_authed/sources/new'
+      path: '/sources/new'
+      fullPath: '/sources/new'
+      preLoaderRoute: typeof AuthedSourcesNewRouteRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
   }
 }
 
 interface AuthedRouteRouteChildren {
   AuthedIndexRoute: typeof AuthedIndexRoute
+  AuthedSourcesNewRouteRoute: typeof AuthedSourcesNewRouteRoute
 }
 
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedIndexRoute: AuthedIndexRoute,
+  AuthedSourcesNewRouteRoute: AuthedSourcesNewRouteRoute,
 }
 
 const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(

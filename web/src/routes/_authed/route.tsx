@@ -1,6 +1,6 @@
 import { Outlet, createFileRoute } from '@tanstack/react-router'
-import { AppHeader } from '#/components/app/app-header'
-import { AppFooter } from '#/components/app/app-footer'
+
+import { AppSidebar } from '#/components/app/app-sidebar'
 
 export const Route = createFileRoute('/_authed')({
   component: AuthedLayout,
@@ -8,12 +8,11 @@ export const Route = createFileRoute('/_authed')({
 
 function AuthedLayout() {
   return (
-    <div className="flex min-h-screen flex-col bg-ad-base">
-      <AppHeader />
-      <main className="flex-1">
+    <div className="flex min-h-screen bg-ad-base text-ad-text-body">
+      <AppSidebar />
+      <main className="min-w-0 flex-1 bg-ad-surface">
         <Outlet />
       </main>
-      <AppFooter />
     </div>
   )
 }
