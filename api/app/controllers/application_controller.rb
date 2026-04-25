@@ -1,6 +1,9 @@
+# frozen_string_literal: true
+
 class ApplicationController < ActionController::API
   include ActionController::Cookies
   include ActionController::RequestForgeryProtection
+  include ApiEnvelope
 
   protect_from_forgery with: :exception
 
@@ -15,6 +18,10 @@ class ApplicationController < ActionController::API
   def authenticate_user!
     return if current_user.present?
 
-    render json: {error: "Unauthorized"}, status: :unauthorized
+    render_error(
+      code: "unauthorized",
+      message: "Unauthorized",
+      status: :unauthorized
+    )
   end
 end

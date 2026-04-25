@@ -6,14 +6,17 @@ class SourceProcessesController < ApplicationController
     result = Sources::ProcessSelections.new(source: source).call
 
     if result.success?
-      render json: {ok: true, source_id: source.id, status: source.reload.status}
+      render_success(
+        template: "source_processes/create",
+        locals: {source: source.reload}
+      )
     else
-      render json: {
-        ok: false,
+      render_error(
         code: "selection_reconciliation_failed",
         message: "Some selected chapters could not be matched to the uploaded PDF.",
-        failures: result.failures
-      }, status: :unprocessable_entity
+        details: {failures: result.failures},
+        status: :unprocessable_entity
+      )
     end
   end
 

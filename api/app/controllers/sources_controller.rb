@@ -5,9 +5,18 @@ class SourcesController < ApplicationController
     result = Sources::Creation.new(user: current_user, params: source_params).call
 
     if result.success?
-      render json: serialize_source(result.source), status: :created
+      render_success(
+        template: "sources/create",
+        locals: {source: result.source},
+        status: :created
+      )
     else
-      render json: {errors: result.errors}, status: :unprocessable_entity
+      render_error(
+        code: "validation_failed",
+        message: "Source could not be created",
+        details: {errors: result.errors},
+        status: :unprocessable_entity
+      )
     end
   end
 
@@ -16,9 +25,17 @@ class SourcesController < ApplicationController
     result = Sources::Update.new(source: source, params: update_source_params).call
 
     if result.success?
-      render json: serialize_source(result.source)
+      render_success(
+        template: "sources/update",
+        locals: {source: result.source}
+      )
     else
-      render json: {errors: result.errors}, status: :unprocessable_entity
+      render_error(
+        code: "validation_failed",
+        message: "Source could not be updated",
+        details: {errors: result.errors},
+        status: :unprocessable_entity
+      )
     end
   end
 
@@ -34,16 +51,5 @@ class SourcesController < ApplicationController
 
   def update_source_params
     params.require(:source).permit(:title)
-  end
-
-  def serialize_source(source)
-    {
-      id: source.id,
-      title: source.title,
-      kind: source.kind,
-      original_filename: source.original_filename,
-      status: source.status,
-      asset_attached: source.asset.attached?
-    }
   end
 end

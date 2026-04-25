@@ -6,9 +6,18 @@ class SourceSelectionsController < ApplicationController
     result = Sources::SelectionCreation.new(source: source, params: selection_params).call
 
     if result.success?
-      render json: serialize_selection(result.selection), status: :created
+      render_success(
+        template: "source_selections/create",
+        locals: {source_selection: result.selection},
+        status: :created
+      )
     else
-      render json: {errors: result.errors}, status: :unprocessable_entity
+      render_error(
+        code: "validation_failed",
+        message: "Selection could not be created",
+        details: {errors: result.errors},
+        status: :unprocessable_entity
+      )
     end
   end
 
@@ -17,12 +26,20 @@ class SourceSelectionsController < ApplicationController
     selection = source.source_selections.find(params[:id])
 
     unless selection.pending?
-      render json: {error: "Only pending selections can be deleted"}, status: :conflict
+      render_error(
+        code: "conflict",
+        message: "Only pending selections can be deleted",
+        status: :conflict
+      )
       return
     end
 
     selection.destroy!
-    head :no_content
+
+    render_success(
+      template: "source_selections/destroy",
+      locals: {source_selection: selection}
+    )
   end
 
   private
@@ -33,19 +50,5 @@ class SourceSelectionsController < ApplicationController
 
   def selection_params
     params.require(:source_selection).permit(:kind, :subtype, :title, :label, position: {}, locator: {})
-  end
-
-  def serialize_selection(selection)
-    {
-      id: selection.id,
-      source_id: selection.source_id,
-      kind: selection.kind,
-      subtype: selection.subtype,
-      status: selection.status,
-      title: selection.title,
-      label: selection.label,
-      position: selection.position,
-      locator: selection.locator
-    }
   end
 end

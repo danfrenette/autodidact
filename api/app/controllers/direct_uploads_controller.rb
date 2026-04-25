@@ -3,6 +3,7 @@
 class DirectUploadsController < ActiveStorage::DirectUploadsController
   include ActionController::Cookies
   include ActionController::RequestForgeryProtection
+  include ApiEnvelope
 
   protect_from_forgery with: :exception
 
@@ -17,6 +18,10 @@ class DirectUploadsController < ActiveStorage::DirectUploadsController
   def authenticate_user!
     return if current_user.present?
 
-    render json: {error: "Unauthorized"}, status: :unauthorized
+    render_error(
+      code: "unauthorized",
+      message: "Unauthorized",
+      status: :unauthorized
+    )
   end
 end
