@@ -48,11 +48,13 @@ export function usePdfIntake() {
           selectedChapterIds: document.chapters.slice(0, Math.min(3, document.chapters.length)).map((chapter) => chapter.id),
         })
       })
-    } catch {
+    } catch (error) {
       setState((currentState) => ({
         ...currentState,
         isReading: false,
-        errorMessage: 'We could not read that PDF. Try another file with a readable outline.',
+        errorMessage: error instanceof Error
+          ? `We could not read that PDF. ${error.message}`
+          : 'We could not read that PDF.',
       }))
     }
   }
