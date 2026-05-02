@@ -1,6 +1,6 @@
 # Web Frontend Context
 
-This directory contains the TanStack Start frontend for the Rails backend being co-developed in `../core`.
+This directory contains the TanStack Start frontend for the Rails backend being co-developed in `../api`.
 
 ## Scaffold Commands
 
@@ -11,6 +11,13 @@ npx @tanstack/cli@latest create my-tanstack-app --agent --add-ons tanstack-query
 ```
 
 Follow-up TanStack Intent commands run immediately after scaffolding:
+
+```bash
+npx @tanstack/intent@latest install
+npx @tanstack/intent@latest list
+```
+
+TanStack Intent commands rerun during source-intake wiring:
 
 ```bash
 npx @tanstack/intent@latest install
@@ -63,20 +70,13 @@ src/
 These are the TanStack Intent skills that were directly consulted before architecture changes in this project.
 
 <!-- intent-skills:start -->
-# Skill mappings - when working in these areas, load the linked skill file into context.
-skills:
-  - task: "TanStack Start setup, router wiring, and server function patterns"
-    load: "node_modules/@tanstack/react-start/skills/react-start/SKILL.md"
-  - task: "TanStack Start environment boundaries and secret handling"
-    load: "node_modules/@tanstack/start-client-core/skills/start-core/execution-model/SKILL.md"
-  - task: "TanStack Start deployment, SSR choices, and portable hosting"
-    load: "node_modules/@tanstack/start-client-core/skills/start-core/deployment/SKILL.md"
-  - task: "tRPC client links and frontend transport setup"
-    load: "node_modules/@trpc/client/skills/client-setup/SKILL.md"
-  - task: "TanStack Query plus tRPC React integration"
-    load: "node_modules/@trpc/tanstack-react-query/skills/react-query-setup/SKILL.md"
-  - task: "tRPC auth middleware and protected procedure patterns"
-    load: "node_modules/@trpc/server/skills/auth/SKILL.md"
+## Skill Loading
+
+Before substantial work:
+- Skill check: run `npx @tanstack/intent@latest list`, or use skills already listed in context.
+- Skill guidance: if one local skill clearly matches the task, run `npx @tanstack/intent@latest load <package>#<skill>` and follow the returned `SKILL.md`.
+- Monorepos: when working across packages, run the skill check from the workspace root and prefer the local skill for the package being changed.
+- Multiple matches: prefer the most specific local skill for the package or concern you are changing; load additional skills only when the task spans multiple packages or concerns.
 <!-- intent-skills:end -->
 
 ## Environment Variables
@@ -111,6 +111,8 @@ Optional but expected before deployment:
 - Rails should own business-domain tables and reference the Better Auth user id where needed instead of duplicating auth/session logic.
 - Do not read server secrets from client code. Follow TanStack Start execution-model guidance: `process.env` access stays in server-only paths.
 - Prefer same-origin frontend auth and typed server entry points now, then decide later whether Rails consumes Better Auth sessions directly or via an exchanged token/JWT.
+- For TanStack Start server-only mutations called from components, consult Intent first and prefer `createServerFn` when the package guidance fits the task.
+- Edit one file at a time so each change is easy to inspect and reject independently.
 
 ## Deployment Notes
 
