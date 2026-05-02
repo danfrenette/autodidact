@@ -2,7 +2,11 @@
 
 class SourcesController < ApplicationController
   def create
-    result = Sources::Creation.new(user: current_user, params: source_params).call
+    result = Sources::Creation.new(
+      user: current_user,
+      source_params: source_params,
+      selection_params: source_selection_params
+    ).call
 
     if result.success?
       render_success(
@@ -47,6 +51,10 @@ class SourcesController < ApplicationController
 
   def source_params
     params.require(:source).permit(:title, :kind, :original_filename)
+  end
+
+  def source_selection_params
+    params.require(:source).permit(selections: [:kind, :subtype, :title, :label, {position: {}, locator: {}}]).fetch(:selections, [])
   end
 
   def update_source_params

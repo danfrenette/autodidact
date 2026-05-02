@@ -9,7 +9,7 @@ import { AuthTabs } from './-components/auth-tabs'
 import { OAuthButton } from './-components/oauth-button'
 
 function AuthPage() {
-  const { data: session, isPending } = authClient.useSession()
+  const { data: session, isPending, refetch } = authClient.useSession()
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin')
   const [isLoading, setIsLoading] = useState<null | 'google' | 'github'>(null)
   const [error, setError] = useState<string | null>(null)
@@ -45,7 +45,10 @@ function AuthPage() {
               Go to Dashboard
             </Link>
             <button
-              onClick={() => void authClient.signOut()}
+              onClick={async () => {
+                await authClient.signOut()
+                await refetch()
+              }}
               className="rounded border border-ad-accent/30 bg-ad-accent-subtle px-4 py-2.5 text-sm font-medium text-ad-accent transition-colors hover:bg-ad-accent/20"
             >
               Sign Out

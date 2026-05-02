@@ -8,6 +8,7 @@ import { FileIntakePanel } from './-components/file-intake-panel'
 import { SourceModeTabs } from './-components/source-mode-tabs'
 import { TagEditor } from './-components/tag-editor'
 import { useConnectionPreview } from './-hooks/use-connection-preview'
+import { useCreateSource } from './-hooks/use-create-source'
 import { usePdfIntake } from './-hooks/use-pdf-intake'
 import { useSourceTags } from './-hooks/use-source-tags'
 
@@ -26,6 +27,11 @@ function AddSourceRoute() {
     selectedChapterIds,
     toggleChapter,
   } = usePdfIntake()
+  const {
+    createFromDocument,
+    errorMessage: createSourceErrorMessage,
+    isCreating,
+  } = useCreateSource()
   const { addTag, draftTag, removeTag, setDraftTag, tags } = useSourceTags(defaultTags)
   const connections = useConnectionPreview(tags)
   const selectedChapterCount = selectedChapterIds.length
@@ -77,6 +83,9 @@ function AddSourceRoute() {
             modelLabel={defaultModelLabel}
             processLabel={canProcess ? `Process ${selectedChapterCount} Chapters` : 'Process 0 Chapters'}
             canProcess={canProcess}
+            errorMessage={createSourceErrorMessage}
+            isProcessing={isCreating}
+            onProcess={() => void createFromDocument(document, selectedChapterIds)}
           />
         </div>
       </div>

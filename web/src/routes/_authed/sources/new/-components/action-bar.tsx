@@ -2,11 +2,21 @@ type ActionBarProps = {
   modelLabel: string
   processLabel: string
   canProcess: boolean
+  errorMessage: string | null
+  isProcessing: boolean
+  onProcess: () => void
 }
 
-export function ActionBar({ modelLabel, processLabel, canProcess }: ActionBarProps) {
+export function ActionBar({
+  modelLabel,
+  processLabel,
+  canProcess,
+  errorMessage,
+  isProcessing,
+  onProcess,
+}: ActionBarProps) {
   return (
-    <section className="flex items-end justify-between border-t border-ad-border pt-6">
+    <section className="flex items-end justify-between gap-6 border-t border-ad-border pt-6">
       <div>
         <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.08em] text-ad-text-secondary">
           Model
@@ -18,12 +28,19 @@ export function ActionBar({ modelLabel, processLabel, canProcess }: ActionBarPro
         </div>
       </div>
 
+      {errorMessage ? (
+        <div className="min-w-0 flex-1 rounded-sm border border-ad-accent/30 bg-ad-accent-subtle px-4 py-3 text-sm text-ad-accent">
+          {errorMessage}
+        </div>
+      ) : null}
+
       <button
         type="button"
-        disabled={!canProcess}
+        disabled={!canProcess || isProcessing}
+        onClick={onProcess}
         className="min-h-10 rounded-sm bg-ad-accent px-6 text-sm font-medium text-ad-text-heading transition-colors hover:bg-ad-accent-hover disabled:cursor-not-allowed disabled:opacity-45"
       >
-        {processLabel}
+        {isProcessing ? 'Creating Source...' : processLabel}
       </button>
     </section>
   )

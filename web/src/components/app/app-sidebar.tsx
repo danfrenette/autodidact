@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 
 import { authClient } from '#/features/auth/client'
 
@@ -10,6 +10,13 @@ const navigationItems = [
 ] as const
 
 export function AppSidebar() {
+  const navigate = useNavigate()
+
+  async function handleSignOut() {
+    await authClient.signOut()
+    await navigate({ to: '/auth' })
+  }
+
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-ad-border bg-ad-sidebar">
       <div className="border-b border-ad-border px-5 py-6">
@@ -48,7 +55,7 @@ export function AppSidebar() {
 
         <button
           type="button"
-          onClick={() => void authClient.signOut()}
+          onClick={() => void handleSignOut()}
           className="mt-auto flex min-h-11 items-center rounded-sm border border-ad-border bg-ad-surface px-3 text-sm text-ad-text-secondary transition-colors hover:border-ad-border-hover hover:text-ad-text-heading"
         >
           Sign out

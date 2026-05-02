@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_21_114902) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_02_193300) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -42,6 +42,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_21_114902) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "source_selections", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "error_message"
+    t.string "kind", default: "chapter", null: false
+    t.string "label", null: false
+    t.jsonb "locator", default: {}, null: false
+    t.jsonb "position", default: {}, null: false
+    t.bigint "source_id", null: false
+    t.string "status", default: "pending", null: false
+    t.string "subtype"
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["kind"], name: "index_source_selections_on_kind"
+    t.index ["locator"], name: "index_source_selections_on_locator", using: :gin
+    t.index ["position"], name: "index_source_selections_on_position", using: :gin
+    t.index ["source_id"], name: "index_source_selections_on_source_id"
+    t.index ["status"], name: "index_source_selections_on_status"
+  end
+
   create_table "sources", force: :cascade do |t|
     t.jsonb "analysis_summary", default: {}, null: false
     t.string "author"
@@ -64,4 +83,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_21_114902) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "source_selections", "sources"
 end
