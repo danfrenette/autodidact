@@ -65,7 +65,11 @@ const EDGES: Edge[] = [
 export function ConstellationField() {
   return (
     <div className="relative w-full max-w-[640px]">
-      <svg viewBox="0 0 560 440" className="h-auto w-full" preserveAspectRatio="xMidYMid meet">
+      <svg
+        viewBox="0 0 560 440"
+        className="h-auto w-full"
+        preserveAspectRatio="xMidYMid meet"
+      >
         {EDGES.map((edge) => (
           <line
             key={edge.id}

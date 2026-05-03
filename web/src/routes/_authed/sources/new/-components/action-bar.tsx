@@ -22,7 +22,10 @@ export function ActionBar({
           Model
         </div>
         <div className="mt-1.5 inline-flex min-h-10 items-center gap-1.5 rounded-sm border border-ad-border bg-ad-surface-elevated px-2.5 text-xs font-medium text-ad-text-secondary">
-          <span className="h-3.5 w-3.5 rounded-[2px] bg-ad-border" aria-hidden="true" />
+          <span
+            className="h-3.5 w-3.5 rounded-[2px] bg-ad-border"
+            aria-hidden="true"
+          />
           {modelLabel}
           <span className="text-[11px] text-ad-text-muted">▾</span>
         </div>

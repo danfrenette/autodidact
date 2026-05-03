@@ -1,12 +1,11 @@
-import { useId, useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { useId, useState } from 'react'
 import { authClient } from '#/features/auth/client'
-
-import { RegistrationMark } from './-icons'
-import { ConstellationField } from './-components/constellation'
-import { BootRow } from './-components/boot-row'
 import { AuthTabs } from './-components/auth-tabs'
+import { BootRow } from './-components/boot-row'
+import { ConstellationField } from './-components/constellation'
 import { OAuthButton } from './-components/oauth-button'
+import { RegistrationMark } from './-icons'
 
 function AuthPage() {
   const { data: session, isPending, refetch } = authClient.useSession()
@@ -45,6 +44,7 @@ function AuthPage() {
               Go to Dashboard
             </Link>
             <button
+              type="button"
               onClick={async () => {
                 await authClient.signOut()
                 await refetch()
@@ -63,8 +63,12 @@ function AuthPage() {
     setIsLoading(provider)
     setError(null)
     try {
-      const result = await authClient.signIn.social({ provider, callbackURL: '/sources/new' })
-      if (result.error) setError(result.error.message || 'Authentication failed')
+      const result = await authClient.signIn.social({
+        provider,
+        callbackURL: '/sources/new',
+      })
+      if (result.error)
+        setError(result.error.message || 'Authentication failed')
     } catch {
       setError('An unexpected error occurred')
     } finally {
@@ -72,9 +76,10 @@ function AuthPage() {
     }
   }
 
-  const description = activeTab === 'signin'
-    ? 'Sign in with your existing account to resume your session.'
-    : 'Create a new account to get started.'
+  const description =
+    activeTab === 'signin'
+      ? 'Sign in with your existing account to resume your session.'
+      : 'Create a new account to get started.'
 
   return (
     <div className="flex min-h-screen flex-col lg:flex-row">
@@ -96,7 +101,8 @@ function AuthPage() {
               Autodidact
             </h1>
             <p className="mt-4 max-w-[360px] text-[15px] leading-relaxed text-ad-text-muted">
-              Turn scattered sources into structured knowledge. Books, courses, videos, podcasts — connected and retained.
+              Turn scattered sources into structured knowledge. Books, courses,
+              videos, podcasts — connected and retained.
             </p>
           </div>
 
@@ -122,11 +128,17 @@ function AuthPage() {
             <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-ad-text-muted">
               OPERATOR AUTHENTICATION
             </p>
-            <p className="mt-2 text-[14px] leading-relaxed text-ad-text-secondary">{description}</p>
+            <p className="mt-2 text-[14px] leading-relaxed text-ad-text-secondary">
+              {description}
+            </p>
           </div>
 
           {error && (
-            <div id={errorId} role="alert" className="mt-6 rounded border border-ad-accent/30 bg-ad-accent-subtle px-4 py-3">
+            <div
+              id={errorId}
+              role="alert"
+              className="mt-6 rounded border border-ad-accent/30 bg-ad-accent-subtle px-4 py-3"
+            >
               <p className="text-sm text-ad-accent">{error}</p>
             </div>
           )}
@@ -146,7 +158,10 @@ function AuthPage() {
 
           <p className="mt-8 text-center text-[12px] text-ad-text-muted">
             By continuing, you agree to the{' '}
-            <a href="#" className="text-ad-text-secondary hover:text-ad-text-heading">
+            <a
+              href="#"
+              className="text-ad-text-secondary hover:text-ad-text-heading"
+            >
               Terms of Service
             </a>
           </p>

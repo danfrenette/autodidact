@@ -12,10 +12,5 @@
   "routerOnly": false,
   "version": 1,
   "framework": "react",
-  "chosenAddOns": [
-    "tanstack-query",
-    "tRPC",
-    "sentry",
-    "better-auth"
-  ]
+  "chosenAddOns": ["tanstack-query", "tRPC", "sentry", "better-auth"]
 }

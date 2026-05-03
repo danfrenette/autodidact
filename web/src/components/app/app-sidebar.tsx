@@ -20,7 +20,10 @@ export function AppSidebar() {
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-ad-border bg-ad-sidebar">
       <div className="border-b border-ad-border px-5 py-6">
-        <Link to="/sources/new" className="font-serif text-[22px] font-extrabold uppercase tracking-[-0.01em] text-ad-text-heading">
+        <Link
+          to="/sources/new"
+          className="font-serif text-[22px] font-extrabold uppercase tracking-[-0.01em] text-ad-text-heading"
+        >
           Autodidact
         </Link>
       </div>
@@ -44,7 +47,9 @@ export function AppSidebar() {
               <Link
                 key={item.label}
                 to={item.to}
-                activeProps={{ className: 'bg-ad-surface-elevated text-ad-text-heading' }}
+                activeProps={{
+                  className: 'bg-ad-surface-elevated text-ad-text-heading',
+                }}
                 className="flex min-h-11 items-center rounded-sm px-2.5 text-sm text-ad-text-secondary transition-colors hover:text-ad-text-heading"
               >
                 {item.label}

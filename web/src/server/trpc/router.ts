@@ -1,8 +1,7 @@
-import { createTRPCRouter, publicProcedure } from './init'
+import type { TRPCRouterRecord } from '@trpc/server'
 import { sourcesRouter } from '#/features/sources/api/sources.trpc'
 import { fetchRailsHealthcheck } from '#/lib/rails-api'
-
-import type { TRPCRouterRecord } from '@trpc/server'
+import { createTRPCRouter, publicProcedure } from './init'
 
 const appRouter = {
   status: publicProcedure.query(async () => {

@@ -9,7 +9,12 @@ describe('buildCreateSourceInput', () => {
         chapters: [
           { id: '1-foreword', number: 1, title: 'Foreword', page: 13 },
           { id: '2-preface', number: 2, title: 'Preface', page: 17 },
-          { id: '3-organization', number: 3, title: 'How the Book Is Organized', page: 20 },
+          {
+            id: '3-organization',
+            number: 3,
+            title: 'How the Book Is Organized',
+            page: 20,
+          },
         ],
       },
       ['1-foreword', '3-organization'],

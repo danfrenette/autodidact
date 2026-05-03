@@ -11,7 +11,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "start": "dotenv -e .env.local -- node --import ./instrument.server.mjs .output/server/index.mjs"
+    "start": "dotenv -e .env.local -- node --import ./instrument.server.mjs .output/server/index.mjs",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write ."
   },
   "dependencies": {
     "@base-ui/react": "^1.4.0",
@@ -49,6 +51,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.14",
     "@tailwindcss/typography": "^0.5.16",
     "@tanstack/devtools-vite": "latest",
     "@testing-library/dom": "^10.4.1",

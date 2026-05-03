@@ -40,12 +40,16 @@ export async function parsePdfDocument(file: File): Promise<ParsedDocument> {
   const pdfjs = (await import('pdfjs-dist')) as PdfModule
 
   if (!workerConfigured) {
-    pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString()
+    pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+      'pdfjs-dist/build/pdf.worker.min.mjs',
+      import.meta.url,
+    ).toString()
     workerConfigured = true
   }
 
   const arrayBuffer = await file.arrayBuffer()
-  const pdf = await pdfjs.getDocument({ data: new Uint8Array(arrayBuffer) }).promise
+  const pdf = await pdfjs.getDocument({ data: new Uint8Array(arrayBuffer) })
+    .promise
   const flattened = await extractOutlineChapters(pdf)
 
   if (!flattened.length) {
@@ -68,7 +72,7 @@ export async function parsePdfDocument(file: File): Promise<ParsedDocument> {
       number: index + 1,
       title: node.title?.trim() || `Section ${index + 1}`,
       page: await resolveDestinationPage(pdf, node.dest, index + 1),
-    }))
+    })),
   )
 
   return {
@@ -88,7 +92,10 @@ async function extractOutlineChapters(pdf: PdfDocument) {
   }
 }
 
-function flattenOutline(nodes: OutlineNode[], chapters: OutlineNode[] = []): OutlineNode[] {
+function flattenOutline(
+  nodes: OutlineNode[],
+  chapters: OutlineNode[] = [],
+): OutlineNode[] {
   for (const node of nodes) {
     if (node.title?.trim()) chapters.push(node)
     if (node.items?.length) flattenOutline(node.items, chapters)
@@ -97,11 +104,16 @@ function flattenOutline(nodes: OutlineNode[], chapters: OutlineNode[] = []): Out
   return chapters
 }
 
-async function resolveDestinationPage(pdf: PdfDocument, destination: unknown, fallbackPage: number) {
+async function resolveDestinationPage(
+  pdf: PdfDocument,
+  destination: unknown,
+  fallbackPage: number,
+) {
   try {
-    const resolvedDestination = typeof destination === 'string'
-      ? await pdf.getDestination(destination)
-      : destination
+    const resolvedDestination =
+      typeof destination === 'string'
+        ? await pdf.getDestination(destination)
+        : destination
 
     if (!Array.isArray(resolvedDestination) || !resolvedDestination[0]) {
       return fallbackPage
@@ -109,8 +121,17 @@ async function resolveDestinationPage(pdf: PdfDocument, destination: unknown, fa
 
     const pageReference = resolvedDestination[0]
 
-    if (typeof pageReference === 'object' && pageReference && 'num' in pageReference && 'gen' in pageReference) {
-      return (await pdf.getPageIndex(pageReference as { num: number; gen: number })) + 1
+    if (
+      typeof pageReference === 'object' &&
+      pageReference &&
+      'num' in pageReference &&
+      'gen' in pageReference
+    ) {
+      return (
+        (await pdf.getPageIndex(
+          pageReference as { num: number; gen: number },
+        )) + 1
+      )
     }
   } catch {
     return fallbackPage
@@ -119,17 +140,26 @@ async function resolveDestinationPage(pdf: PdfDocument, destination: unknown, fa
   return fallbackPage
 }
 
-async function extractTableOfContentsChapters(pdf: PdfDocument): Promise<ParsedChapter[]> {
+async function extractTableOfContentsChapters(
+  pdf: PdfDocument,
+): Promise<ParsedChapter[]> {
   const chapters: ParsedChapter[] = []
   let inContentsSection = false
 
-  for (let pageNumber = 1; pageNumber <= Math.min(pdf.numPages, 20); pageNumber += 1) {
+  for (
+    let pageNumber = 1;
+    pageNumber <= Math.min(pdf.numPages, 20);
+    pageNumber += 1
+  ) {
     const page = await pdf.getPage(pageNumber)
     const textContent = await page.getTextContent()
     const lines = groupTextItemsIntoLines(textContent.items)
     const normalizedLines = lines.map((line) => normalizeWhitespace(line.text))
 
-    if (!inContentsSection && normalizedLines.some((line) => /^contents$/i.test(line))) {
+    if (
+      !inContentsSection &&
+      normalizedLines.some((line) => /^contents$/i.test(line))
+    ) {
       inContentsSection = true
       continue
     }
@@ -236,5 +266,10 @@ function normalizeWhitespace(value: string) {
 }
 
 function slugify(value: string) {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'section'
+  return (
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '') || 'section'
+  )
 }

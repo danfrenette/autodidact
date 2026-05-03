@@ -33,6 +33,7 @@ function SourcesDashboardPage() {
       <div className="flex items-center gap-2 border-b border-ad-ui pb-2">
         {filters.map((filter, index) => (
           <button
+            type="button"
             key={filter}
             className={`inline-flex items-center rounded-sm px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.08em] transition-colors ${
               index === 0

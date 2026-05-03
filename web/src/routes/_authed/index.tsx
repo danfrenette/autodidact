@@ -15,7 +15,8 @@ function HomePage() {
           Start with a source.
         </h1>
         <p className="mt-4 max-w-lg text-[15px] leading-6 text-ad-text-muted">
-          Import a PDF, choose the chapters worth processing, and connect it to the rest of your knowledge graph.
+          Import a PDF, choose the chapters worth processing, and connect it to
+          the rest of your knowledge graph.
         </p>
         <Link
           to="/sources"

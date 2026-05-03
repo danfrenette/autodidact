@@ -5,7 +5,11 @@ import {
   railsCsrfResponseSchema,
 } from '../source.schemas'
 
-import type { CreateSourceInput, CreateSourceResponse, ListSourcesResponse } from '../source.types'
+import type {
+  CreateSourceInput,
+  CreateSourceResponse,
+  ListSourcesResponse,
+} from '../source.types'
 
 export async function createSourceInRails(
   input: CreateSourceInput,
@@ -14,31 +18,35 @@ export async function createSourceInRails(
   const railsApiUrl = getRailsApiUrl()
   const cookie = request.headers.get('cookie') ?? ''
   const csrfToken = await fetchRailsCsrfToken(railsApiUrl, cookie)
-  const response = await axios.post(
-    new URL('/sources', railsApiUrl).toString(),
-    {
-      source: {
-        title: input.title,
-        kind: input.kind,
-        original_filename: input.originalFilename,
-        selections: input.selections,
+  const response = await axios
+    .post(
+      new URL('/sources', railsApiUrl).toString(),
+      {
+        source: {
+          title: input.title,
+          kind: input.kind,
+          original_filename: input.originalFilename,
+          selections: input.selections,
+        },
       },
-    },
-    {
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        Cookie: cookie,
-        'X-CSRF-Token': csrfToken,
+      {
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Cookie: cookie,
+          'X-CSRF-Token': csrfToken,
+        },
       },
-    },
-  ).catch((error: unknown) => {
-    if (isAxiosError(error) && error.response) {
-      throw new Error(getRailsErrorMessage(error.response.data, error.response.status))
-    }
+    )
+    .catch((error: unknown) => {
+      if (isAxiosError(error) && error.response) {
+        throw new Error(
+          getRailsErrorMessage(error.response.data, error.response.status),
+        )
+      }
 
-    throw error
-  })
+      throw error
+    })
 
   return createSourceResponseSchema.parse(response.data)
 }
@@ -54,21 +62,20 @@ function getRailsApiUrl() {
 }
 
 async function fetchRailsCsrfToken(railsApiUrl: string, cookie: string) {
-  const response = await axios.get(
-    new URL('/csrf-token', railsApiUrl).toString(),
-    {
+  const response = await axios
+    .get(new URL('/csrf-token', railsApiUrl).toString(), {
       headers: {
         Accept: 'application/json',
         Cookie: cookie,
       },
-    },
-  ).catch((error: unknown) => {
-    if (isAxiosError(error) && error.response) {
-      throw new Error('Unable to fetch Rails CSRF token')
-    }
+    })
+    .catch((error: unknown) => {
+      if (isAxiosError(error) && error.response) {
+        throw new Error('Unable to fetch Rails CSRF token')
+      }
 
-    throw error
-  })
+      throw error
+    })
 
   return railsCsrfResponseSchema.parse(response.data).data.csrfToken
 }

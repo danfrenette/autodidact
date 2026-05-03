@@ -59,10 +59,13 @@ export function FileIntakePanel({
           File
         </p>
         <p className="mt-3 text-sm text-ad-text-heading">
-          {isReading ? 'Reading PDF outline...' : 'Drop a PDF here or click to choose a file.'}
+          {isReading
+            ? 'Reading PDF outline...'
+            : 'Drop a PDF here or click to choose a file.'}
         </p>
         <p className="mt-2 text-[13px] leading-5 text-ad-text-muted">
-          Browser-side parsing extracts the outline locally so chapter selection happens before anything is processed.
+          Browser-side parsing extracts the outline locally so chapter selection
+          happens before anything is processed.
         </p>
       </div>
 
@@ -81,7 +84,9 @@ export function FileIntakePanel({
                 PDF loaded
               </div>
             </div>
-            <div className="truncate text-sm font-medium text-ad-text-heading">{document.file.name}</div>
+            <div className="truncate text-sm font-medium text-ad-text-heading">
+              {document.file.name}
+            </div>
           </div>
 
           <div className="ml-4 flex shrink-0 items-center gap-4">

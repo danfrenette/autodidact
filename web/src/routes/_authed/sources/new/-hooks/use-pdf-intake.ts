@@ -1,9 +1,8 @@
 import { startTransition, useState } from 'react'
 
 import { acceptedSourceFileTypes } from '../-constants'
-import { parsePdfDocument } from '../-utils/pdf-outline'
-
 import type { ParsedDocument } from '../-types'
+import { parsePdfDocument } from '../-utils/pdf-outline'
 
 type PdfIntakeState = {
   document: ParsedDocument | null
@@ -45,16 +44,19 @@ export function usePdfIntake() {
           document,
           errorMessage: null,
           isReading: false,
-          selectedChapterIds: document.chapters.slice(0, Math.min(3, document.chapters.length)).map((chapter) => chapter.id),
+          selectedChapterIds: document.chapters
+            .slice(0, Math.min(3, document.chapters.length))
+            .map((chapter) => chapter.id),
         })
       })
     } catch (error) {
       setState((currentState) => ({
         ...currentState,
         isReading: false,
-        errorMessage: error instanceof Error
-          ? `We could not read that PDF. ${error.message}`
-          : 'We could not read that PDF.',
+        errorMessage:
+          error instanceof Error
+            ? `We could not read that PDF. ${error.message}`
+            : 'We could not read that PDF.',
       }))
     }
   }
@@ -75,7 +77,8 @@ export function usePdfIntake() {
   function selectAllChapters() {
     setState((currentState) => ({
       ...currentState,
-      selectedChapterIds: currentState.document?.chapters.map((chapter) => chapter.id) ?? [],
+      selectedChapterIds:
+        currentState.document?.chapters.map((chapter) => chapter.id) ?? [],
     }))
   }
 

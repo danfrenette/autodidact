@@ -1,4 +1,4 @@
-import { GoogleLogo, GithubLogo } from '@phosphor-icons/react'
+import { GithubLogo, GoogleLogo } from '@phosphor-icons/react'
 import { Button } from '#/components/ui/button'
 
 type Provider = 'google' | 'github'
@@ -14,7 +14,11 @@ const CONFIG: Record<Provider, { icon: typeof GoogleLogo; label: string }> = {
   github: { icon: GithubLogo, label: 'Continue with GitHub' },
 }
 
-export function OAuthButton({ provider, onClick, isLoading }: OAuthButtonProps) {
+export function OAuthButton({
+  provider,
+  onClick,
+  isLoading,
+}: OAuthButtonProps) {
   const { icon: Icon, label } = CONFIG[provider]
 
   return (
