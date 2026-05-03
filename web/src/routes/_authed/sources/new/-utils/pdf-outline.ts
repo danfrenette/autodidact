@@ -1,3 +1,4 @@
+import type { PDFDocumentProxy } from 'pdfjs-dist'
 import type { ParsedChapter, ParsedDocument } from '../-types'
 
 type OutlineNode = {
@@ -6,24 +7,7 @@ type OutlineNode = {
   items?: OutlineNode[]
 }
 
-type PdfDocument = {
-  numPages: number
-  getOutline(): Promise<OutlineNode[] | null>
-  getDestination(destination: string): Promise<unknown>
-  getPageIndex(reference: { num: number; gen: number }): Promise<number>
-  getPage(pageNumber: number): Promise<PdfPage>
-}
-
-type TextItem = {
-  str?: string
-  transform?: number[]
-}
-
-type PdfPage = {
-  getTextContent(): Promise<{
-    items: TextItem[]
-  }>
-}
+type PdfDocument = PDFDocumentProxy
 
 type PdfModule = {
   GlobalWorkerOptions: {
@@ -50,6 +34,7 @@ export async function parsePdfDocument(file: File): Promise<ParsedDocument> {
   const arrayBuffer = await file.arrayBuffer()
   const pdf = await pdfjs.getDocument({ data: new Uint8Array(arrayBuffer) })
     .promise
+  const author = await extractPdfAuthor(pdf)
   const flattened = await extractOutlineChapters(pdf)
 
   if (!flattened.length) {
@@ -58,12 +43,13 @@ export async function parsePdfDocument(file: File): Promise<ParsedDocument> {
     if (tableOfContentsChapters.length) {
       return {
         file,
+        author,
         pageCount: pdf.numPages,
         chapters: tableOfContentsChapters,
       }
     }
 
-    return buildFallbackDocument(file, pdf.numPages)
+    return buildFallbackDocument(file, pdf.numPages, author)
   }
 
   const chapters = await Promise.all(
@@ -77,8 +63,20 @@ export async function parsePdfDocument(file: File): Promise<ParsedDocument> {
 
   return {
     file,
+    author,
     pageCount: pdf.numPages,
     chapters,
+  }
+}
+
+async function extractPdfAuthor(pdf: PdfDocument): Promise<string | null> {
+  try {
+    const metadata = await pdf.getMetadata()
+    const author = (metadata.info as Record<string, unknown>).Author
+
+    return typeof author === 'string' && author.trim() ? author.trim() : null
+  } catch {
+    return null
   }
 }
 
@@ -246,9 +244,14 @@ function dedupeChapters(chapters: ParsedChapter[]) {
   })
 }
 
-function buildFallbackDocument(file: File, pageCount: number): ParsedDocument {
+function buildFallbackDocument(
+  file: File,
+  pageCount: number,
+  author: string | null = null,
+): ParsedDocument {
   return {
     file,
+    author,
     pageCount,
     chapters: [
       {

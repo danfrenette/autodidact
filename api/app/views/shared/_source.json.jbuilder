@@ -4,6 +4,7 @@ progress = source.progress_stats
 
 json.id source.id
 json.title source.title
+json.author source.author
 json.kind source.kind
 json.originalFilename source.original_filename
 json.status source.status

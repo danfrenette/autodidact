@@ -28,6 +28,7 @@ export async function createSourceInRails(
         source: {
           title: input.title,
           kind: input.kind,
+          author: input.author,
           original_filename: input.originalFilename,
           selections: input.selections,
         },

@@ -6,6 +6,7 @@ describe('buildCreateSourceInput', () => {
     const input = buildCreateSourceInput(
       {
         file: { name: 'The Pragmatic Programmer.pdf' },
+        author: 'Andrew Hunt, David Thomas',
         chapters: [
           { id: '1-foreword', number: 1, title: 'Foreword', page: 13 },
           { id: '2-preface', number: 2, title: 'Preface', page: 17 },
@@ -23,6 +24,7 @@ describe('buildCreateSourceInput', () => {
     expect(input).toEqual({
       title: 'The Pragmatic Programmer',
       kind: 'pdf',
+      author: 'Andrew Hunt, David Thomas',
       originalFilename: 'The Pragmatic Programmer.pdf',
       selections: [
         {

@@ -39,39 +39,39 @@ function SourceDetailPage() {
   return (
     <div className="flex flex-col gap-8 py-8 px-10">
       {/* Header Section */}
-      <div className="flex flex-col gap-4 border-b border-ad-ui pb-6">
+      <div className="flex flex-col gap-4">
         {/* Breadcrumb */}
         <div className="flex items-center gap-1.5 font-sans text-[11px] font-medium uppercase tracking-[0.1em]">
-          <span className="text-ad-text-secondary">Sources /</span>
-          <span className="text-ad-text-tertiary">
+          <span className="text-ad-text-muted">Sources /</span>
+          <span className="text-ad-text-secondary">
             {source.kind === 'pdf' ? 'Book' : source.kind}
           </span>
         </div>
 
         {/* Title Row */}
         <div className="flex items-start justify-between gap-4">
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-2">
             <h1 className="font-serif text-[36px] font-extrabold uppercase leading-none tracking-tight text-ad-text-heading">
               {source.title}
             </h1>
-            {source.originalFilename && (
-              <p className="font-sans text-sm text-ad-text-secondary">
-                {source.originalFilename.replace(/\.pdf$/i, '')}
+            {source.author && (
+              <p className="font-sans text-sm font-medium text-ad-text-muted">
+                {source.author}
               </p>
             )}
           </div>
 
           {/* Status + Progress */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5">
               <span
                 className={`size-1.5 rounded-full ${
-                  isProcessing ? 'bg-ad-accent' : 'bg-ad-text-tertiary'
+                  isProcessing ? 'bg-ad-accent' : 'bg-ad-text-secondary'
                 }`}
               />
               <span
-                className={`font-mono text-[10px] uppercase tracking-[0.08em] ${
-                  isProcessing ? 'text-ad-accent' : 'text-ad-text-tertiary'
+                className={`font-sans text-[10px] font-medium uppercase tracking-[0.08em] ${
+                  isProcessing ? 'text-ad-accent' : 'text-ad-text-secondary'
                 }`}
               >
                 {isProcessing ? 'Processing' : 'Complete'}
@@ -84,7 +84,7 @@ function SourceDetailPage() {
         </div>
 
         {/* Progress Bar */}
-        <div className="h-[3px] w-full rounded-[1px] bg-ad-ui">
+        <div className="h-[3px] w-full rounded-[1px] bg-ad-border">
           <div
             className="h-full rounded-[1px] bg-ad-accent"
             style={{ width: `${source.progressPercentage}%` }}
@@ -108,31 +108,27 @@ function SourceDetailPage() {
                 key={selection.id}
                 className={`flex items-center gap-4 rounded-[2px] px-4 py-3 ${
                   isActive
-                    ? 'border border-ad-accent bg-ad-surface-secondary'
-                    : 'bg-ad-surface-secondary'
+                    ? 'border border-ad-accent bg-ad-surface-elevated'
+                    : 'bg-ad-surface-elevated'
                 }`}
               >
                 {/* Chapter Number */}
-                <span className="w-6 shrink-0 font-mono text-[11px] text-ad-text-tertiary">
+                <span className="w-6 shrink-0 font-mono text-[11px] text-ad-text-muted">
                   {selection.label}
                 </span>
 
                 {/* Chapter Title */}
-                <span className="flex-1 font-sans text-sm font-medium text-ad-text-primary">
+                <span className="flex-1 font-sans text-sm font-medium text-ad-text-secondary">
                   {selection.title}
                 </span>
 
                 {/* Status */}
                 <div className="flex items-center gap-1.5">
                   <span
-                    className={`size-1.5 rounded-full ${
-                      isComplete ? 'bg-ad-text-tertiary' : 'bg-ad-accent'
-                    }`}
+                    className={`size-1.5 rounded-full ${isComplete ? 'bg-ad-text-secondary' : 'bg-ad-accent'}`}
                   />
                   <span
-                    className={`font-mono text-[10px] uppercase tracking-[0.08em] ${
-                      isComplete ? 'text-ad-text-tertiary' : 'text-ad-accent'
-                    }`}
+                    className={`font-sans text-[10px] font-medium uppercase tracking-[0.06em] ${isComplete ? 'text-ad-text-muted' : 'text-ad-accent'}`}
                   >
                     {isComplete ? 'Complete' : 'Processing'}
                   </span>

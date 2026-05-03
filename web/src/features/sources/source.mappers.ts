@@ -6,17 +6,18 @@ export function buildCreateSourceInput(
 ): CreateSourceInput {
   return {
     title: titleFromFileName(document.file.name),
-    kind: 'pdf',
+    kind: 'pdf' as const,
+    author: document.author,
     originalFilename: document.file.name,
     selections: document.chapters
       .filter((chapter) => selectedChapterIds.includes(chapter.id))
       .map((chapter) => ({
-        kind: 'chapter',
+        kind: 'chapter' as const,
         title: chapter.title,
         label: String(chapter.number).padStart(2, '0'),
         position: { ordinal: chapter.number },
         locator: {
-          type: 'page_range',
+          type: 'page_range' as const,
           start: chapter.page,
           end: chapter.page,
         },

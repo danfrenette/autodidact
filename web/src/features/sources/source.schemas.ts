@@ -17,6 +17,7 @@ export const sourceSelectionInputSchema = z.object({
 export const createSourceInputSchema = z.object({
   title: z.string().min(1),
   kind: z.literal('pdf'),
+  author: z.string().nullable(),
   originalFilename: z.string().min(1),
   selections: z.array(sourceSelectionInputSchema),
 })
@@ -24,6 +25,7 @@ export const createSourceInputSchema = z.object({
 export const sourceSchema = z.object({
   id: z.number(),
   title: z.string(),
+  author: z.string().nullable(),
   kind: z.string(),
   originalFilename: z.string().nullable(),
   status: z.string(),

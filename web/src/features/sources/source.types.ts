@@ -28,5 +28,6 @@ export type SourceIntakeDocument = {
   file: {
     name: string
   }
+  author: string | null
   chapters: SourceIntakeChapter[]
 }

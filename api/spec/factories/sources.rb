@@ -5,6 +5,7 @@ FactoryBot.define do
     association :user
     title { "The Pragmatic Programmer" }
     kind { "pdf" }
+    author { nil }
     original_filename { "the-pragmatic-programmer.pdf" }
   end
 end

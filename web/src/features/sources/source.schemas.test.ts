@@ -8,6 +8,7 @@ describe('getSourceResponseSchema', () => {
         id: 7,
         title:
           'The Pragmatic Programmer Your Journey to Mastery, 20th Anniversary Edition by Andrew Hunt David Hurst Thomas',
+        author: 'Andrew Hunt, David Thomas',
         kind: 'pdf',
         originalFilename:
           'The Pragmatic Programmer Your Journey to Mastery, 20th Anniversary Edition by Andrew Hunt David Hurst Thomas.pdf',

@@ -9,6 +9,7 @@ export type ParsedChapter = {
 
 export type ParsedDocument = {
   file: File
+  author: string | null
   pageCount: number
   chapters: ParsedChapter[]
 }

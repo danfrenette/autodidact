@@ -56,6 +56,7 @@ RSpec.describe "Sources", type: :request do
       source_params = {
         title: "The Pragmatic Programmer Your Journey to Mastery, 20th Anniversary Edition by Andrew Hunt David Hurst Thomas",
         kind: "pdf",
+        author: "Andrew Hunt & David Thomas",
         original_filename: "The Pragmatic Programmer Your Journey to Mastery, 20th Anniversary Edition by Andrew Hunt David Hurst Thomas.pdf",
         selections: [
           {
@@ -101,6 +102,7 @@ RSpec.describe "Sources", type: :request do
       expect(source).to have_attributes(
         title: source_params.fetch(:title),
         kind: "pdf",
+        author: "Andrew Hunt & David Thomas",
         original_filename: source_params.fetch(:original_filename),
         user_id: "user_123"
       )
@@ -132,6 +134,7 @@ RSpec.describe "Sources", type: :request do
         :source,
         user: user,
         title: "Designing Data-Intensive Applications",
+        author: "Martin Kleppmann",
         kind: "pdf"
       )
       create(
@@ -158,6 +161,7 @@ RSpec.describe "Sources", type: :request do
       json = JSON.parse(response.body)
 
       expect(json.dig("data", "title")).to eq("Designing Data-Intensive Applications")
+      expect(json.dig("data", "author")).to eq("Martin Kleppmann")
       expect(json.dig("data", "progressPercentage")).to eq(50)
 
       selections = json.dig("data", "selections")

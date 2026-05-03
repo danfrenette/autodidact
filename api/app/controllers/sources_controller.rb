@@ -68,7 +68,7 @@ class SourcesController < ApplicationController
   end
 
   def source_params
-    params.require(:source).permit(:title, :kind, :original_filename)
+    params.require(:source).permit(:title, :kind, :author, :original_filename)
   end
 
   def source_selection_params
