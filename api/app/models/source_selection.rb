@@ -3,6 +3,9 @@
 class SourceSelection < ApplicationRecord
   belongs_to :source
 
+  serialize :position, coder: SourceSelection::Position
+  serialize :locator, coder: SourceSelection::Locator
+
   enum :kind, {
     chapter: "chapter"
   }, default: "chapter"

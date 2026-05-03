@@ -110,7 +110,11 @@ RSpec.describe "Sources", type: :request do
         "How the Book Is Organized",
         "Topic 48. The Essence of Agility"
       ])
-      expect(selections.last.locator).to eq({"type" => "page_range", "start" => 429, "end" => 429})
+      expect(selections.last.locator).to have_attributes(
+        kind: "page_range",
+        start_page: 429,
+        end_page: 429
+      )
 
       json = JSON.parse(response.body)
       expect(json.dig("data", "source", "assetAttached")).to be false
@@ -161,6 +165,8 @@ RSpec.describe "Sources", type: :request do
       expect(selections.first.fetch("title")).to eq("Reliable, Scalable, and Maintainable Applications")
       expect(selections.first.fetch("label")).to eq("01")
       expect(selections.first.fetch("status")).to eq("complete")
+      expect(selections.first.fetch("position")).to eq({"ordinal" => 1})
+      expect(selections.first.fetch("locator")).to eq({"type" => "page_range", "start" => 1, "end" => 12})
       expect(selections.second.fetch("status")).to eq("pending")
 
       expect(json.fetch("error")).to be_nil
