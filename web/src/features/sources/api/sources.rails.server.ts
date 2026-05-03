@@ -1,4 +1,5 @@
 import axios, { isAxiosError } from 'axios'
+import { validate } from '#/lib/validation'
 import {
   createSourceResponseSchema,
   getSourceResponseSchema,
@@ -50,7 +51,7 @@ export async function createSourceInRails(
       throw error
     })
 
-  return createSourceResponseSchema.parse(response.data)
+  return validate(createSourceResponseSchema, response.data, 'createSource')
 }
 
 function getRailsApiUrl() {
@@ -79,7 +80,8 @@ async function fetchRailsCsrfToken(railsApiUrl: string, cookie: string) {
       throw error
     })
 
-  return railsCsrfResponseSchema.parse(response.data).data.csrfToken
+  return validate(railsCsrfResponseSchema, response.data, 'fetchCsrfToken').data
+    .csrfToken
 }
 
 export async function listSourcesFromRails(
@@ -105,7 +107,7 @@ export async function listSourcesFromRails(
       throw error
     })
 
-  return listSourcesResponseSchema.parse(response.data)
+  return validate(listSourcesResponseSchema, response.data, 'listSources')
 }
 
 export async function getSourceFromRails(
@@ -132,7 +134,11 @@ export async function getSourceFromRails(
       throw error
     })
 
-  return getSourceResponseSchema.parse(response.data)
+  return validate(
+    getSourceResponseSchema,
+    response.data,
+    `getSource(${sourceId})`,
+  )
 }
 
 function getRailsErrorMessage(payload: unknown, status: number) {

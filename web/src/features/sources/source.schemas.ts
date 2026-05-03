@@ -1,15 +1,17 @@
 import { z } from 'zod'
 
+const pageRangeLocatorSchema = z.object({
+  type: z.literal('page_range'),
+  start: z.number().int().positive(),
+  end: z.number().int().positive(),
+})
+
 export const sourceSelectionInputSchema = z.object({
   kind: z.literal('chapter'),
   title: z.string().min(1),
   label: z.string().min(1),
   position: z.object({ ordinal: z.number().int().positive() }),
-  locator: z.object({
-    type: z.literal('page_range'),
-    start: z.number().int().positive(),
-    end: z.number().int().positive(),
-  }),
+  locator: pageRangeLocatorSchema,
 })
 
 export const createSourceInputSchema = z.object({
@@ -39,7 +41,7 @@ export const sourceSelectionSchema = z.object({
   title: z.string(),
   label: z.string(),
   position: z.object({ ordinal: z.number() }),
-  locator: z.record(z.unknown()),
+  locator: pageRangeLocatorSchema,
   status: z.string(),
 })
 
@@ -65,10 +67,12 @@ export const railsCsrfResponseSchema = z.object({
   }),
 })
 
+const sourceWithSelectionsSchema = sourceSchema.extend({
+  selections: z.array(sourceSelectionSchema),
+})
+
 export const getSourceResponseSchema = z.object({
-  data: sourceSchema.extend({
-    selections: z.array(sourceSelectionSchema),
-  }),
+  data: sourceWithSelectionsSchema,
   error: z.null(),
   meta: z.record(z.string(), z.unknown()),
 })

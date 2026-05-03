@@ -1,6 +1,10 @@
 import { z } from 'zod'
 import { createTRPCRouter, publicProcedure } from '#/server/trpc/init'
-import { createSourceInputSchema } from '../source.schemas'
+import {
+  createSourceInputSchema,
+  getSourceResponseSchema,
+  listSourcesResponseSchema,
+} from '../source.schemas'
 import {
   createSourceInRails,
   getSourceFromRails,
@@ -8,9 +12,12 @@ import {
 } from './sources.rails.server'
 
 export const sourcesRouter = createTRPCRouter({
-  list: publicProcedure.query(({ ctx }) => listSourcesFromRails(ctx.request)),
+  list: publicProcedure
+    .output(listSourcesResponseSchema)
+    .query(({ ctx }) => listSourcesFromRails(ctx.request)),
   get: publicProcedure
     .input(z.object({ id: z.number() }))
+    .output(getSourceResponseSchema)
     .query(({ ctx, input }) => getSourceFromRails(input.id, ctx.request)),
   create: publicProcedure
     .input(createSourceInputSchema)

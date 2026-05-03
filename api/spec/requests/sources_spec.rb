@@ -134,7 +134,7 @@ RSpec.describe "Sources", type: :request do
         title: "Designing Data-Intensive Applications",
         kind: "pdf"
       )
-      complete_selection = create(
+      create(
         :source_selection,
         source: source,
         title: "Reliable, Scalable, and Maintainable Applications",
@@ -142,7 +142,7 @@ RSpec.describe "Sources", type: :request do
         position: 1,
         status: "complete"
       )
-      pending_selection = create(
+      create(
         :source_selection,
         source: source,
         title: "Data Models and Query Languages",
