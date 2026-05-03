@@ -10,6 +10,15 @@ class SourcesController < ApplicationController
     )
   end
 
+  def show
+    source = current_user_sources.includes(:source_selections).find(params[:id])
+
+    render_success(
+      template: "sources/show",
+      locals: {source: source}
+    )
+  end
+
   def create
     result = Sources::Creation.new(
       user: current_user,

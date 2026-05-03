@@ -8,7 +8,7 @@ Rails.application.routes.draw do
 
   post "/rails/active_storage/direct_uploads" => "direct_uploads#create"
 
-  resources :sources, only: [:index, :create, :update] do
+  resources :sources, only: [:index, :show, :create, :update] do
     resource :attachment, only: :create, controller: "source_attachments"
     resources :selections, only: [:create, :destroy], controller: "source_selections"
     resource :process, only: :create, controller: "source_processes"

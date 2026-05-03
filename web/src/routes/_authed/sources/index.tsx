@@ -65,9 +65,11 @@ function SourcesDashboardPage() {
           </div>
         ) : (
           sources.map((source, index) => (
-            <div
+            <Link
               key={source.id}
-              className={`flex items-center gap-4 rounded-sm py-3.5 px-4 ${
+              to="/sources/$sourceId"
+              params={{ sourceId: String(source.id) }}
+              className={`flex items-center gap-4 rounded-sm py-3.5 px-4 transition-colors hover:bg-ad-surface-pressed ${
                 index % 2 === 0 ? 'bg-ad-surface-secondary' : ''
               }`}
             >
@@ -106,7 +108,7 @@ function SourcesDashboardPage() {
               <span className="w-9 shrink-0 text-right font-mono text-[11px] text-ad-text-tertiary">
                 {source.progressPercentage}%
               </span>
-            </div>
+            </Link>
           ))
         )}
       </div>

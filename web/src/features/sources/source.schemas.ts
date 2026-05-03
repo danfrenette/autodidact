@@ -33,6 +33,16 @@ export const sourceSchema = z.object({
   updatedAt: z.string(),
 })
 
+export const sourceSelectionSchema = z.object({
+  id: z.number(),
+  kind: z.string(),
+  title: z.string(),
+  label: z.string(),
+  position: z.object({ ordinal: z.number() }),
+  locator: z.record(z.unknown()),
+  status: z.string(),
+})
+
 export const createSourceResponseSchema = z.object({
   data: z.object({
     source: sourceSchema,
@@ -53,4 +63,12 @@ export const railsCsrfResponseSchema = z.object({
   data: z.object({
     csrfToken: z.string(),
   }),
+})
+
+export const getSourceResponseSchema = z.object({
+  data: sourceSchema.extend({
+    selections: z.array(sourceSelectionSchema),
+  }),
+  error: z.null(),
+  meta: z.record(z.string(), z.unknown()),
 })

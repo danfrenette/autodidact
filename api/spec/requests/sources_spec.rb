@@ -118,4 +118,64 @@ RSpec.describe "Sources", type: :request do
       expect(json.fetch("meta")).to eq({})
     end
   end
+
+  describe "GET /sources/:id" do
+    it "returns the source with its selections" do
+      user = create(:user, id: "user_123")
+      sign_in(user: user)
+
+      source = create(
+        :source,
+        user: user,
+        title: "Designing Data-Intensive Applications",
+        kind: "pdf"
+      )
+      complete_selection = create(
+        :source_selection,
+        source: source,
+        title: "Reliable, Scalable, and Maintainable Applications",
+        label: "01",
+        position: 1,
+        status: "complete"
+      )
+      pending_selection = create(
+        :source_selection,
+        source: source,
+        title: "Data Models and Query Languages",
+        label: "02",
+        position: 2,
+        status: "pending"
+      )
+
+      get source_path(source)
+
+      expect(response).to have_http_status(:ok)
+
+      json = JSON.parse(response.body)
+
+      expect(json.dig("data", "title")).to eq("Designing Data-Intensive Applications")
+      expect(json.dig("data", "progressPercentage")).to eq(50)
+
+      selections = json.dig("data", "selections")
+      expect(selections.length).to eq(2)
+      expect(selections.first.fetch("title")).to eq("Reliable, Scalable, and Maintainable Applications")
+      expect(selections.first.fetch("label")).to eq("01")
+      expect(selections.first.fetch("status")).to eq("complete")
+      expect(selections.second.fetch("status")).to eq("pending")
+
+      expect(json.fetch("error")).to be_nil
+    end
+
+    it "returns 404 for a source belonging to another user" do
+      user = create(:user, id: "user_123")
+      other_user = create(:user, id: "user_456")
+      sign_in(user: user)
+
+      other_source = create(:source, user: other_user)
+
+      get source_path(other_source)
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
 end

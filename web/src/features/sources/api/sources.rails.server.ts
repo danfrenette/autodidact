@@ -1,6 +1,7 @@
 import axios, { isAxiosError } from 'axios'
 import {
   createSourceResponseSchema,
+  getSourceResponseSchema,
   listSourcesResponseSchema,
   railsCsrfResponseSchema,
 } from '../source.schemas'
@@ -8,6 +9,7 @@ import {
 import type {
   CreateSourceInput,
   CreateSourceResponse,
+  GetSourceResponse,
   ListSourcesResponse,
 } from '../source.types'
 
@@ -104,6 +106,33 @@ export async function listSourcesFromRails(
     })
 
   return listSourcesResponseSchema.parse(response.data)
+}
+
+export async function getSourceFromRails(
+  sourceId: number,
+  request: Request,
+): Promise<GetSourceResponse> {
+  const railsApiUrl = getRailsApiUrl()
+  const cookie = request.headers.get('cookie') ?? ''
+
+  const response = await axios
+    .get(new URL(`/sources/${sourceId}`, railsApiUrl).toString(), {
+      headers: {
+        Accept: 'application/json',
+        Cookie: cookie,
+      },
+    })
+    .catch((error: unknown) => {
+      if (isAxiosError(error) && error.response) {
+        throw new Error(
+          getRailsErrorMessage(error.response.data, error.response.status),
+        )
+      }
+
+      throw error
+    })
+
+  return getSourceResponseSchema.parse(response.data)
 }
 
 function getRailsErrorMessage(payload: unknown, status: number) {
