@@ -1,5 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
+import { buildCreateSourceInput } from '#/features/sources/source.mappers'
+import { useCreateSource } from '#/features/sources/hooks/use-create-source'
 import { defaultModelLabel, defaultTags } from './-constants'
 import { ActionBar } from './-components/action-bar'
 import { ChapterSelection } from './-components/chapter-selection'
@@ -8,7 +10,6 @@ import { FileIntakePanel } from './-components/file-intake-panel'
 import { SourceModeTabs } from './-components/source-mode-tabs'
 import { TagEditor } from './-components/tag-editor'
 import { useConnectionPreview } from './-hooks/use-connection-preview'
-import { useCreateSource } from './-hooks/use-create-source'
 import { usePdfIntake } from './-hooks/use-pdf-intake'
 import { useSourceTags } from './-hooks/use-source-tags'
 
@@ -27,15 +28,20 @@ function AddSourceRoute() {
     selectedChapterIds,
     toggleChapter,
   } = usePdfIntake()
-  const {
-    createFromDocument,
-    errorMessage: createSourceErrorMessage,
-    isCreating,
-  } = useCreateSource()
+  const createSource = useCreateSource()
   const { addTag, draftTag, removeTag, setDraftTag, tags } = useSourceTags(defaultTags)
   const connections = useConnectionPreview(tags)
   const selectedChapterCount = selectedChapterIds.length
   const canProcess = Boolean(document && selectedChapterCount > 0)
+  const createSourceErrorMessage = createSource.error instanceof Error
+    ? createSource.error.message
+    : null
+
+  function createFromSelectedChapters() {
+    if (!document) return
+
+    createSource.mutate(buildCreateSourceInput(document, selectedChapterIds))
+  }
 
   return (
     <div className="min-h-full px-12 py-8">
@@ -84,8 +90,8 @@ function AddSourceRoute() {
             processLabel={canProcess ? `Process ${selectedChapterCount} Chapters` : 'Process 0 Chapters'}
             canProcess={canProcess}
             errorMessage={createSourceErrorMessage}
-            isProcessing={isCreating}
-            onProcess={() => void createFromDocument(document, selectedChapterIds)}
+            isProcessing={createSource.isPending}
+            onProcess={createFromSelectedChapters}
           />
         </div>
       </div>
