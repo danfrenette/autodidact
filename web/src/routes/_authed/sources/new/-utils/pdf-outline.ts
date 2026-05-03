@@ -29,7 +29,7 @@ type PdfModule = {
   GlobalWorkerOptions: {
     workerSrc: string
   }
-  getDocument(options: { data: Uint8Array; disableWorker: boolean }): {
+  getDocument(options: { data: Uint8Array; disableWorker?: boolean }): {
     promise: Promise<PdfDocument>
   }
 }

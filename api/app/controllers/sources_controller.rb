@@ -1,6 +1,15 @@
 # frozen_string_literal: true
 
 class SourcesController < ApplicationController
+  def index
+    sources = current_user_sources.includes(:source_selections).order(updated_at: :desc)
+
+    render_success(
+      template: "sources/index",
+      locals: {sources: sources}
+    )
+  end
+
   def create
     result = Sources::Creation.new(
       user: current_user,

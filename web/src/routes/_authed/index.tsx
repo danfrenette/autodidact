@@ -18,10 +18,10 @@ function HomePage() {
           Import a PDF, choose the chapters worth processing, and connect it to the rest of your knowledge graph.
         </p>
         <Link
-          to="/sources/new"
+          to="/sources"
           className="mt-8 inline-flex min-h-11 items-center rounded-sm bg-ad-accent px-6 text-sm font-medium text-ad-text-heading transition-colors hover:bg-ad-accent-hover"
         >
-          Add Source
+          View Sources
         </Link>
       </div>
     </div>

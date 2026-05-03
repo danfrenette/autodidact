@@ -3,7 +3,7 @@ import { Link, useNavigate } from '@tanstack/react-router'
 import { authClient } from '#/features/auth/client'
 
 const navigationItems = [
-  { label: 'Sources', to: '/sources/new' },
+  { label: 'Sources', to: '/sources' },
   { label: 'Knowledge Map', disabled: true },
   { label: 'Review', disabled: true },
   { label: 'Settings', disabled: true },
@@ -28,7 +28,7 @@ export function AppSidebar() {
       <nav className="flex flex-1 flex-col px-3 py-4">
         <div className="space-y-0.5">
           {navigationItems.map((item) => {
-            if (item.disabled) {
+            if ('disabled' in item) {
               return (
                 <div
                   key={item.label}

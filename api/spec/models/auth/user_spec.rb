@@ -18,5 +18,6 @@ RSpec.describe Auth::User, type: :model do
   describe "associations" do
     it { should have_many(:accounts).class_name("Auth::Account").with_foreign_key("userId") }
     it { should have_many(:sessions).class_name("Auth::Session").with_foreign_key("userId") }
+    it { should have_many(:sources).dependent(:destroy) }
   end
 end

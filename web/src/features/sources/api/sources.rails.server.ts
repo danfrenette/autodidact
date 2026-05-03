@@ -1,10 +1,11 @@
 import axios, { isAxiosError } from 'axios'
 import {
   createSourceResponseSchema,
+  listSourcesResponseSchema,
   railsCsrfResponseSchema,
 } from '../source.schemas'
 
-import type { CreateSourceInput, CreateSourceResponse } from '../source.types'
+import type { CreateSourceInput, CreateSourceResponse, ListSourcesResponse } from '../source.types'
 
 export async function createSourceInRails(
   input: CreateSourceInput,
@@ -69,11 +70,33 @@ async function fetchRailsCsrfToken(railsApiUrl: string, cookie: string) {
     throw error
   })
 
-  try {
-    return railsCsrfResponseSchema.parse(response.data).data.csrfToken
-  } catch {
-    throw new Error('Unable to fetch Rails CSRF token')
-  }
+  return railsCsrfResponseSchema.parse(response.data).data.csrfToken
+}
+
+export async function listSourcesFromRails(
+  request: Request,
+): Promise<ListSourcesResponse> {
+  const railsApiUrl = getRailsApiUrl()
+  const cookie = request.headers.get('cookie') ?? ''
+
+  const response = await axios
+    .get(new URL('/sources', railsApiUrl).toString(), {
+      headers: {
+        Accept: 'application/json',
+        Cookie: cookie,
+      },
+    })
+    .catch((error: unknown) => {
+      if (isAxiosError(error) && error.response) {
+        throw new Error(
+          getRailsErrorMessage(error.response.data, error.response.status),
+        )
+      }
+
+      throw error
+    })
+
+  return listSourcesResponseSchema.parse(response.data)
 }
 
 function getRailsErrorMessage(payload: unknown, status: number) {

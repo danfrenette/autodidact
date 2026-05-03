@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class Source < ApplicationRecord
+  belongs_to :user, class_name: "Auth::User"
+
   has_one_attached :asset
   has_many :source_selections, dependent: :destroy
 
@@ -21,6 +23,16 @@ class Source < ApplicationRecord
     url: "url"
   }, default: "pdf"
 
-  validates :user_id, presence: true
   validates :title, presence: true
+
+  def progress_stats
+    total = source_selections.size
+    completed = source_selections.count { |s| s.status == "complete" }
+
+    {
+      selection_count: total,
+      completed_count: completed,
+      percentage: ((completed.to_f / total) * 100).round
+    }
+  end
 end

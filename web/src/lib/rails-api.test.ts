@@ -1,18 +1,14 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { fetchRailsHealthcheck } from './rails-api'
 
-const originalRailsApiUrl = process.env.RAILS_API_URL
-const originalRailsHealthcheckPath = process.env.RAILS_HEALTHCHECK_PATH
-
 afterEach(() => {
-  process.env.RAILS_API_URL = originalRailsApiUrl
-  process.env.RAILS_HEALTHCHECK_PATH = originalRailsHealthcheckPath
+  vi.unstubAllEnvs()
 })
 
 describe('fetchRailsHealthcheck', () => {
   it('reports missing Rails configuration without attempting a request', async () => {
-    delete process.env.RAILS_API_URL
-    delete process.env.RAILS_HEALTHCHECK_PATH
+    vi.stubEnv('RAILS_API_URL', undefined)
+    vi.stubEnv('RAILS_HEALTHCHECK_PATH', undefined)
 
     await expect(fetchRailsHealthcheck()).resolves.toEqual({
       configured: false,

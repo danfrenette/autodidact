@@ -26,11 +26,24 @@ export const sourceSchema = z.object({
   originalFilename: z.string().nullable(),
   status: z.string(),
   assetAttached: z.boolean(),
+  selectionCount: z.number(),
+  completedCount: z.number(),
+  progressPercentage: z.number(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
 })
 
 export const createSourceResponseSchema = z.object({
   data: z.object({
     source: sourceSchema,
+  }),
+  error: z.null(),
+  meta: z.record(z.string(), z.unknown()),
+})
+
+export const listSourcesResponseSchema = z.object({
+  data: z.object({
+    sources: z.array(sourceSchema),
   }),
   error: z.null(),
   meta: z.record(z.string(), z.unknown()),

@@ -3,8 +3,54 @@
 require "rails_helper"
 
 RSpec.describe "Sources", type: :request do
+  describe "GET /sources" do
+    it "returns the current user's sources in reverse update order" do
+      user = create(:user, id: "user_123")
+      other_user = create(:user, id: "user_456")
+      sign_in(user: user)
+
+      older_source = create(
+        :source,
+        user: user,
+        title: "The Pragmatic Programmer",
+        original_filename: "pragmatic-programmer.pdf",
+        updated_at: 2.days.ago
+      )
+      newer_source = create(
+        :source,
+        user: user,
+        title: "Designing Data-Intensive Applications",
+        original_filename: "ddia.pdf",
+        updated_at: 1.day.ago
+      )
+      other_source = create(:source, user: other_user, title: "Other User Source")
+      create(:source_selection, source: older_source, status: "complete")
+      create(:source_selection, source: older_source, status: "pending")
+      create(:source_selection, source: newer_source, status: "complete")
+      create(:source_selection, source: other_source, status: "pending")
+
+      get sources_path
+
+      expect(response).to have_http_status(:ok)
+
+      json = JSON.parse(response.body)
+      sources = json.dig("data", "sources")
+
+      expect(sources.pluck("title")).to eq([
+        newer_source.title,
+        older_source.title
+      ])
+      expect(sources.second.fetch("selectionCount")).to eq(2)
+      expect(sources.second.fetch("completedCount")).to eq(1)
+      expect(sources.second.fetch("progressPercentage")).to eq(50)
+      expect(sources.first.fetch("progressPercentage")).to eq(100)
+      expect(json.fetch("error")).to be_nil
+    end
+  end
+
   describe "POST /sources" do
     it "creates a source with selected chapters from the intake payload" do
+      create(:user, id: "user_123")
       sign_in
 
       source_params = {
