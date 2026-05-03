@@ -6,6 +6,7 @@ interface ImportMetaEnv {
   readonly VITE_SENTRY_PROJECT: string
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: Used by TypeScript for import.meta.env typing
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }

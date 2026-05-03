@@ -69,7 +69,8 @@ export async function fetchRailsHealthcheck(): Promise<RailsHealthcheck> {
       requestUrl,
       status: null,
       bodyPreview: null,
-      error: error instanceof Error ? error.message : 'Unknown connection error',
+      error:
+        error instanceof Error ? error.message : 'Unknown connection error',
     }
   }
 }

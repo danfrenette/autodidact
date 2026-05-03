@@ -1,0 +1,9 @@
+{
+  "rubyLsp.formatter": "standard",
+  "rubyLsp.linters": ["standard"],
+  "editor.formatOnSave": true,
+  "[ruby]": {
+    "editor.defaultFormatter": "Shopify.ruby-lsp",
+    "editor.formatOnSave": true
+  }
+}

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+
+cd "$ROOT_DIR"
+export BUNDLE_GEMFILE="$ROOT_DIR/api/Gemfile"
+
+printf 'Start the Rails server in a separate terminal with:\n\n'
+printf '  cd %q/api && set -a && . ../web/.env.local && set +a && PORT=3001 bundle exec rails server\n\n' "$ROOT_DIR"
+
+exec bundle exec foreman start -f Procfile -m all=1,api=0 "$@"

@@ -6,9 +6,12 @@ interface AuthTabsProps {
 }
 
 export function AuthTabs({ activeTab, onTabChange }: AuthTabsProps) {
-  const baseClasses = 'px-8 py-3 text-[13px] uppercase tracking-wider transition-colors'
-  const activeClasses = 'border-b-2 border-ad-accent font-semibold text-ad-text-heading'
-  const inactiveClasses = 'border-b-2 border-transparent font-medium text-ad-text-muted hover:text-ad-text-secondary'
+  const baseClasses =
+    'px-8 py-3 text-[13px] uppercase tracking-wider transition-colors'
+  const activeClasses =
+    'border-b-2 border-ad-accent font-semibold text-ad-text-heading'
+  const inactiveClasses =
+    'border-b-2 border-transparent font-medium text-ad-text-muted hover:text-ad-text-secondary'
 
   return (
     <div className="flex border-b border-ad-border">

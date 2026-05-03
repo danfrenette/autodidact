@@ -1,13 +1,11 @@
-import { authClient } from '#/features/auth/client'
 import { Link } from '@tanstack/react-router'
+import { authClient } from '#/features/auth/client'
 
 export default function BetterAuthHeader() {
   const { data: session, isPending } = authClient.useSession()
 
   if (isPending) {
-    return (
-      <div className="h-8 w-8 bg-ad-surface animate-pulse" />
-    )
+    return <div className="h-8 w-8 bg-ad-surface animate-pulse" />
   }
 
   if (session?.user) {
@@ -23,6 +21,7 @@ export default function BetterAuthHeader() {
           </div>
         )}
         <button
+          type="button"
           onClick={() => {
             void authClient.signOut()
           }}

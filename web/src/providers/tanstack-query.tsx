@@ -1,12 +1,11 @@
-import type { ReactNode } from 'react'
 import { QueryClient } from '@tanstack/react-query'
-import superjson from 'superjson'
+import { ReactQueryDevtoolsPanel } from '@tanstack/react-query-devtools'
 import { createTRPCClient, httpBatchStreamLink } from '@trpc/client'
 import { createTRPCOptionsProxy } from '@trpc/tanstack-react-query'
-import { ReactQueryDevtoolsPanel } from '@tanstack/react-query-devtools'
-
-import type { TRPCRouter } from '#/server/trpc/router'
+import type { ReactNode } from 'react'
+import superjson from 'superjson'
 import { TRPCProvider } from '#/providers/trpc'
+import type { TRPCRouter } from '#/server/trpc/router'
 
 function getUrl() {
   const base = (() => {
