@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useCreateSource } from '#/features/sources/hooks/use-create-source'
 import { buildCreateSourceInput } from '#/features/sources/source.mappers'
 import { ActionBar } from './-components/action-bar'
@@ -17,6 +17,7 @@ export const Route = createFileRoute('/_authed/sources/new')({
 })
 
 function AddSourceRoute() {
+  const navigate = useNavigate()
   const {
     document,
     errorMessage,
@@ -39,7 +40,14 @@ function AddSourceRoute() {
   function createFromSelectedChapters() {
     if (!document) return
 
-    createSource.mutate(buildCreateSourceInput(document, selectedChapterIds))
+    createSource.mutate(buildCreateSourceInput(document, selectedChapterIds), {
+      onSuccess: (data) => {
+        void navigate({
+          to: '/sources/$sourceId',
+          params: { sourceId: String(data.data.source.id) },
+        })
+      },
+    })
   }
 
   return (
