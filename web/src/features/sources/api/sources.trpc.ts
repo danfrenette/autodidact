@@ -1,10 +1,12 @@
 import { z } from 'zod'
 import { createTRPCRouter, publicProcedure } from '#/server/trpc/init'
+import { conceptsResponseSchema } from '../concept.schemas'
 import {
   createSourceInputSchema,
   getSourceResponseSchema,
   listSourcesResponseSchema,
 } from '../source.schemas'
+import { getConceptsFromRails } from './concepts.rails.server'
 import {
   createSourceInRails,
   getSourceFromRails,
@@ -22,4 +24,10 @@ export const sourcesRouter = createTRPCRouter({
   create: publicProcedure
     .input(createSourceInputSchema)
     .mutation(({ ctx, input }) => createSourceInRails(input, ctx.request)),
+  getConcepts: publicProcedure
+    .input(z.object({ selectionId: z.number() }))
+    .output(conceptsResponseSchema)
+    .query(({ ctx, input }) =>
+      getConceptsFromRails(input.selectionId, ctx.request),
+    ),
 })
