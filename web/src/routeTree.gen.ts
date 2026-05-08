@@ -15,8 +15,10 @@ import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
 import { Route as AuthedSourcesIndexRouteImport } from './routes/_authed/sources/index'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api.trpc.$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
-import { Route as AuthedSourcesSourceIdRouteImport } from './routes/_authed/sources/$sourceId'
 import { Route as AuthedSourcesNewRouteRouteImport } from './routes/_authed/sources/new/route'
+import { Route as AuthedSourcesSourceIdRouteRouteImport } from './routes/_authed/sources/$sourceId/route'
+import { Route as AuthedSourcesSourceIdIndexRouteImport } from './routes/_authed/sources/$sourceId/index'
+import { Route as AuthedSourcesSourceIdSelectionsSelectionIdRouteRouteImport } from './routes/_authed/sources/$sourceId/selections/$selectionId/route'
 
 const AuthRouteRoute = AuthRouteRouteImport.update({
   id: '/auth',
@@ -47,75 +49,98 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthedSourcesSourceIdRoute = AuthedSourcesSourceIdRouteImport.update({
-  id: '/sources/$sourceId',
-  path: '/sources/$sourceId',
-  getParentRoute: () => AuthedRouteRoute,
-} as any)
 const AuthedSourcesNewRouteRoute = AuthedSourcesNewRouteRouteImport.update({
   id: '/sources/new',
   path: '/sources/new',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
+const AuthedSourcesSourceIdRouteRoute =
+  AuthedSourcesSourceIdRouteRouteImport.update({
+    id: '/sources/$sourceId',
+    path: '/sources/$sourceId',
+    getParentRoute: () => AuthedRouteRoute,
+  } as any)
+const AuthedSourcesSourceIdIndexRoute =
+  AuthedSourcesSourceIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthedSourcesSourceIdRouteRoute,
+  } as any)
+const AuthedSourcesSourceIdSelectionsSelectionIdRouteRoute =
+  AuthedSourcesSourceIdSelectionsSelectionIdRouteRouteImport.update({
+    id: '/selections/$selectionId',
+    path: '/selections/$selectionId',
+    getParentRoute: () => AuthedSourcesSourceIdRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthedIndexRoute
   '/auth': typeof AuthRouteRoute
+  '/sources/$sourceId': typeof AuthedSourcesSourceIdRouteRouteWithChildren
   '/sources/new': typeof AuthedSourcesNewRouteRoute
-  '/sources/$sourceId': typeof AuthedSourcesSourceIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/sources/': typeof AuthedSourcesIndexRoute
+  '/sources/$sourceId/': typeof AuthedSourcesSourceIdIndexRoute
+  '/sources/$sourceId/selections/$selectionId': typeof AuthedSourcesSourceIdSelectionsSelectionIdRouteRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRouteRoute
   '/': typeof AuthedIndexRoute
   '/sources/new': typeof AuthedSourcesNewRouteRoute
-  '/sources/$sourceId': typeof AuthedSourcesSourceIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/sources': typeof AuthedSourcesIndexRoute
+  '/sources/$sourceId': typeof AuthedSourcesSourceIdIndexRoute
+  '/sources/$sourceId/selections/$selectionId': typeof AuthedSourcesSourceIdSelectionsSelectionIdRouteRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authed': typeof AuthedRouteRouteWithChildren
   '/auth': typeof AuthRouteRoute
   '/_authed/': typeof AuthedIndexRoute
+  '/_authed/sources/$sourceId': typeof AuthedSourcesSourceIdRouteRouteWithChildren
   '/_authed/sources/new': typeof AuthedSourcesNewRouteRoute
-  '/_authed/sources/$sourceId': typeof AuthedSourcesSourceIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/_authed/sources/': typeof AuthedSourcesIndexRoute
+  '/_authed/sources/$sourceId/': typeof AuthedSourcesSourceIdIndexRoute
+  '/_authed/sources/$sourceId/selections/$selectionId': typeof AuthedSourcesSourceIdSelectionsSelectionIdRouteRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/auth'
-    | '/sources/new'
     | '/sources/$sourceId'
+    | '/sources/new'
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/sources/'
+    | '/sources/$sourceId/'
+    | '/sources/$sourceId/selections/$selectionId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
     | '/'
     | '/sources/new'
-    | '/sources/$sourceId'
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/sources'
+    | '/sources/$sourceId'
+    | '/sources/$sourceId/selections/$selectionId'
   id:
     | '__root__'
     | '/_authed'
     | '/auth'
     | '/_authed/'
-    | '/_authed/sources/new'
     | '/_authed/sources/$sourceId'
+    | '/_authed/sources/new'
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/_authed/sources/'
+    | '/_authed/sources/$sourceId/'
+    | '/_authed/sources/$sourceId/selections/$selectionId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -169,13 +194,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authed/sources/$sourceId': {
-      id: '/_authed/sources/$sourceId'
-      path: '/sources/$sourceId'
-      fullPath: '/sources/$sourceId'
-      preLoaderRoute: typeof AuthedSourcesSourceIdRouteImport
-      parentRoute: typeof AuthedRouteRoute
-    }
     '/_authed/sources/new': {
       id: '/_authed/sources/new'
       path: '/sources/new'
@@ -183,20 +201,58 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedSourcesNewRouteRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
+    '/_authed/sources/$sourceId': {
+      id: '/_authed/sources/$sourceId'
+      path: '/sources/$sourceId'
+      fullPath: '/sources/$sourceId'
+      preLoaderRoute: typeof AuthedSourcesSourceIdRouteRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/sources/$sourceId/': {
+      id: '/_authed/sources/$sourceId/'
+      path: '/'
+      fullPath: '/sources/$sourceId/'
+      preLoaderRoute: typeof AuthedSourcesSourceIdIndexRouteImport
+      parentRoute: typeof AuthedSourcesSourceIdRouteRoute
+    }
+    '/_authed/sources/$sourceId/selections/$selectionId': {
+      id: '/_authed/sources/$sourceId/selections/$selectionId'
+      path: '/selections/$selectionId'
+      fullPath: '/sources/$sourceId/selections/$selectionId'
+      preLoaderRoute: typeof AuthedSourcesSourceIdSelectionsSelectionIdRouteRouteImport
+      parentRoute: typeof AuthedSourcesSourceIdRouteRoute
+    }
   }
 }
 
+interface AuthedSourcesSourceIdRouteRouteChildren {
+  AuthedSourcesSourceIdIndexRoute: typeof AuthedSourcesSourceIdIndexRoute
+  AuthedSourcesSourceIdSelectionsSelectionIdRouteRoute: typeof AuthedSourcesSourceIdSelectionsSelectionIdRouteRoute
+}
+
+const AuthedSourcesSourceIdRouteRouteChildren: AuthedSourcesSourceIdRouteRouteChildren =
+  {
+    AuthedSourcesSourceIdIndexRoute: AuthedSourcesSourceIdIndexRoute,
+    AuthedSourcesSourceIdSelectionsSelectionIdRouteRoute:
+      AuthedSourcesSourceIdSelectionsSelectionIdRouteRoute,
+  }
+
+const AuthedSourcesSourceIdRouteRouteWithChildren =
+  AuthedSourcesSourceIdRouteRoute._addFileChildren(
+    AuthedSourcesSourceIdRouteRouteChildren,
+  )
+
 interface AuthedRouteRouteChildren {
   AuthedIndexRoute: typeof AuthedIndexRoute
+  AuthedSourcesSourceIdRouteRoute: typeof AuthedSourcesSourceIdRouteRouteWithChildren
   AuthedSourcesNewRouteRoute: typeof AuthedSourcesNewRouteRoute
-  AuthedSourcesSourceIdRoute: typeof AuthedSourcesSourceIdRoute
   AuthedSourcesIndexRoute: typeof AuthedSourcesIndexRoute
 }
 
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedIndexRoute: AuthedIndexRoute,
+  AuthedSourcesSourceIdRouteRoute: AuthedSourcesSourceIdRouteRouteWithChildren,
   AuthedSourcesNewRouteRoute: AuthedSourcesNewRouteRoute,
-  AuthedSourcesSourceIdRoute: AuthedSourcesSourceIdRoute,
   AuthedSourcesIndexRoute: AuthedSourcesIndexRoute,
 }
 
