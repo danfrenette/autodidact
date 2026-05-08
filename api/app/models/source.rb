@@ -29,10 +29,12 @@ class Source < ApplicationRecord
     total = source_selections.size
     completed = source_selections.count { |s| s.status == "complete" }
 
+    percentage = total.zero? ? 0 : ((completed.to_f / total) * 100).round
+
     {
       selection_count: total,
       completed_count: completed,
-      percentage: ((completed.to_f / total) * 100).round
+      percentage: percentage
     }
   end
 end

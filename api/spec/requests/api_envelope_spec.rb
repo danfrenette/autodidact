@@ -9,11 +9,10 @@ RSpec.describe "API envelope structure", type: :request do
 
       expect(response).to have_http_status(:ok)
 
-      json = JSON.parse(response.body)
-      expect(json).to include("data", "error", "meta")
-      expect(json["data"]).to include("csrfToken")
-      expect(json["error"]).to be_nil
-      expect(json["meta"]).to eq({})
+      expect(json_response).to include("data", "error", "meta")
+      expect(json_response["data"]).to include("csrfToken")
+      expect(json_response["error"]).to be_nil
+      expect(json_response["meta"]).to eq({})
     end
   end
 
@@ -24,12 +23,11 @@ RSpec.describe "API envelope structure", type: :request do
 
       expect(response).to have_http_status(:unauthorized)
 
-      json = JSON.parse(response.body)
-      expect(json).to include("data", "error", "meta")
-      expect(json["data"]).to be_nil
-      expect(json["error"]).to include("code", "message", "details")
-      expect(json["error"]["code"]).to eq("unauthorized")
-      expect(json["meta"]).to eq({})
+      expect(json_response).to include("data", "error", "meta")
+      expect(json_response["data"]).to be_nil
+      expect(json_response["error"]).to include("code", "message", "details")
+      expect(json_response["error"]["code"]).to eq("unauthorized")
+      expect(json_response["meta"]).to eq({})
     end
   end
 end

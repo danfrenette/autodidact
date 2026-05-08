@@ -8,5 +8,22 @@ FactoryBot.define do
     label { "01" }
     position { {ordinal: 1} }
     locator { {type: "page_range", start: 1, end: 12} }
+
+    trait :pending do
+      status { "pending" }
+    end
+
+    trait :complete do
+      status { "complete" }
+    end
+
+    trait :processing do
+      status { "processing" }
+    end
+
+    trait :failed do
+      status { "failed" }
+      error_message { "Processing failed" }
+    end
   end
 end
