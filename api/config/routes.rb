@@ -14,6 +14,10 @@ Rails.application.routes.draw do
     resource :process, only: :create, controller: "source_processes"
   end
 
+  resources :source_selections, only: [] do
+    resources :concepts, only: [:index]
+  end
+
   # Defines the root path route ("/")
   # root "posts#index"
 end
