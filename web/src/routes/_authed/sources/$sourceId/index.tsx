@@ -8,8 +8,7 @@ export const Route = createFileRoute('/_authed/sources/$sourceId/')({
 
 function SourceDetailPage() {
   const { sourceId } = Route.useParams()
-  const id = Number.parseInt(sourceId, 10)
-  const { data, isLoading, error } = useSource(id)
+  const { data, isLoading, error } = useSource(sourceId)
   const source = data?.data
 
   if (isLoading) {
@@ -105,7 +104,7 @@ function SourceDetailPage() {
               <Link
                 key={selection.id}
                 to="/sources/$sourceId/selections/$selectionId"
-                params={{ sourceId, selectionId: String(selection.id) }}
+                params={{ sourceId, selectionId: selection.id }}
                 className={`flex items-center gap-4 rounded-[2px] px-4 py-3 transition-colors ${
                   isActive
                     ? 'border border-ad-accent bg-ad-surface-elevated'

@@ -1,6 +1,6 @@
 class CreateSources < ActiveRecord::Migration[8.1]
   def change
-    create_table :sources do |t|
+    create_table :sources, id: :uuid do |t|
       t.string :user_id, null: false
       t.string :title, null: false
       t.string :author

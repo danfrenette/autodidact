@@ -9,7 +9,7 @@ export const conceptClassificationSchema = z.enum([
 export type ConceptClassification = z.infer<typeof conceptClassificationSchema>
 
 export const conceptSchema = z.object({
-  id: z.number(),
+  id: z.string().uuid(),
   name: z.string(),
   classification: conceptClassificationSchema,
   definition: z.string().nullable(),

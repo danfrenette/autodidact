@@ -37,7 +37,7 @@ export type SourceIntakeDocument = {
  * Validated and mapped to Concept type via concept.mappers.
  */
 export type RailsConcept = {
-  id: number
+  id: string
   name: string
   classification: 'core' | 'supporting' | 'advanced'
   definition: string | null

@@ -18,14 +18,14 @@ export const sourcesRouter = createTRPCRouter({
     .output(listSourcesResponseSchema)
     .query(({ ctx }) => listSourcesFromRails(ctx.request)),
   get: publicProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: z.string().uuid() }))
     .output(getSourceResponseSchema)
     .query(({ ctx, input }) => getSourceFromRails(input.id, ctx.request)),
   create: publicProcedure
     .input(createSourceInputSchema)
     .mutation(({ ctx, input }) => createSourceInRails(input, ctx.request)),
   getConcepts: publicProcedure
-    .input(z.object({ selectionId: z.number() }))
+    .input(z.object({ selectionId: z.string().uuid() }))
     .output(conceptsResponseSchema)
     .query(({ ctx, input }) =>
       getConceptsFromRails(input.selectionId, ctx.request),

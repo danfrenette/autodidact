@@ -2,8 +2,8 @@
 
 class CreateConcepts < ActiveRecord::Migration[8.1]
   def change
-    create_table :concepts do |t|
-      t.references :source_selection, null: false, foreign_key: true, index: true
+    create_table :concepts, id: :uuid do |t|
+      t.references :source_selection, null: false, foreign_key: true, index: true, type: :uuid
       t.string :name, null: false
       t.string :classification, null: false, default: "supporting"
       t.text :definition

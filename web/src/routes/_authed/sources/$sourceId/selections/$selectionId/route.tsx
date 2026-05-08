@@ -15,19 +15,17 @@ type Tab = 'concepts' | 'quotes' | 'questions'
 
 function ChapterAnalysisPage() {
   const { sourceId, selectionId } = Route.useParams()
-  const id = Number.parseInt(sourceId, 10)
-  const selId = Number.parseInt(selectionId, 10)
   const [activeTab, setActiveTab] = useState<Tab>('concepts')
 
   const {
     data: sourceData,
     isLoading: sourceLoading,
     error: sourceError,
-  } = useSource(id)
-  const { data: conceptsData, isLoading: conceptsLoading } = useConcepts(selId)
+  } = useSource(sourceId)
+  const { data: conceptsData, isLoading: conceptsLoading } = useConcepts(selectionId)
 
   const source = sourceData?.data
-  const selection = source?.selections?.find((s) => s.id === selId)
+  const selection = source?.selections?.find((s) => s.id === selectionId)
   const concepts = conceptsData ?? []
 
   if (sourceLoading || conceptsLoading) {

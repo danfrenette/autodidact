@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "start": "dotenv -e .env.local -- node --import ./instrument.server.mjs .output/server/index.mjs",
+    "auth:migrate": "dotenv -e .env.local -- pnpm dlx @better-auth/cli migrate --config src/lib/auth.ts --yes",
     "lint": "biome check .",
     "lint:fix": "biome check --write ."
   },

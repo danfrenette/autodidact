@@ -44,7 +44,7 @@ function AddSourceRoute() {
       onSuccess: (data) => {
         void navigate({
           to: '/sources/$sourceId',
-          params: { sourceId: String(data.data.source.id) },
+          params: { sourceId: data.data.source.id },
         })
       },
     })

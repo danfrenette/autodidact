@@ -68,7 +68,7 @@ function SourcesDashboardPage() {
             <Link
               key={source.id}
               to="/sources/$sourceId"
-              params={{ sourceId: String(source.id) }}
+              params={{ sourceId: source.id }}
               className={`flex items-center gap-4 rounded-sm py-3.5 px-4 transition-colors hover:bg-ad-surface-pressed ${
                 index % 2 === 0 ? 'bg-ad-surface-secondary' : ''
               }`}

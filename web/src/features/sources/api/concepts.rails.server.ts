@@ -4,7 +4,7 @@ import { conceptsResponseSchema } from '../concept.schemas'
 import type { Concept } from '../concept.types'
 
 export async function getConceptsFromRails(
-  selectionId: number,
+  selectionId: string,
   request: Request,
 ): Promise<Concept[]> {
   const railsApiUrl = getRailsApiUrl()

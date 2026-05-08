@@ -2,8 +2,8 @@
 
 class CreateSourceSelections < ActiveRecord::Migration[8.1]
   def change
-    create_table :source_selections do |t|
-      t.references :source, null: false, foreign_key: true
+    create_table :source_selections, id: :uuid do |t|
+      t.references :source, null: false, foreign_key: true, type: :uuid
       t.string :kind, null: false, default: "chapter"
       t.string :subtype
       t.string :status, null: false, default: "pending"

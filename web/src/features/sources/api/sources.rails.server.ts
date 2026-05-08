@@ -112,7 +112,7 @@ export async function listSourcesFromRails(
 }
 
 export async function getSourceFromRails(
-  sourceId: number,
+  sourceId: string,
   request: Request,
 ): Promise<GetSourceResponse> {
   const railsApiUrl = getRailsApiUrl()

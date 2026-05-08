@@ -23,7 +23,7 @@ export const createSourceInputSchema = z.object({
 })
 
 export const sourceSchema = z.object({
-  id: z.number(),
+  id: z.string().uuid(),
   title: z.string(),
   author: z.string().nullable(),
   kind: z.string(),
@@ -38,7 +38,7 @@ export const sourceSchema = z.object({
 })
 
 export const sourceSelectionSchema = z.object({
-  id: z.number(),
+  id: z.string().uuid(),
   kind: z.string(),
   title: z.string(),
   label: z.string(),
