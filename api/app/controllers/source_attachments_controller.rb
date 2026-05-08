@@ -16,7 +16,7 @@ class SourceAttachmentsController < ApplicationController
         code: "validation_failed",
         message: "Attachment could not be created",
         details: {errors: result.errors},
-        status: :unprocessable_entity
+        status: :unprocessable_content
       )
     end
   end

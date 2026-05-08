@@ -96,7 +96,7 @@ RSpec.describe "Sources", type: :request do
         post sources_path, params: {source: source_params}, as: :json
       }.not_to change(Source, :count)
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
 
       expect(json_response.fetch("error")).to include("code" => "validation_failed")
       expect(json_response.dig("error", "details", "errors")).to include(/Title/)
@@ -155,7 +155,7 @@ RSpec.describe "Sources", type: :request do
     it "returns validation errors when update params are invalid" do
       patch source_path(source), params: {source: {title: ""}}, as: :json
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
 
       expect(json_response.fetch("error")).to include("code" => "validation_failed")
       expect(json_response.dig("error", "details", "errors")).to include(/Title/)

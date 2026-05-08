@@ -46,7 +46,7 @@ RSpec.describe "SourceSelections", type: :request do
         post source_selections_path(source), params: selection_params, as: :json
       }.not_to change(SourceSelection, :count)
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
 
       expect(json_response.fetch("error")).to include("code" => "validation_failed")
     end

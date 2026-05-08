@@ -64,7 +64,7 @@ RSpec.describe "SourceProcesses", type: :request do
 
         post source_process_path(source), as: :json
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       expect(json_response.fetch("error")).to include("code" => "selection_reconciliation_failed")
       end
     end
@@ -77,7 +77,7 @@ RSpec.describe "SourceProcesses", type: :request do
       it "returns unprocessable entity" do
         post source_process_path(source), as: :json
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
 
         expect(json_response.fetch("error")).to include("code" => "selection_reconciliation_failed")
       end

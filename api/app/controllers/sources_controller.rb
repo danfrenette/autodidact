@@ -37,7 +37,7 @@ class SourcesController < ApplicationController
         code: "validation_failed",
         message: "Source could not be created",
         details: {errors: result.errors},
-        status: :unprocessable_entity
+        status: :unprocessable_content
       )
     end
   end
@@ -56,7 +56,7 @@ class SourcesController < ApplicationController
         code: "validation_failed",
         message: "Source could not be updated",
         details: {errors: result.errors},
-        status: :unprocessable_entity
+        status: :unprocessable_content
       )
     end
   end

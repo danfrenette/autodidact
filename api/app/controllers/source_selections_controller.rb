@@ -16,7 +16,7 @@ class SourceSelectionsController < ApplicationController
         code: "validation_failed",
         message: "Selection could not be created",
         details: {errors: result.errors},
-        status: :unprocessable_entity
+        status: :unprocessable_content
       )
     end
   end
