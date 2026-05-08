@@ -27,4 +27,8 @@ class SourceSelection::Position
   def as_json(*)
     {ordinal: ordinal}
   end
+
+  def blank?
+    ordinal.blank?
+  end
 end

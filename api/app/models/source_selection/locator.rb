@@ -38,4 +38,8 @@ class SourceSelection::Locator
       end: end_page
     }
   end
+
+  def blank?
+    kind.blank? || start_page.blank? || end_page.blank?
+  end
 end
