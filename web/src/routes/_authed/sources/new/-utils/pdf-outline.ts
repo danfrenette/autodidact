@@ -1,4 +1,4 @@
-import type { PDFDocumentProxy } from 'pdfjs-dist'
+import type { PDFDocumentProxy, TextItem } from 'pdfjs-dist'
 import type { ParsedChapter, ParsedDocument } from '../-types'
 
 type OutlineNode = {
@@ -56,7 +56,7 @@ export async function parsePdfDocument(file: File): Promise<ParsedDocument> {
     flattened.map(async (node, index) => ({
       id: `${index + 1}-${slugify(node.title ?? 'section')}`,
       number: index + 1,
-      title: node.title?.trim() || `Section ${index + 1}`,
+      title: decodeHtmlEntities(node.title?.trim() || `Section ${index + 1}`),
       page: await resolveDestinationPage(pdf, node.dest, index + 1),
     })),
   )
@@ -74,7 +74,7 @@ async function extractPdfAuthor(pdf: PdfDocument): Promise<string | null> {
     const metadata = await pdf.getMetadata()
     const author = (metadata.info as Record<string, unknown>).Author
 
-    return typeof author === 'string' && author.trim() ? author.trim() : null
+    return typeof author === 'string' && author.trim() ? decodeHtmlEntities(author.trim()) : null
   } catch {
     return null
   }
@@ -173,9 +173,9 @@ async function extractTableOfContentsChapters(
 
       pageProducedChapter = true
       chapters.push({
-        id: `${chapter.number}-${slugify(chapter.title)}`,
+        id: `${chapter.number}-${slugify(decodeHtmlEntities(chapter.title))}`,
         number: chapter.number,
-        title: chapter.title,
+        title: decodeHtmlEntities(chapter.title),
         page: chapter.page,
       })
     }
@@ -266,6 +266,14 @@ function buildFallbackDocument(
 
 function normalizeWhitespace(value: string) {
   return value.replace(/\s+/g, ' ').trim()
+}
+
+function decodeHtmlEntities(value: string): string {
+  if (typeof window === 'undefined') return value
+
+  const textarea = document.createElement('textarea')
+  textarea.innerHTML = value
+  return textarea.value
 }
 
 function slugify(value: string) {
