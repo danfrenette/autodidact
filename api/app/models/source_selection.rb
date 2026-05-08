@@ -2,6 +2,7 @@
 
 class SourceSelection < ApplicationRecord
   belongs_to :source
+  has_many :concepts, dependent: :destroy
 
   serialize :position, coder: SourceSelection::Position
   serialize :locator, coder: SourceSelection::Locator
