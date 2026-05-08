@@ -31,3 +31,17 @@ export type SourceIntakeDocument = {
   author: string | null
   chapters: SourceIntakeChapter[]
 }
+
+/**
+ * Raw Rails API Concept response shape.
+ * Validated and mapped to Concept type via concept.mappers.
+ */
+export type RailsConcept = {
+  id: number
+  name: string
+  classification: 'core' | 'supporting' | 'advanced'
+  definition: string | null
+  why_it_matters: string | null
+  created_at: string
+  updated_at: string
+}
