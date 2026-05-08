@@ -27,16 +27,9 @@ export function FileIntakePanel({
 
   return (
     <div className="space-y-3">
-      <div
-        role="button"
-        tabIndex={0}
+      <button
+        type="button"
         onClick={() => inputRef.current?.click()}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault()
-            inputRef.current?.click()
-          }
-        }}
         onDragOver={(event) => event.preventDefault()}
         onDrop={(event) => {
           event.preventDefault()
@@ -67,7 +60,7 @@ export function FileIntakePanel({
           Browser-side parsing extracts the outline locally so chapter selection
           happens before anything is processed.
         </p>
-      </div>
+      </button>
 
       {errorMessage ? (
         <div className="rounded-sm border border-ad-accent/30 bg-ad-accent-subtle px-4 py-3 text-sm text-ad-accent">

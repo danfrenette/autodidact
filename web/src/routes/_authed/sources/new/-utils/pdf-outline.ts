@@ -74,7 +74,9 @@ async function extractPdfAuthor(pdf: PdfDocument): Promise<string | null> {
     const metadata = await pdf.getMetadata()
     const author = (metadata.info as Record<string, unknown>).Author
 
-    return typeof author === 'string' && author.trim() ? decodeHtmlEntities(author.trim()) : null
+    return typeof author === 'string' && author.trim()
+      ? decodeHtmlEntities(author.trim())
+      : null
   } catch {
     return null
   }

@@ -158,12 +158,9 @@ function AuthPage() {
 
           <p className="mt-8 text-center text-[12px] text-ad-text-muted">
             By continuing, you agree to the{' '}
-            <a
-              href="#"
-              className="text-ad-text-secondary hover:text-ad-text-heading"
-            >
+            <span className="text-ad-text-secondary hover:text-ad-text-heading">
               Terms of Service
-            </a>
+            </span>
           </p>
         </div>
       </div>

@@ -22,7 +22,8 @@ function ChapterAnalysisPage() {
     isLoading: sourceLoading,
     error: sourceError,
   } = useSource(sourceId)
-  const { data: conceptsData, isLoading: conceptsLoading } = useConcepts(selectionId)
+  const { data: conceptsData, isLoading: conceptsLoading } =
+    useConcepts(selectionId)
 
   const source = sourceData?.data
   const selection = source?.selections?.find((s) => s.id === selectionId)

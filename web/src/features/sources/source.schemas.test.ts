@@ -5,7 +5,7 @@ describe('getSourceResponseSchema', () => {
   it('parses the Rails source detail contract', () => {
     const result = getSourceResponseSchema.safeParse({
       data: {
-        id: 7,
+        id: '018f3f77-44cb-73d9-b9d5-d293ad30b9a7',
         title:
           'The Pragmatic Programmer Your Journey to Mastery, 20th Anniversary Edition by Andrew Hunt David Hurst Thomas',
         author: 'Andrew Hunt, David Thomas',
@@ -21,7 +21,7 @@ describe('getSourceResponseSchema', () => {
         updatedAt: '2026-05-03T01:54:13Z',
         selections: [
           {
-            id: 9,
+            id: '018f3f77-44cb-7abc-9c0f-8620f30747c4',
             kind: 'chapter',
             title: "It's a Continuous Process",
             label: '12',

@@ -69,6 +69,8 @@ export function ConstellationField() {
         viewBox="0 0 560 440"
         className="h-auto w-full"
         preserveAspectRatio="xMidYMid meet"
+        role="img"
+        aria-label="Dormant knowledge constellation"
       >
         {EDGES.map((edge) => (
           <line
