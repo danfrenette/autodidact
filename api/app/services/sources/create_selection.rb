@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Sources
-  class SelectionCreation
+  class CreateSelection < ApplicationService
     Result = Data.define(:success?, :selection, :errors)
 
     def initialize(source:, params:)

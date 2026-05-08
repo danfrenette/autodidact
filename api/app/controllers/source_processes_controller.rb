@@ -3,7 +3,7 @@
 class SourceProcessesController < ApplicationController
   def create
     source = current_user_sources.find(params[:source_id])
-    result = Sources::ProcessSelections.new(source: source).call
+    result = Sources::ProcessSelections.call(source: source)
 
     if result.success?
       render_success(

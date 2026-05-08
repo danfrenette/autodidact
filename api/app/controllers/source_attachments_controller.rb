@@ -3,7 +3,10 @@
 class SourceAttachmentsController < ApplicationController
   def create
     source = current_user_sources.find(params[:source_id])
-    result = Sources::AttachmentCreation.new(source: source, signed_blob_id: params.require(:signed_blob_id)).call
+    result = Sources::AttachAsset.call(
+      source: source,
+      signed_blob_id: params.require(:signed_blob_id)
+    )
 
     if result.success?
       render_success(

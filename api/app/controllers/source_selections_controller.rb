@@ -3,7 +3,7 @@
 class SourceSelectionsController < ApplicationController
   def create
     source = current_user_sources.find(params[:source_id])
-    result = Sources::SelectionCreation.new(source: source, params: selection_params).call
+    result = Sources::CreateSelection.call(source: source, params: selection_params)
 
     if result.success?
       render_success(

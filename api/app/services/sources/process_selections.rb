@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Sources
-  class ProcessSelections
+  class ProcessSelections < ApplicationService
     Result = Data.define(:success?, :source, :failures)
 
     def initialize(source:)

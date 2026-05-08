@@ -41,10 +41,10 @@ RSpec.describe "SourceProcesses", type: :request do
 
         post source_process_path(source), as: :json
 
-      expect(response).to have_http_status(:ok)
-      expect(json_response.fetch("error")).to be_nil
-      expect(source.reload.status).to eq("processing")
-    end
+        expect(response).to have_http_status(:ok)
+        expect(json_response.fetch("error")).to be_nil
+        expect(source.reload.status).to eq("processing")
+      end
 
       it "returns unprocessable entity when reconciliation fails" do
         reconciler_result = double(
@@ -65,7 +65,7 @@ RSpec.describe "SourceProcesses", type: :request do
         post source_process_path(source), as: :json
 
         expect(response).to have_http_status(:unprocessable_content)
-      expect(json_response.fetch("error")).to include("code" => "selection_reconciliation_failed")
+        expect(json_response.fetch("error")).to include("code" => "selection_reconciliation_failed")
       end
     end
 

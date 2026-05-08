@@ -20,11 +20,11 @@ class SourcesController < ApplicationController
   end
 
   def create
-    result = Sources::Creation.new(
+    result = Sources::Create.call(
       user: current_user,
       source_params: source_params,
       selection_params: source_selection_params
-    ).call
+    )
 
     if result.success?
       render_success(

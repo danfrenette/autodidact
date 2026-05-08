@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Sources
-  class AttachmentCreation
+  class AttachAsset < ApplicationService
     Result = Data.define(:success?, :source, :errors)
 
     def initialize(source:, signed_blob_id:)

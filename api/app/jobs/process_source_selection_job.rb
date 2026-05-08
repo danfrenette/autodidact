@@ -5,6 +5,6 @@ class ProcessSourceSelectionJob < ApplicationJob
 
   def perform(source_selection_id)
     source_selection = SourceSelection.includes(:source).find(source_selection_id)
-    Sources::SelectionProcessing.new(source_selection: source_selection).call
+    Sources::ProcessSelection.call(source_selection: source_selection)
   end
 end
