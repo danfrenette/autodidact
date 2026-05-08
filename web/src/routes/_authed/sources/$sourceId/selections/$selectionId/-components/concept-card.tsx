@@ -47,13 +47,13 @@ export function ConceptCard({ concept, isLast = false }: ConceptCardProps) {
         </div>
       )}
 
-      {concept.why_it_matters && (
+      {concept.whyItMatters && (
         <div className="flex flex-col gap-2">
           <h4 className="font-sans text-[10px] font-semibold uppercase tracking-[0.12em] text-ad-text-muted">
             Why It Matters
           </h4>
           <p className="font-sans text-sm leading-relaxed text-ad-text-secondary">
-            {concept.why_it_matters}
+            {concept.whyItMatters}
           </p>
         </div>
       )}

@@ -1,6 +1,7 @@
 import { requestRails } from '#/lib/rails-api'
 import { validate } from '#/lib/validation'
-import { conceptsResponseSchema } from '../concept.schemas'
+import { mapRailsConceptsToConcepts } from '../concept.mappers'
+import { railsConceptsResponseSchema } from '../concept.schemas'
 import type { Concept } from '../concept.types'
 
 export async function getConceptsFromRails(
@@ -13,9 +14,11 @@ export async function getConceptsFromRails(
     { request },
   )
 
-  return validate(
-    conceptsResponseSchema,
+  const railsConcepts = validate(
+    railsConceptsResponseSchema,
     payload,
     `getConcepts(${selectionId})`,
   )
+
+  return mapRailsConceptsToConcepts(railsConcepts)
 }

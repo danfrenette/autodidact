@@ -1,4 +1,8 @@
-import type { Concept, ConceptClassification } from './concept.schemas'
+import type {
+  Concept,
+  ConceptClassification,
+  RailsConcept,
+} from './concept.schemas'
 
 /**
  * Concept domain types.
@@ -6,4 +10,4 @@ import type { Concept, ConceptClassification } from './concept.schemas'
  * Rails responses are mapped to these via concept.mappers.
  */
 
-export type { Concept, ConceptClassification }
+export type { Concept, ConceptClassification, RailsConcept }

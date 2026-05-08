@@ -1,5 +1,5 @@
 import { type Concept, conceptSchema } from './concept.schemas'
-import type { RailsConcept } from './source.types'
+import type { RailsConcept } from './concept.types'
 
 export function mapRailsConceptToConcept(railsConcept: RailsConcept): Concept {
   return conceptSchema.parse({
@@ -7,9 +7,9 @@ export function mapRailsConceptToConcept(railsConcept: RailsConcept): Concept {
     name: railsConcept.name,
     classification: railsConcept.classification,
     definition: railsConcept.definition,
-    why_it_matters: railsConcept.why_it_matters,
-    created_at: railsConcept.created_at,
-    updated_at: railsConcept.updated_at,
+    whyItMatters: railsConcept.why_it_matters,
+    createdAt: railsConcept.created_at,
+    updatedAt: railsConcept.updated_at,
   })
 }
 
