@@ -2,7 +2,7 @@
 
 module Sources
   class CreateSelection < ApplicationService
-    Result = Data.define(:success?, :selection, :errors)
+    Result = ApplicationResult.define(:selection)
 
     def initialize(source:, params:)
       @source = source
@@ -13,9 +13,9 @@ module Sources
       selection = build_selection
       selection.save!
 
-      Result.new(success?: true, selection: selection, errors: [])
+      success(selection: selection, errors: [])
     rescue ActiveRecord::RecordInvalid
-      Result.new(success?: false, selection: selection, errors: selection.errors.full_messages)
+      failure(selection: selection, errors: selection.errors.full_messages)
     end
 
     private

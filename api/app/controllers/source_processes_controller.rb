@@ -14,7 +14,7 @@ class SourceProcessesController < ApplicationController
       render_error(
         code: "selection_reconciliation_failed",
         message: "Some selected chapters could not be matched to the uploaded PDF.",
-        details: {failures: result.failures},
+        details: {errors: result.errors, failures: result.failures},
         status: :unprocessable_content
       )
     end

@@ -2,7 +2,7 @@
 
 module Sources
   class Create < ApplicationService
-    Result = Data.define(:success?, :source, :errors)
+    Result = ApplicationResult.define(:source)
 
     def initialize(user:, source_params:, selection_params: [])
       @user = user
@@ -15,12 +15,13 @@ module Sources
 
       Source.transaction do
         source.save!
+        Sources::Lifecycle.call(source: source, event: :created)
         create_selections(source)
       end
 
-      Result.new(success?: true, source: source, errors: [])
+      success(source: source, errors: [])
     rescue ActiveRecord::RecordInvalid => e
-      Result.new(success?: false, source: source, errors: e.record.errors.full_messages)
+      failure(source: source, errors: e.record.errors.full_messages)
     end
 
     private
@@ -28,7 +29,7 @@ module Sources
     attr_reader :user, :source_params, :selection_params
 
     def build_source
-      Source.new(source_params.merge(user_id: user.id, status: :uploading))
+      Source.new(source_params.merge(user_id: user.id))
     end
 
     def create_selections(source)

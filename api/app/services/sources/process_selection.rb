@@ -2,7 +2,7 @@
 
 module Sources
   class ProcessSelection < ApplicationService
-    Result = Data.define(:success?, :error_message)
+    Result = ApplicationResult.define(:error_message)
 
     def initialize(source_selection:)
       @source_selection = source_selection
@@ -11,16 +11,13 @@ module Sources
     def call
       ActiveRecord::Base.transaction do
         transition_to_processing
-        extract_content
-        mark_complete
-      end
+        result = extract_content
+        next result if result.failure?
 
-      refresh_source_status
-      Result.new(success?: true, error_message: nil)
-    rescue => e
-      mark_failed(e.message)
-      refresh_source_status
-      raise
+        mark_complete
+        refresh_source_status
+        success(error_message: nil)
+      end
     end
 
     private
@@ -36,13 +33,16 @@ module Sources
     end
 
     def extract_content
-      source.asset.open do |file|
-        pdf = Substrate::Sources::Pdf.new(file.path)
-        range = source_selection.locator.fetch("start")..source_selection.locator.fetch("end")
-        result = Substrate::Distill.call(content: pdf.select_pages(range))
+      result = Sources::ExtractSelectionContent.call(source_selection: source_selection)
+      return fail_processing(result.error_message) if result.failure?
 
-        raise result.error if result.failure?
-      end
+      result
+    end
+
+    def fail_processing(message)
+      mark_failed(message)
+      refresh_source_status
+      failure(error_message: message)
     end
 
     def mark_complete
@@ -54,7 +54,7 @@ module Sources
     end
 
     def refresh_source_status
-      Sources::RefreshStatus.new(source: source).call
+      Sources::Lifecycle.call(source: source, event: :selection_statuses_changed)
     end
   end
 end

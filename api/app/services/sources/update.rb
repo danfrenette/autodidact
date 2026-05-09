@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module Sources
-  class Update
-    Result = Data.define(:success?, :source, :errors)
+  class Update < ApplicationService
+    Result = ApplicationResult.define(:source)
 
     def initialize(source:, params:)
       @source = source
@@ -12,9 +12,9 @@ module Sources
     def call
       source.update!(params)
 
-      Result.new(success?: true, source: source, errors: [])
+      success(source: source, errors: [])
     rescue ActiveRecord::RecordInvalid
-      Result.new(success?: false, source: source, errors: source.errors.full_messages)
+      failure(source: source, errors: source.errors.full_messages)
     end
 
     private

@@ -2,18 +2,23 @@
 
 module Sources
   class ProcessSelections < ApplicationService
-    Result = Data.define(:success?, :source, :failures)
+    Result = ApplicationResult.define(:source, :failures)
 
     def initialize(source:)
       @source = source
     end
 
     def call
-      reconciliation_result = reconcile_selections
-      return failure_result(reconciliation_result.failures) unless reconciliation_result.success?
+      Source.transaction do
+        reconciliation_result = reconcile_selections
+        next failure_result(reconciliation_result.failures) if reconciliation_result.failure?
 
-      process_reconciled_selections(reconciliation_result.resolved_selections)
-      Result.new(success?: true, source: source, failures: [])
+        lifecycle_result = Sources::Lifecycle.call(source: source, event: :processing_started)
+        next failure(source: source, failures: [], errors: lifecycle_result.errors) if lifecycle_result.failure?
+
+        process_reconciled_selections(reconciliation_result.resolved_selections)
+        success(source: source, failures: [])
+      end
     end
 
     private
@@ -25,14 +30,11 @@ module Sources
     end
 
     def failure_result(failures)
-      Result.new(success?: false, source: source, failures: failures)
+      failure(source: source, failures: failures)
     end
 
     def process_reconciled_selections(resolved_selections)
-      Source.transaction do
-        resolved_selections.each { |resolved| confirm_and_enqueue(resolved) }
-        transition_source_to_processing
-      end
+      resolved_selections.each { |resolved| confirm_and_enqueue(resolved) }
     end
 
     def confirm_and_enqueue(resolved)
@@ -55,10 +57,6 @@ module Sources
     def enqueue_selection(selection)
       selection.update!(status: :queued)
       ProcessSourceSelectionJob.perform_later(selection.id)
-    end
-
-    def transition_source_to_processing
-      source.update!(status: :processing)
     end
   end
 end

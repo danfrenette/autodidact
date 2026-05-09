@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module Sources
-  class SelectionReconciler
-    Result = Data.define(:success?, :resolved_selections, :failures)
+  class SelectionReconciler < ApplicationService
+    Result = ApplicationResult.define(:resolved_selections, :failures)
 
     def initialize(source:, selections: source.source_selections.pending.order(:created_at))
       @source = source
@@ -10,7 +10,7 @@ module Sources
     end
 
     def call
-      return Result.new(success?: false, resolved_selections: [], failures: [missing_asset_failure]) unless source.asset.attached?
+      return failure(resolved_selections: [], failures: [missing_asset_failure]) unless source.asset.attached?
 
       resolved = []
       failures = []
@@ -32,7 +32,11 @@ module Sources
         }
       end
 
-      Result.new(success?: failures.empty?, resolved_selections: resolved, failures: failures)
+      if failures.empty?
+        success(resolved_selections: resolved, failures: failures)
+      else
+        failure(resolved_selections: resolved, failures: failures)
+      end
     end
 
     private

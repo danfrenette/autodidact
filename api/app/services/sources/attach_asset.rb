@@ -2,7 +2,7 @@
 
 module Sources
   class AttachAsset < ApplicationService
-    Result = Data.define(:success?, :source, :errors)
+    Result = ApplicationResult.define(:source)
 
     def initialize(source:, signed_blob_id:)
       @source = source
@@ -10,12 +10,17 @@ module Sources
     end
 
     def call
-      attach_asset
-      update_source_metadata
+      Source.transaction do
+        lifecycle_result = Sources::Lifecycle.call(source: source, event: :asset_attached)
+        next lifecycle_result if lifecycle_result.failure?
 
-      Result.new(success?: true, source: source, errors: [])
-    rescue ActiveRecord::RecordInvalid
-      Result.new(success?: false, source: source, errors: source.errors.full_messages)
+        attach_asset
+        update_source_metadata
+
+        success(source: source, errors: [])
+      end
+    rescue ActiveRecord::RecordInvalid => e
+      failure(source: source, errors: source.errors.full_messages.presence || [e.message])
     end
 
     private
@@ -28,7 +33,6 @@ module Sources
 
     def update_source_metadata
       source.update!(
-        status: :uploaded,
         original_filename: source.asset.filename.to_s
       )
     end

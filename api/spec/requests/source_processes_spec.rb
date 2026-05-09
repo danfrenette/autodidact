@@ -23,6 +23,7 @@ RSpec.describe "SourceProcesses", type: :request do
       it "initiates processing and returns success" do
         reconciler_result = double(
           success?: true,
+          failure?: false,
           resolved_selections: [
             {
               selection: create(:source_selection, :pending, source: source),
@@ -49,6 +50,7 @@ RSpec.describe "SourceProcesses", type: :request do
       it "returns unprocessable entity when reconciliation fails" do
         reconciler_result = double(
           success?: false,
+          failure?: true,
           failures: [
             {
               source_selection_id: "test-id",
