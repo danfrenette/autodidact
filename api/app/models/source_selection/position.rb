@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class SourceSelection::Position
+  include ActiveModel::Serialization
+
   attr_reader :ordinal
 
   def self.load(value)

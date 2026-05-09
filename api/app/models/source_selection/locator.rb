@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class SourceSelection::Locator
+  include ActiveModel::Serialization
+
   attr_reader :kind, :start_page, :end_page
 
   def self.load(value)

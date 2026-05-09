@@ -23,19 +23,19 @@ RSpec.describe "Concepts", type: :request do
       get source_selection_concepts_path(selection)
 
       expect(response).to have_http_status(:ok)
-      expect(json_response.length).to eq(3)
+      expect(json_response.dig("data", "concepts").length).to eq(3)
 
-      acid = json_response.find { |c| c["name"] == "ACID Guarantees" }
+      acid = json_response.dig("data", "concepts").find { |c| c["name"] == "ACID Guarantees" }
       expect(acid["classification"]).to eq("core")
       expect(acid["definition"]).to be_present
-      expect(acid["why_it_matters"]).to be_present
+      expect(acid["whyItMatters"]).to be_present
     end
 
     it "returns concepts in the expected JSON structure" do
       get source_selection_concepts_path(selection)
 
-      json_response.each do |concept|
-        expect(concept).to include("id", "name", "classification", "definition", "why_it_matters")
+      json_response.dig("data", "concepts").each do |concept|
+        expect(concept).to include("id", "name", "classification", "definition", "whyItMatters")
       end
     end
   end
@@ -63,11 +63,11 @@ RSpec.describe "Concepts", type: :request do
 
     before { sign_in(user: current_user) }
 
-    it "returns empty array" do
+    it "returns empty concepts array" do
       get source_selection_concepts_path(empty_selection)
 
       expect(response).to have_http_status(:ok)
-      expect(json_response).to eq([])
+      expect(json_response.dig("data", "concepts")).to eq([])
     end
   end
 end

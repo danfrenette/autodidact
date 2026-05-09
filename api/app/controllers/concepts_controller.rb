@@ -5,8 +5,11 @@ class ConceptsController < ApplicationController
   before_action :authorize_source_selection!
 
   def index
-    @concepts = @source_selection.concepts.order(:created_at)
-    render formats: :json
+    concepts = @source_selection.concepts.order(:created_at)
+    render_success(
+      template: "concepts/index",
+      locals: {concepts: concepts}
+    )
   end
 
   private

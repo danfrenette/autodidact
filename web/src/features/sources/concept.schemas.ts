@@ -20,20 +20,12 @@ export const conceptSchema = z.object({
 
 export type Concept = z.infer<typeof conceptSchema>
 
-export const conceptsResponseSchema = z.array(conceptSchema)
-
-export type ConceptsResponse = z.infer<typeof conceptsResponseSchema>
-
-export const railsConceptSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  classification: conceptClassificationSchema,
-  definition: z.string().nullable(),
-  why_it_matters: z.string().nullable(),
-  created_at: z.string().datetime(),
-  updated_at: z.string().datetime(),
+export const conceptsResponseSchema = z.object({
+  data: z.object({
+    concepts: z.array(conceptSchema),
+  }),
+  error: z.null(),
+  meta: z.record(z.string(), z.unknown()),
 })
 
-export const railsConceptsResponseSchema = z.array(railsConceptSchema)
-
-export type RailsConcept = z.infer<typeof railsConceptSchema>
+export type ConceptsResponse = z.infer<typeof conceptsResponseSchema>
