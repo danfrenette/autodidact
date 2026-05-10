@@ -6,6 +6,8 @@ RSpec.describe Source, type: :model do
   describe "associations" do
     it { should belong_to(:user).class_name("Auth::User") }
     it { should have_many(:source_selections).dependent(:destroy) }
+    it { should have_many(:taggings).dependent(:destroy) }
+    it { should have_many(:tags).through(:taggings) }
     it { should have_one_attached(:asset) }
   end
 

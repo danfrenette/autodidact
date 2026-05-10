@@ -35,6 +35,19 @@ RSpec.describe Sources::Create, type: :service do
       expect(result.source.source_selections.first.title).to eq("Chapter 1")
     end
 
+    it "creates a source with tags" do
+      result = described_class.call(
+        user: current_user,
+        source_params: {title: "Test Source"},
+        selection_params: [],
+        tag_names: ["Distributed Systems", "databases"]
+      )
+
+      expect(result).to be_success
+      expect(result.source.tags.map(&:name)).to contain_exactly("distributed-systems", "databases")
+      expect(result.source.taggings.map(&:taggable)).to all(eq(result.source))
+    end
+
     it "returns failure when source params are invalid" do
       result = described_class.call(
         user: current_user,

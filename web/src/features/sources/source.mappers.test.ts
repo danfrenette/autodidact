@@ -19,6 +19,7 @@ describe('buildCreateSourceInput', () => {
         ],
       },
       ['1-foreword', '3-organization'],
+      ['programming', 'software-craft'],
     )
 
     expect(input).toEqual({
@@ -26,6 +27,7 @@ describe('buildCreateSourceInput', () => {
       kind: 'pdf',
       author: 'Andrew Hunt, David Thomas',
       originalFilename: 'The Pragmatic Programmer.pdf',
+      tags: ['programming', 'software-craft'],
       selections: [
         {
           kind: 'chapter',
