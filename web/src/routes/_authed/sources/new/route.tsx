@@ -40,7 +40,7 @@ function AddSourceRoute() {
   function createFromSelectedChapters() {
     if (!document) return
 
-    createSource.mutate(buildCreateSourceInput(document, selectedChapterIds), {
+    createSource.mutate(buildCreateSourceInput(document, selectedChapterIds, tags), {
       onSuccess: (data) => {
         void navigate({
           to: '/sources/$sourceId',

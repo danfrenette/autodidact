@@ -3,12 +3,14 @@ import type { CreateSourceInput, SourceIntakeDocument } from './source.types'
 export function buildCreateSourceInput(
   document: SourceIntakeDocument,
   selectedChapterIds: string[],
+  tags: string[],
 ): CreateSourceInput {
   return {
     title: titleFromFileName(document.file.name),
     kind: 'pdf' as const,
     author: document.author,
     originalFilename: document.file.name,
+    tags,
     selections: document.chapters
       .filter((chapter) => selectedChapterIds.includes(chapter.id))
       .map((chapter) => ({

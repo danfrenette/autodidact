@@ -7,6 +7,7 @@ json.title source.title
 json.author source.author
 json.kind source.kind
 json.originalFilename source.original_filename
+json.tags source.tags.map(&:name).sort
 json.status source.status
 json.assetAttached source.asset.attached?
 json.selectionCount progress[:selection_count]

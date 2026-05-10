@@ -12,6 +12,7 @@ describe('getSourceResponseSchema', () => {
         kind: 'pdf',
         originalFilename:
           'The Pragmatic Programmer Your Journey to Mastery, 20th Anniversary Edition by Andrew Hunt David Hurst Thomas.pdf',
+        tags: ['programming', 'software-craft'],
         status: 'uploading',
         assetAttached: false,
         selectionCount: 1,

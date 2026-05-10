@@ -2,7 +2,7 @@
 
 class SourcesController < ApplicationController
   def index
-    sources = current_user_sources.includes(:source_selections).order(updated_at: :desc)
+    sources = current_user_sources.includes(:source_selections, :tags).order(updated_at: :desc)
 
     render_success(
       template: "sources/index",
@@ -11,7 +11,7 @@ class SourcesController < ApplicationController
   end
 
   def show
-    source = current_user_sources.includes(:source_selections).find(params[:id])
+    source = current_user_sources.includes(:source_selections, :tags).find(params[:id])
 
     render_success(
       template: "sources/show",
@@ -23,7 +23,8 @@ class SourcesController < ApplicationController
     result = Sources::Create.call(
       user: current_user,
       source_params: source_params,
-      selection_params: source_selection_params
+      selection_params: source_selection_params,
+      tag_names: source_tag_params
     )
 
     if result.success?
@@ -73,6 +74,10 @@ class SourcesController < ApplicationController
 
   def source_selection_params
     params.require(:source).permit(selections: [:kind, :subtype, :title, :label, {position: {}, locator: {}}]).fetch(:selections, [])
+  end
+
+  def source_tag_params
+    params.require(:source).permit(tags: []).fetch(:tags, [])
   end
 
   def update_source_params

@@ -46,6 +46,7 @@ RSpec.describe "Sources", type: :request do
         kind: "pdf",
         author: "Andrew Hunt & David Thomas",
         original_filename: "The Pragmatic Programmer Your Journey to Mastery, 20th Anniversary Edition by Andrew Hunt David Hurst Thomas.pdf",
+        tags: ["Programming", "Software Craft"],
         selections: [
           {
             kind: "chapter",
@@ -66,7 +67,10 @@ RSpec.describe "Sources", type: :request do
 
       expect {
         post sources_path, params: {source: source_params}, as: :json
-      }.to change(Source, :count).by(1).and change(SourceSelection, :count).by(2)
+      }.to change(Source, :count).by(1)
+        .and change(SourceSelection, :count).by(2)
+        .and change(Tag, :count).by(2)
+        .and change(Tagging, :count).by(2)
 
       expect(response).to have_http_status(:created)
 
@@ -74,6 +78,7 @@ RSpec.describe "Sources", type: :request do
       expect(json_response.dig("data", "source", "title")).to eq(source_params.fetch(:title))
       expect(json_response.dig("data", "source", "kind")).to eq("pdf")
       expect(json_response.dig("data", "source", "author")).to eq("Andrew Hunt & David Thomas")
+      expect(json_response.dig("data", "source", "tags")).to eq(["programming", "software-craft"])
       expect(json_response.fetch("error")).to be_nil
 
       source = Source.find(json_response.dig("data", "source", "id"))
