@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+
+echo "==> Preparing Rails test database"
+(
+  cd "$ROOT_DIR/api"
+  export BUNDLE_GEMFILE="$ROOT_DIR/api/Gemfile"
+  bundle exec rails db:test:prepare
+)
+
+echo "==> Preparing Better Auth test database"
+DATABASE_URL="postgres://localhost:5432/autodidact_test" RAILS_ENV=test "$ROOT_DIR/bin/auth-migrate"
+
+echo "==> Running Rails specs"
+(
+  cd "$ROOT_DIR/api"
+  export BUNDLE_GEMFILE="$ROOT_DIR/api/Gemfile"
+  bundle exec rspec "$@"
+)
+
+echo "==> Running frontend tests"
+(
+  cd "$ROOT_DIR/web"
+  pnpm test
+)
