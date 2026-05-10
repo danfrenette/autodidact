@@ -8,7 +8,10 @@ export BUNDLE_GEMFILE="$ROOT_DIR/api/Gemfile"
 
 "$ROOT_DIR/bin/auth-migrate"
 
-printf 'Start the Rails server in a separate terminal with:\n\n'
-printf '  %q/bin/dev-api\n\n' "$ROOT_DIR"
+set -a
+# shellcheck disable=SC1091
+. "$ROOT_DIR/web/.env.local"
+set +a
 
-exec bundle exec foreman start -f Procfile -m all=1,api=0 "$@"
+cd "$ROOT_DIR/api"
+exec bundle exec rails server -p "${PORT:-3001}"

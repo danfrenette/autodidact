@@ -6,4 +6,6 @@ ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 export BUNDLE_GEMFILE="$ROOT_DIR/api/Gemfile"
 
+"$ROOT_DIR/bin/auth-migrate"
+
 exec bundle exec foreman start -f Procfile "$@"

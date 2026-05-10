@@ -9,6 +9,9 @@ bundle install --gemfile "$ROOT_DIR/api/Gemfile"
 echo "==> Preparing Rails database"
 (cd "$ROOT_DIR/api" && bin/rails db:prepare)
 
+echo "==> Preparing Better Auth database"
+"$ROOT_DIR/bin/auth-migrate"
+
 echo "==> Installing frontend dependencies"
 (cd "$ROOT_DIR/web" && pnpm install)
 
