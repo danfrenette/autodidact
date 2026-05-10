@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+RAILS_ENV="${RAILS_ENV:-development}"
+DATABASE_URL_OVERRIDE="${DATABASE_URL:-}"
+
+if [[ -f "$ROOT_DIR/web/.env.local" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  . "$ROOT_DIR/web/.env.local"
+  set +a
+fi
+
+if [[ -n "$DATABASE_URL_OVERRIDE" ]]; then
+  DATABASE_URL="$DATABASE_URL_OVERRIDE"
+elif [[ -z "${DATABASE_URL:-}" ]]; then
+  DATABASE_URL="postgres://localhost:5432/autodidact_${RAILS_ENV}"
+fi
+
+export DATABASE_URL
+export BETTER_AUTH_URL="${BETTER_AUTH_URL:-http://localhost:3000}"
+export BETTER_AUTH_SECRET="${BETTER_AUTH_SECRET:-dev-only-change-me-4f3c2e1a8b7d6c5f4e3a2b1c9d8e7f6a}"
+export GITHUB_CLIENT_ID="${GITHUB_CLIENT_ID:-auth-migrate-placeholder}"
+export GITHUB_CLIENT_SECRET="${GITHUB_CLIENT_SECRET:-auth-migrate-placeholder}"
+export GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID:-auth-migrate-placeholder}"
+export GOOGLE_CLIENT_SECRET="${GOOGLE_CLIENT_SECRET:-auth-migrate-placeholder}"
+
+psql -X -q "$DATABASE_URL" -v ON_ERROR_STOP=1 -c 'CREATE SCHEMA IF NOT EXISTS auth;'
+
+cd "$ROOT_DIR/web"
+pnpm dlx @better-auth/cli migrate --config src/lib/auth.ts --yes
