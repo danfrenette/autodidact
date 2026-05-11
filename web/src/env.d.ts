@@ -15,7 +15,12 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv {
       readonly BETTER_AUTH_SECRET?: string
+      readonly BETTER_AUTH_TRUSTED_ORIGINS?: string
       readonly BETTER_AUTH_URL?: string
+      readonly GITHUB_CLIENT_ID?: string
+      readonly GITHUB_CLIENT_SECRET?: string
+      readonly GOOGLE_CLIENT_ID?: string
+      readonly GOOGLE_CLIENT_SECRET?: string
       readonly RAILS_API_URL?: string
       readonly RAILS_HEALTHCHECK_PATH?: string
       readonly SENTRY_AUTH_TOKEN?: string

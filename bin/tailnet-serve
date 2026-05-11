@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+WEB_PORT="${WEB_PORT:-3000}"
+API_PORT="${API_PORT:-${PORT:-3001}}"
+
+if ! command -v tailscale >/dev/null 2>&1; then
+  printf 'tailscale is required to expose Autodidact on your tailnet.\n' >&2
+  exit 1
+fi
+
+TAILNET_HOST="$(tailscale status --self --json | ruby -rjson -e 'puts JSON.parse(STDIN.read).fetch("Self").fetch("DNSName").sub(/\.$/, "")')"
+
+cleanup() {
+  kill "$WEB_SERVE_PID" "$API_SERVE_PID" 2>/dev/null || true
+}
+
+trap cleanup EXIT INT TERM
+
+tailscale serve --yes --https="$WEB_PORT" "localhost:$WEB_PORT" &
+WEB_SERVE_PID="$!"
+tailscale serve --yes --https="$API_PORT" "localhost:$API_PORT" &
+API_SERVE_PID="$!"
+
+printf 'Autodidact tailnet routes are configured:\n\n'
+printf '  web: https://%s:%s\n' "$TAILNET_HOST" "$WEB_PORT"
+printf '  api: https://%s:%s\n\n' "$TAILNET_HOST" "$API_PORT"
+printf 'Start the app with bin/dev, or use bin/dev-services and bin/dev-api in separate terminals.\n'
+printf 'For split-terminal frontend auth, run these exports before starting web/dev-services:\n\n'
+printf '  export BETTER_AUTH_URL=%q\n' "https://$TAILNET_HOST:$WEB_PORT"
+printf '  export BETTER_AUTH_TRUSTED_ORIGINS=%q\n\n' "http://localhost:$WEB_PORT,http://127.0.0.1:$WEB_PORT,https://$TAILNET_HOST:$WEB_PORT"
+printf 'Press Ctrl-C in this terminal to stop exposing these ports.\n'
+
+wait "$WEB_SERVE_PID" "$API_SERVE_PID"
