@@ -1,4 +1,5 @@
 import { getTagTone } from '../-utils/tag-tone'
+import { TagPill } from './tag-pill'
 
 type TagEditorProps = {
   draftTag: string
@@ -29,23 +30,17 @@ export function TagEditor({
 
       <div className="flex min-h-11 flex-wrap items-center gap-1.5 rounded-sm border border-ad-border bg-ad-surface-elevated px-3 py-2.5">
         {tags.map((tag) => (
-          <span
+          <TagPill
             key={tag}
             className={[
-              'inline-flex min-h-7 items-center gap-1.5 rounded-sm px-2 text-xs font-medium',
+              'min-h-7 rounded-sm text-xs font-medium normal-case',
               toneClasses[getTagTone(tag)],
             ].join(' ')}
+            onRemove={() => onRemoveTag(tag)}
+            removeLabel={`Remove ${tag}`}
           >
             {tag}
-            <button
-              type="button"
-              onClick={() => onRemoveTag(tag)}
-              className="text-[11px] text-ad-text-muted transition-colors hover:text-ad-text-heading"
-              aria-label={`Remove ${tag}`}
-            >
-              ×
-            </button>
-          </span>
+          </TagPill>
         ))}
 
         <input

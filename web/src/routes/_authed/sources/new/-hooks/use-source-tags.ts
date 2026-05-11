@@ -1,11 +1,12 @@
 import { useState } from 'react'
+import type { Tag } from '#/features/sources/source.types'
 
-export function useSourceTags(initialTags: string[]) {
+export function useSourceTags(initialTags: Tag[]) {
   const [tags, setTags] = useState(initialTags)
   const [draftTag, setDraftTag] = useState('')
 
   function addTag(rawValue: string) {
-    const normalizedTag = normalizeTag(rawValue)
+    const normalizedTag: Tag = normalizeTag(rawValue)
 
     if (!normalizedTag || tags.includes(normalizedTag)) return
 
@@ -26,6 +27,6 @@ export function useSourceTags(initialTags: string[]) {
   }
 }
 
-function normalizeTag(value: string) {
+export function normalizeTag(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, '-')
 }

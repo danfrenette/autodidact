@@ -10,6 +10,7 @@ RSpec.describe Tag, type: :model do
     it { should belong_to(:user).class_name("Auth::User") }
     it { should have_many(:taggings).dependent(:destroy) }
     it { should have_many(:sources).through(:taggings) }
+    it { should have_many(:source_selections).through(:taggings) }
   end
 
   describe "validations" do

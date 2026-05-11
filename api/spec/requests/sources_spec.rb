@@ -46,21 +46,31 @@ RSpec.describe "Sources", type: :request do
         kind: "pdf",
         author: "Andrew Hunt & David Thomas",
         original_filename: "The Pragmatic Programmer Your Journey to Mastery, 20th Anniversary Edition by Andrew Hunt David Hurst Thomas.pdf",
-        tags: ["Programming", "Software Craft"],
+        tags: ["distributed-systems", "concurrency", "new-global-tag"],
         selections: [
           {
             kind: "chapter",
-            title: "&#160;Foreword",
+            title: " Foreword",
             label: "01",
             position: {ordinal: 1},
-            locator: {type: "page_range", start: 13, end: 13}
+            locator: {type: "page_range", start: 13, end: 13},
+            tags: []
           },
           {
             kind: "chapter",
-            title: "&#160;Preface to the Second Edition",
+            title: " Preface to the Second Edition",
             label: "02",
             position: {ordinal: 2},
-            locator: {type: "page_range", start: 17, end: 17}
+            locator: {type: "page_range", start: 17, end: 17},
+            tags: ["chapter-tag"]
+          },
+          {
+            kind: "chapter",
+            title: "How the Book Is Organized",
+            label: "03",
+            position: {ordinal: 3},
+            locator: {type: "page_range", start: 20, end: 20},
+            tags: []
           }
         ]
       }
@@ -68,9 +78,9 @@ RSpec.describe "Sources", type: :request do
       expect {
         post sources_path, params: {source: source_params}, as: :json
       }.to change(Source, :count).by(1)
-        .and change(SourceSelection, :count).by(2)
-        .and change(Tag, :count).by(2)
-        .and change(Tagging, :count).by(2)
+        .and change(SourceSelection, :count).by(3)
+        .and change(Tag, :count).by(4)
+        .and change(Tagging, :count).by(4)
 
       expect(response).to have_http_status(:created)
 
@@ -78,7 +88,7 @@ RSpec.describe "Sources", type: :request do
       expect(json_response.dig("data", "source", "title")).to eq(source_params.fetch(:title))
       expect(json_response.dig("data", "source", "kind")).to eq("pdf")
       expect(json_response.dig("data", "source", "author")).to eq("Andrew Hunt & David Thomas")
-      expect(json_response.dig("data", "source", "tags")).to eq(["programming", "software-craft"])
+      expect(json_response.dig("data", "source", "tags")).to eq(["concurrency", "distributed-systems", "new-global-tag"])
       expect(json_response.fetch("error")).to be_nil
 
       source = Source.find(json_response.dig("data", "source", "id"))
@@ -88,6 +98,13 @@ RSpec.describe "Sources", type: :request do
         author: "Andrew Hunt & David Thomas",
         user_id: current_user.id
       )
+      first_selection = source.source_selections.find_by!(label: "01")
+      second_selection = source.source_selections.find_by!(label: "02")
+      third_selection = source.source_selections.find_by!(label: "03")
+
+      expect(first_selection.tags).to be_empty
+      expect(second_selection.tags.map(&:name)).to eq(["chapter-tag"])
+      expect(third_selection.tags).to be_empty
     end
 
     it "returns validation errors when source params are invalid" do
@@ -109,15 +126,38 @@ RSpec.describe "Sources", type: :request do
   end
 
   describe "GET /sources/:id" do
-    let_it_be(:source, refind: true) do
-      create(:source, user: current_user, title: "Test Source", author: "Test Author")
+    let(:source_params) do
+      {
+        title: "Test Source",
+        kind: "pdf",
+        author: "Test Author",
+        selections: [
+          {
+            kind: "chapter",
+            title: "Chapter 1",
+            label: "01",
+            position: {ordinal: 1},
+            locator: {type: "page_range", start: 1, end: 12},
+            tags: ["process"]
+          },
+          {
+            kind: "chapter",
+            title: "Chapter 2",
+            label: "02",
+            position: {ordinal: 2},
+            locator: {type: "page_range", start: 13, end: 24},
+            tags: []
+          }
+        ]
+      }
     end
 
     before { sign_in(user: current_user) }
 
     it "returns the source with its selections" do
-      create(:source_selection, :complete, source: source, title: "Chapter 1", label: "01")
-      create(:source_selection, :pending, source: source, title: "Chapter 2", label: "02")
+      post sources_path, params: {source: source_params}, as: :json
+
+      source = Source.find(json_response.dig("data", "source", "id"))
 
       get source_path(source)
 
@@ -125,8 +165,11 @@ RSpec.describe "Sources", type: :request do
 
       expect(json_response.dig("data", "title")).to eq("Test Source")
       expect(json_response.dig("data", "author")).to eq("Test Author")
-      expect(json_response.dig("data", "progressPercentage")).to eq(50)
+      expect(json_response.dig("data", "progressPercentage")).to eq(0)
       expect(json_response.dig("data", "selections").length).to eq(2)
+      first_selection = json_response.dig("data", "selections").find { |selection| selection.fetch("label") == "01" }
+
+      expect(first_selection.fetch("tags")).to eq(["process"])
       expect(json_response.fetch("error")).to be_nil
     end
 

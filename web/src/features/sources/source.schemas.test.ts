@@ -29,6 +29,7 @@ describe('getSourceResponseSchema', () => {
             position: { ordinal: 12 },
             locator: { type: 'page_range', start: 33, end: 33 },
             status: 'pending',
+            tags: ['process'],
           },
         ],
       },

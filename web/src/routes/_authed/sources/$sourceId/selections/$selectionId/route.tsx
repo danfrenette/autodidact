@@ -2,6 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useConcepts } from '#/features/sources/hooks/use-concepts'
 import { useSource } from '#/features/sources/hooks/use-source'
+import { TagPill } from '../../../new/-components/tag-pill'
 import { ConceptCard } from './-components/concept-card'
 import { TabButton } from './-components/tab-button'
 
@@ -52,7 +53,6 @@ function ChapterAnalysisPage() {
   }
 
   const isComplete = selection.status === 'complete'
-
   return (
     <div className="flex flex-col gap-8 py-8 px-10">
       <div className="flex flex-col gap-4">
@@ -67,9 +67,10 @@ function ChapterAnalysisPage() {
           <Link
             to="/sources/$sourceId"
             params={{ sourceId }}
-            className="text-ad-text-muted hover:text-ad-text-secondary"
+            className="max-w-60 truncate text-ad-text-muted hover:text-ad-text-secondary"
+            title={source.title}
           >
-            {source.kind === 'pdf' ? 'Book' : source.kind}
+            {source.title}
           </Link>
           <span className="text-ad-text-muted">/</span>
           <span className="text-ad-text-secondary">Ch. {selection.label}</span>
@@ -98,6 +99,25 @@ function ChapterAnalysisPage() {
             </span>
           </div>
         </div>
+
+        {selection.tags.length ? (
+          <div className="flex items-center">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {selection.tags.map((tag, index) => (
+                <TagPill
+                  key={tag}
+                  className={
+                    index === 0
+                      ? 'border-[#3d2b2d] bg-[#2e2224] font-sans text-xs normal-case tracking-[0.02em] text-ad-text-heading'
+                      : 'font-sans text-xs normal-case tracking-[0.02em] text-ad-text-body'
+                  }
+                >
+                  {tag}
+                </TagPill>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <div className="flex items-center gap-6 border-b border-ad-border pb-0">

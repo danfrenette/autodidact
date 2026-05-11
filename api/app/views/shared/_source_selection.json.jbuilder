@@ -9,3 +9,4 @@ json.title source_selection.title
 json.label source_selection.label
 json.position source_selection.position
 json.locator source_selection.locator
+json.tags source_selection.tags.map(&:name).sort

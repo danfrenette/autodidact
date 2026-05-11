@@ -2,12 +2,16 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useCreateSource } from '#/features/sources/hooks/use-create-source'
 import { buildCreateSourceInput } from '#/features/sources/source.mappers'
 import { ActionBar } from './-components/action-bar'
-import { ChapterSelection } from './-components/chapter-selection'
+import {
+  ChapterSelection,
+  type ChapterSelectionControls,
+} from './-components/chapter-selection'
 import { ConnectionPreview } from './-components/connection-preview'
 import { FileIntakePanel } from './-components/file-intake-panel'
 import { SourceModeTabs } from './-components/source-mode-tabs'
 import { TagEditor } from './-components/tag-editor'
 import { defaultModelLabel, defaultTags } from './-constants'
+import { useChapterTagMap } from './-hooks/use-chapter-tags'
 import { useConnectionPreview } from './-hooks/use-connection-preview'
 import { usePdfIntake } from './-hooks/use-pdf-intake'
 import { useSourceTags } from './-hooks/use-source-tags'
@@ -18,36 +22,51 @@ export const Route = createFileRoute('/_authed/sources/new')({
 
 function AddSourceRoute() {
   const navigate = useNavigate()
-  const {
-    document,
-    errorMessage,
-    isReading,
-    loadFile,
-    removeDocument,
-    selectAllChapters,
-    selectedChapterIds,
-    toggleChapter,
-  } = usePdfIntake()
+  const pdfIntake = usePdfIntake()
   const createSource = useCreateSource()
+  const chapterTagMap = useChapterTagMap()
   const { addTag, draftTag, removeTag, setDraftTag, tags } =
     useSourceTags(defaultTags)
   const connections = useConnectionPreview(tags)
-  const selectedChapterCount = selectedChapterIds.length
-  const canProcess = Boolean(document && selectedChapterCount > 0)
+  const selectedChapterCount = pdfIntake.selectedChapterIds.length
+  const canProcess = Boolean(pdfIntake.document && selectedChapterCount > 0)
   const createSourceErrorMessage =
     createSource.error instanceof Error ? createSource.error.message : null
 
   function createFromSelectedChapters() {
-    if (!document) return
+    if (!pdfIntake.document) return
 
-    createSource.mutate(buildCreateSourceInput(document, selectedChapterIds, tags), {
-      onSuccess: (data) => {
-        void navigate({
-          to: '/sources/$sourceId',
-          params: { sourceId: data.data.source.id },
-        })
+    createSource.mutate(
+      buildCreateSourceInput(
+        pdfIntake.document,
+        pdfIntake.selectedChapterIds,
+        tags,
+        chapterTagMap.tagsByChapterId,
+      ),
+      {
+        onSuccess: (data) => {
+          void navigate({
+            to: '/sources/$sourceId',
+            params: { sourceId: data.data.source.id },
+          })
+        },
       },
-    })
+    )
+  }
+
+  function toggleChapterAndClearTags(chapterId: string) {
+    if (pdfIntake.selectedChapterIds.includes(chapterId)) {
+      chapterTagMap.clearChapterTags(chapterId)
+    }
+
+    pdfIntake.toggleChapter(chapterId)
+  }
+
+  const chapterSelection: ChapterSelectionControls = {
+    selectedIds: pdfIntake.selectedChapterIds,
+    select: pdfIntake.selectChapter,
+    selectAll: pdfIntake.selectAllChapters,
+    toggle: toggleChapterAndClearTags,
   }
 
   return (
@@ -66,19 +85,18 @@ function AddSourceRoute() {
           <div className="space-y-3">
             <SourceModeTabs activeMode="file" />
             <FileIntakePanel
-              document={document}
-              errorMessage={errorMessage}
-              isReading={isReading}
-              onFileSelect={loadFile}
-              onRemove={removeDocument}
+              document={pdfIntake.document}
+              errorMessage={pdfIntake.errorMessage}
+              isReading={pdfIntake.isReading}
+              onFileSelect={pdfIntake.loadFile}
+              onRemove={pdfIntake.removeDocument}
             />
           </div>
 
           <ChapterSelection
-            chapters={document?.chapters ?? []}
-            selectedChapterIds={selectedChapterIds}
-            onSelectAll={selectAllChapters}
-            onToggleChapter={toggleChapter}
+            chapters={pdfIntake.document?.chapters ?? []}
+            chapterTagMap={chapterTagMap}
+            selection={chapterSelection}
           />
 
           <div className="space-y-3">

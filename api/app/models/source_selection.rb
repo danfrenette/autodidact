@@ -3,6 +3,8 @@
 class SourceSelection < ApplicationRecord
   belongs_to :source
   has_many :concepts, dependent: :destroy
+  has_many :taggings, as: :taggable, dependent: :destroy
+  has_many :tags, through: :taggings
 
   serialize :position, coder: SourceSelection::Position
   serialize :locator, coder: SourceSelection::Locator

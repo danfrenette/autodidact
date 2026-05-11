@@ -6,12 +6,15 @@ const pageRangeLocatorSchema = z.object({
   end: z.number().int().positive(),
 })
 
+export const tagSchema = z.string().min(1)
+
 export const sourceSelectionInputSchema = z.object({
   kind: z.literal('chapter'),
   title: z.string().min(1),
   label: z.string().min(1),
   position: z.object({ ordinal: z.number().int().positive() }),
   locator: pageRangeLocatorSchema,
+  tags: z.array(tagSchema),
 })
 
 export const createSourceInputSchema = z.object({
@@ -19,7 +22,7 @@ export const createSourceInputSchema = z.object({
   kind: z.literal('pdf'),
   author: z.string().nullable(),
   originalFilename: z.string().min(1),
-  tags: z.array(z.string()),
+  tags: z.array(tagSchema),
   selections: z.array(sourceSelectionInputSchema),
 })
 
@@ -29,7 +32,7 @@ export const sourceSchema = z.object({
   author: z.string().nullable(),
   kind: z.string(),
   originalFilename: z.string().nullable(),
-  tags: z.array(z.string()),
+  tags: z.array(tagSchema),
   status: z.string(),
   assetAttached: z.boolean(),
   selectionCount: z.number(),
@@ -47,6 +50,7 @@ export const sourceSelectionSchema = z.object({
   position: z.object({ ordinal: z.number() }),
   locator: pageRangeLocatorSchema,
   status: z.string(),
+  tags: z.array(tagSchema).default([]),
 })
 
 export const createSourceResponseSchema = z.object({

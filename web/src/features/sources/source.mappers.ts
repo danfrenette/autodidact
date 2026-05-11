@@ -1,9 +1,14 @@
-import type { CreateSourceInput, SourceIntakeDocument } from './source.types'
+import type {
+  CreateSourceInput,
+  SourceIntakeDocument,
+  Tag,
+} from './source.types'
 
 export function buildCreateSourceInput(
   document: SourceIntakeDocument,
   selectedChapterIds: string[],
-  tags: string[],
+  tags: Tag[],
+  chapterTags: Record<string, Tag[]> = {},
 ): CreateSourceInput {
   return {
     title: titleFromFileName(document.file.name),
@@ -23,6 +28,7 @@ export function buildCreateSourceInput(
           start: chapter.page,
           end: chapter.page,
         },
+        tags: chapterTags[chapter.id] ?? [],
       })),
   }
 }

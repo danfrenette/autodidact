@@ -35,6 +35,31 @@ RSpec.describe Sources::Create, type: :service do
       expect(result.source.source_selections.first.title).to eq("Chapter 1")
     end
 
+    it "creates tags on selections" do
+      selection_params = [
+        {
+          kind: "chapter",
+          title: "Chapter 1",
+          label: "01",
+          position: {ordinal: 1},
+          locator: {type: "page_range", start: 1, end: 12},
+          tags: ["Distributed Systems", "Databases"]
+        }
+      ]
+
+      result = described_class.call(
+        user: current_user,
+        source_params: {title: "Test Source"},
+        selection_params: selection_params
+      )
+
+      selection = result.source.source_selections.first
+
+      expect(result).to be_success
+      expect(selection.tags.map(&:name)).to contain_exactly("distributed-systems", "databases")
+      expect(selection.taggings.map(&:taggable)).to all(eq(selection))
+    end
+
     it "creates a source with tags" do
       result = described_class.call(
         user: current_user,

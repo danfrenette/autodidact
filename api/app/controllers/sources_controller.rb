@@ -11,7 +11,7 @@ class SourcesController < ApplicationController
   end
 
   def show
-    source = current_user_sources.includes(:source_selections, :tags).find(params[:id])
+    source = current_user_sources.includes(:tags, source_selections: :tags).find(params[:id])
 
     render_success(
       template: "sources/show",
@@ -73,7 +73,7 @@ class SourcesController < ApplicationController
   end
 
   def source_selection_params
-    params.require(:source).permit(selections: [:kind, :subtype, :title, :label, {position: {}, locator: {}}]).fetch(:selections, [])
+    params.require(:source).permit(selections: [:kind, :subtype, :title, :label, {position: {}, locator: {}, tags: []}]).fetch(:selections, [])
   end
 
   def source_tag_params

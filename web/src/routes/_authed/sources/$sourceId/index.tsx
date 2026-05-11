@@ -41,8 +41,11 @@ function SourceDetailPage() {
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-1.5 font-sans text-[11px] font-medium uppercase tracking-[0.1em]">
           <span className="text-ad-text-muted">Sources /</span>
-          <span className="text-ad-text-secondary">
-            {source.kind === 'pdf' ? 'Book' : source.kind}
+          <span
+            className="max-w-60 truncate text-ad-text-secondary"
+            title={source.title}
+          >
+            {source.title}
           </span>
         </div>
 

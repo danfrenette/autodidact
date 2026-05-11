@@ -27,40 +27,42 @@ export function FileIntakePanel({
 
   return (
     <div className="space-y-3">
-      <button
-        type="button"
-        onClick={() => inputRef.current?.click()}
-        onDragOver={(event) => event.preventDefault()}
-        onDrop={(event) => {
-          event.preventDefault()
-          void handleFiles(event.dataTransfer.files)
-        }}
-        className="flex min-h-30 cursor-pointer flex-col justify-center rounded-sm border border-dashed border-ad-border bg-ad-surface-elevated px-5 text-left transition-colors hover:border-ad-border-hover"
-      >
-        <input
-          ref={inputRef}
-          type="file"
-          accept="application/pdf"
-          className="hidden"
-          onChange={(event) => {
-            void handleFiles(event.target.files)
-            event.target.value = ''
+      {!document ? (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          onDragOver={(event) => event.preventDefault()}
+          onDrop={(event) => {
+            event.preventDefault()
+            void handleFiles(event.dataTransfer.files)
           }}
-        />
+          className="flex min-h-30 cursor-pointer flex-col justify-center rounded-sm border border-dashed border-ad-border bg-ad-surface-elevated px-5 text-left transition-colors hover:border-ad-border-hover"
+        >
+          <input
+            ref={inputRef}
+            type="file"
+            accept="application/pdf"
+            className="hidden"
+            onChange={(event) => {
+              void handleFiles(event.target.files)
+              event.target.value = ''
+            }}
+          />
 
-        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-ad-text-secondary">
-          File
-        </p>
-        <p className="mt-3 text-sm text-ad-text-heading">
-          {isReading
-            ? 'Reading PDF outline...'
-            : 'Drop a PDF here or click to choose a file.'}
-        </p>
-        <p className="mt-2 text-[13px] leading-5 text-ad-text-muted">
-          Browser-side parsing extracts the outline locally so chapter selection
-          happens before anything is processed.
-        </p>
-      </button>
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-ad-text-secondary">
+            File
+          </p>
+          <p className="mt-3 text-sm text-ad-text-heading">
+            {isReading
+              ? 'Reading PDF outline...'
+              : 'Drop a PDF here or click to choose a file.'}
+          </p>
+          <p className="mt-2 text-[13px] leading-5 text-ad-text-muted">
+            Browser-side parsing extracts the outline locally so chapter
+            selection happens before anything is processed.
+          </p>
+        </button>
+      ) : null}
 
       {errorMessage ? (
         <div className="rounded-sm border border-ad-accent/30 bg-ad-accent-subtle px-4 py-3 text-sm text-ad-accent">

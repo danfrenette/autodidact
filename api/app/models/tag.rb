@@ -5,6 +5,7 @@ class Tag < ApplicationRecord
   has_many :taggings, dependent: :destroy
 
   has_many :sources, through: :taggings, source: :taggable, source_type: "Source"
+  has_many :source_selections, through: :taggings, source: :taggable, source_type: "SourceSelection"
 
   validates :name, presence: true, uniqueness: {scope: :user_id}
 

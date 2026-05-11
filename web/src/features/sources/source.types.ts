@@ -7,8 +7,10 @@ import type {
   sourceSchema,
   sourceSelectionInputSchema,
   sourceSelectionSchema,
+  tagSchema,
 } from './source.schemas'
 
+export type Tag = z.infer<typeof tagSchema>
 export type SourceSelectionInput = z.infer<typeof sourceSelectionInputSchema>
 export type CreateSourceInput = z.infer<typeof createSourceInputSchema>
 export type Source = z.infer<typeof sourceSchema>

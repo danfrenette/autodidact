@@ -36,7 +36,10 @@ module Sources
 
     def create_selections(source)
       selection_params.each do |params|
-        source.source_selections.create!(params)
+        tag_names = params.delete(:tags) || []
+        selection = source.source_selections.create!(params)
+
+        Tags::FindOrCreate.call(user: user, taggable: selection, tag_names: tag_names)
       end
     end
 

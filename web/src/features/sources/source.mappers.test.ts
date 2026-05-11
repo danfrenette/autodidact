@@ -20,6 +20,10 @@ describe('buildCreateSourceInput', () => {
       },
       ['1-foreword', '3-organization'],
       ['programming', 'software-craft'],
+      {
+        '1-foreword': ['introduction'],
+        '3-organization': ['structure', 'reading'],
+      },
     )
 
     expect(input).toEqual({
@@ -35,6 +39,7 @@ describe('buildCreateSourceInput', () => {
           label: '01',
           position: { ordinal: 1 },
           locator: { type: 'page_range', start: 13, end: 13 },
+          tags: ['introduction'],
         },
         {
           kind: 'chapter',
@@ -42,6 +47,7 @@ describe('buildCreateSourceInput', () => {
           label: '03',
           position: { ordinal: 3 },
           locator: { type: 'page_range', start: 20, end: 20 },
+          tags: ['structure', 'reading'],
         },
       ],
     })

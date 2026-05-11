@@ -74,6 +74,18 @@ export function usePdfIntake() {
     }))
   }
 
+  function selectChapter(chapterId: string) {
+    setState((currentState) => {
+      if (currentState.selectedChapterIds.includes(chapterId))
+        return currentState
+
+      return {
+        ...currentState,
+        selectedChapterIds: [...currentState.selectedChapterIds, chapterId],
+      }
+    })
+  }
+
   function selectAllChapters() {
     setState((currentState) => ({
       ...currentState,
@@ -86,6 +98,7 @@ export function usePdfIntake() {
     ...state,
     loadFile,
     removeDocument,
+    selectChapter,
     toggleChapter,
     selectAllChapters,
   }
