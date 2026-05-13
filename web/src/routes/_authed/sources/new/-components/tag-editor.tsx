@@ -9,12 +9,6 @@ type TagEditorProps = {
   onRemoveTag: (tag: string) => void
 }
 
-const toneClasses = {
-  accent: 'bg-[#3d2120] text-ad-text-heading',
-  ember: 'bg-[#2e2224] text-ad-text-heading',
-  muted: 'bg-[#1e1e24] text-ad-text-heading',
-} as const
-
 export function TagEditor({
   draftTag,
   tags,
@@ -24,7 +18,7 @@ export function TagEditor({
 }: TagEditorProps) {
   return (
     <section className="space-y-3 border-t border-ad-border pt-6">
-      <h2 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-ad-text-secondary">
+      <h2 className="font-mono text-xs font-bold uppercase tracking-widest text-ad-text-secondary">
         Tags
       </h2>
 
@@ -32,10 +26,8 @@ export function TagEditor({
         {tags.map((tag) => (
           <TagPill
             key={tag}
-            className={[
-              'min-h-7 rounded-sm text-xs font-medium normal-case',
-              toneClasses[getTagTone(tag)],
-            ].join(' ')}
+            tone={getTagTone(tag)}
+            className="min-h-7 rounded-sm text-xs font-medium normal-case"
             onRemove={() => onRemoveTag(tag)}
             removeLabel={`Remove ${tag}`}
           >
@@ -54,7 +46,7 @@ export function TagEditor({
           }}
           onBlur={() => onAddTag(draftTag)}
           placeholder="Add tag..."
-          className="min-w-32 flex-1 border-0 bg-transparent p-0 text-[13px] text-ad-text-heading outline-none placeholder:text-ad-text-muted"
+          className="min-w-32 flex-1 border-0 bg-transparent p-0 text-sm text-ad-text-heading outline-none placeholder:text-ad-text-muted"
         />
       </div>
     </section>

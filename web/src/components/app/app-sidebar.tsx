@@ -22,7 +22,7 @@ export function AppSidebar() {
       <div className="border-b border-ad-border px-5 py-6">
         <Link
           to="/sources/new"
-          className="font-serif text-[22px] font-extrabold uppercase tracking-[-0.01em] text-ad-text-heading"
+          className="font-serif text-2xl font-extrabold uppercase tracking-tight text-ad-text-heading"
         >
           Autodidact
         </Link>

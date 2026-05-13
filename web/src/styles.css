@@ -13,6 +13,7 @@
   --font-mono:
     "Departure Mono", "DepartureMono", "SF Mono", "Monaco", "Inconsolata",
     "Fira Code", monospace;
+  --container-ad-page: 69rem;
 
   /* Autodidast semantic colors exposed to Tailwind */
   --color-ad-base: var(--ad-base);
@@ -29,6 +30,13 @@
   --color-ad-accent: var(--ad-accent);
   --color-ad-accent-hover: var(--ad-accent-hover);
   --color-ad-accent-subtle: var(--ad-accent-subtle);
+  --color-ad-chip: var(--ad-chip);
+  --color-ad-chip-border: var(--ad-chip-border);
+  --color-ad-chip-text: var(--ad-chip-text);
+  --color-ad-chip-accent: var(--ad-chip-accent);
+  --color-ad-chip-accent-border: var(--ad-chip-accent-border);
+  --color-ad-chip-accent-text: var(--ad-chip-accent-text);
+  --color-ad-chip-strong: var(--ad-chip-strong);
 }
 
 :root {
@@ -106,6 +114,15 @@
   --ad-accent: #c8352e;
   --ad-accent-hover: #a02a24;
   --ad-accent-subtle: rgba(200, 53, 46, 0.1);
+
+  /* Chips and tags */
+  --ad-chip: #1e1e24;
+  --ad-chip-border: #2a2a30;
+  --ad-chip-text: #c8c8d0;
+  --ad-chip-accent: #2e2224;
+  --ad-chip-accent-border: #3d2b2d;
+  --ad-chip-accent-text: #e8e8ec;
+  --ad-chip-strong: #3d2120;
 
   /* Status colors */
   --ad-success: #4a4a52;

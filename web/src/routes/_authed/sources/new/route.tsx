@@ -71,9 +71,9 @@ function AddSourceRoute() {
 
   return (
     <div className="min-h-full px-12 py-8">
-      <div className="max-w-[1104px] space-y-8">
+      <div className="max-w-ad-page space-y-8">
         <header className="space-y-1.5">
-          <h1 className="font-serif text-[32px] font-extrabold uppercase leading-none tracking-tight text-ad-text-heading">
+          <h1 className="font-serif text-3xl font-extrabold uppercase leading-none tracking-tight text-ad-text-heading">
             Add Source
           </h1>
           <p className="text-sm text-ad-text-muted">

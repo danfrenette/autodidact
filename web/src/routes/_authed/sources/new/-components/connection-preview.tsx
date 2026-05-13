@@ -9,7 +9,7 @@ export function ConnectionPreview({ connections }: ConnectionPreviewProps) {
     <div className="rounded-sm border border-ad-border px-4 py-3.5">
       <div className="flex items-center gap-2">
         <div className="size-1.5 rounded-full bg-ad-accent" />
-        <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.08em] text-ad-text-secondary">
+        <div className="font-mono text-xs font-semibold uppercase tracking-widest text-ad-text-secondary">
           Will connect to {connections.length} sources
         </div>
       </div>
@@ -24,7 +24,7 @@ export function ConnectionPreview({ connections }: ConnectionPreviewProps) {
               <div className="text-xs font-medium text-ad-text-secondary">
                 {connection.title}
               </div>
-              <div className="text-[10px] text-ad-text-muted">
+              <div className="text-xs text-ad-text-muted">
                 via {connection.matchingTags.join(', ')}
               </div>
             </div>

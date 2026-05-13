@@ -57,7 +57,7 @@ export function ChapterSelection({
   return (
     <section className="space-y-4 pt-2">
       <div className="flex items-center justify-between">
-        <h2 className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-ad-text-secondary">
+        <h2 className="font-mono text-xs font-bold uppercase tracking-widest text-ad-text-secondary">
           Review selections
         </h2>
         <button
@@ -85,7 +85,7 @@ export function ChapterSelection({
             disabled={
               !bulkTagEditor.tags.length || !selection.selectedIds.length
             }
-            className="shrink-0 bg-ad-accent px-3 py-2 text-xs font-bold uppercase tracking-[0.08em] text-ad-text-heading transition-opacity disabled:opacity-40"
+            className="shrink-0 bg-ad-accent px-3 py-2 text-xs font-bold uppercase tracking-widest text-ad-text-heading transition-opacity disabled:opacity-40"
           >
             Tag selected
           </button>
@@ -102,7 +102,7 @@ export function ChapterSelection({
             }}
             onBlur={() => bulkTagEditor.addTag(bulkTagEditor.draftTag)}
             placeholder="Search or create tag..."
-            className="w-full border border-ad-border bg-ad-background px-3 py-2 font-mono text-xs text-ad-text-heading outline-none placeholder:text-ad-text-muted"
+            className="w-full border border-ad-border bg-ad-base px-3 py-2 font-mono text-xs text-ad-text-heading outline-none placeholder:text-ad-text-muted"
           />
           {bulkTagEditor.tags.length ? (
             <div className="flex flex-wrap gap-1.5">
@@ -144,19 +144,19 @@ export function ChapterSelection({
                 >
                   <span
                     className={[
-                      'h-3.5 w-3.5 shrink-0 rounded-[2px] border border-ad-border',
+                      'h-3.5 w-3.5 shrink-0 rounded-sm border border-ad-border',
                       isSelected
                         ? 'border-ad-accent bg-ad-accent'
                         : 'bg-transparent',
                     ].join(' ')}
                     aria-hidden="true"
                   />
-                  <span className="w-6 shrink-0 font-mono text-[11px] text-ad-text-muted">
+                  <span className="w-6 shrink-0 font-mono text-xs text-ad-text-muted">
                     {chapter.number.toString().padStart(2, '0')}
                   </span>
                   <span
                     className={[
-                      'min-w-0 flex-1 truncate text-[13px]',
+                      'min-w-0 flex-1 truncate text-sm',
                       isSelected
                         ? 'font-medium text-ad-text-heading'
                         : 'text-ad-text-secondary',
@@ -172,7 +172,7 @@ export function ChapterSelection({
                   onOpenEditor={() => setExpandedChapterId(chapter.id)}
                 />
 
-                <span className="w-14 shrink-0 text-right font-mono text-[11px] text-ad-text-muted">
+                <span className="w-14 shrink-0 text-right font-mono text-xs text-ad-text-muted">
                   p. {chapter.page}
                 </span>
               </div>

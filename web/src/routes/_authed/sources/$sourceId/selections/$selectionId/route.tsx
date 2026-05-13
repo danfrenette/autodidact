@@ -44,7 +44,7 @@ function ChapterAnalysisPage() {
         <p>Failed to load chapter</p>
         <Link
           to="/sources"
-          className="inline-flex items-center justify-center rounded-sm bg-ad-accent px-5 py-2.5 text-[13px] font-medium text-ad-text-heading transition-colors hover:bg-ad-accent-hover"
+          className="inline-flex items-center justify-center rounded-sm bg-ad-accent px-5 py-2.5 text-sm font-medium text-ad-text-heading transition-colors hover:bg-ad-accent-hover"
         >
           Back to Sources
         </Link>
@@ -56,7 +56,7 @@ function ChapterAnalysisPage() {
   return (
     <div className="flex flex-col gap-8 py-8 px-10">
       <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-1.5 font-sans text-[11px] font-medium uppercase tracking-[0.1em]">
+        <div className="flex items-center gap-1.5 font-sans text-xs font-medium uppercase tracking-widest">
           <Link
             to="/sources"
             className="text-ad-text-muted hover:text-ad-text-secondary"
@@ -78,7 +78,7 @@ function ChapterAnalysisPage() {
 
         <div className="flex items-start justify-between gap-4">
           <div className="flex min-w-0 flex-1 flex-col gap-1">
-            <h1 className="truncate font-sans text-[32px] font-extrabold uppercase leading-none tracking-tight text-ad-text-heading">
+            <h1 className="truncate font-sans text-3xl font-extrabold uppercase leading-none tracking-tight text-ad-text-heading">
               {selection.title}
             </h1>
             {source.author && (
@@ -93,7 +93,7 @@ function ChapterAnalysisPage() {
               className={`size-1.5 rounded-full ${isComplete ? 'bg-ad-text-secondary' : 'bg-ad-accent'}`}
             />
             <span
-              className={`font-sans text-[10px] font-medium uppercase tracking-[0.08em] ${isComplete ? 'text-ad-text-secondary' : 'text-ad-accent'}`}
+              className={`font-sans text-xs font-medium uppercase tracking-widest ${isComplete ? 'text-ad-text-secondary' : 'text-ad-accent'}`}
             >
               {isComplete ? 'Complete' : 'Processing'}
             </span>
@@ -106,11 +106,8 @@ function ChapterAnalysisPage() {
               {selection.tags.map((tag, index) => (
                 <TagPill
                   key={tag}
-                  className={
-                    index === 0
-                      ? 'border-[#3d2b2d] bg-[#2e2224] font-sans text-xs normal-case tracking-[0.02em] text-ad-text-heading'
-                      : 'font-sans text-xs normal-case tracking-[0.02em] text-ad-text-body'
-                  }
+                  tone={index === 0 ? 'ember' : 'muted'}
+                  className="font-sans text-xs normal-case tracking-wide"
                 >
                   {tag}
                 </TagPill>

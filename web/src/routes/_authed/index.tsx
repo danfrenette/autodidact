@@ -8,13 +8,13 @@ function HomePage() {
   return (
     <div className="flex min-h-full items-center px-12 py-10">
       <div className="max-w-xl">
-        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-ad-text-secondary">
+        <p className="font-mono text-xs uppercase tracking-widest text-ad-text-secondary">
           Sources Workspace
         </p>
-        <h1 className="mt-3 font-serif text-[40px] font-extrabold uppercase leading-none tracking-tight text-ad-text-heading">
+        <h1 className="mt-3 font-serif text-4xl font-extrabold uppercase leading-none tracking-tight text-ad-text-heading">
           Start with a source.
         </h1>
-        <p className="mt-4 max-w-lg text-[15px] leading-6 text-ad-text-muted">
+        <p className="mt-4 max-w-lg text-base leading-6 text-ad-text-muted">
           Import a PDF, choose the chapters worth processing, and connect it to
           the rest of your knowledge graph.
         </p>

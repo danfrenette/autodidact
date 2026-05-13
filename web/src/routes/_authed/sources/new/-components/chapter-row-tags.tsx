@@ -25,19 +25,19 @@ export function ChapterTagSummary({
       {tags[0] ? (
         <TagPill className="max-w-28 truncate">{tags[0]}</TagPill>
       ) : (
-        <span className="border border-dashed border-ad-border px-2 py-1 font-mono text-[11px] text-ad-text-muted">
+        <span className="border border-dashed border-ad-border px-2 py-1 font-mono text-xs text-ad-text-muted">
           No tags
         </span>
       )}
       {tags.length > 1 ? (
-        <span className="border border-[#3d2120] bg-[#2e2224] px-2 py-1 font-mono text-[11px] text-ad-accent">
+        <span className="border border-ad-chip-strong bg-ad-chip-accent px-2 py-1 font-mono text-xs text-ad-accent">
           +{tags.length - 1}
         </span>
       ) : null}
       <button
         type="button"
         onClick={onOpenEditor}
-        className="border border-[#3d2120] px-2 py-1 font-mono text-[11px] text-ad-accent"
+        className="border border-ad-chip-strong px-2 py-1 font-mono text-xs text-ad-accent"
         aria-label={`Edit tags for ${chapterTitle}`}
       >
         +
@@ -54,12 +54,12 @@ export function ChapterTagEditor({
   tags,
 }: ChapterTagEditorProps) {
   return (
-    <div className="mb-3 ml-[4.25rem] max-w-[680px] space-y-4 border border-ad-border bg-ad-background px-3 py-4">
+    <div className="mb-3 ml-16 max-w-2xl space-y-4 border border-ad-border bg-ad-base px-3 py-4">
       <div className="max-w-xl space-y-1.5">
-        <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ad-text-secondary">
+        <h3 className="text-xs font-semibold uppercase tracking-widest text-ad-text-secondary">
           Tags for this chapter
         </h3>
-        <p className="text-[13px] leading-5 text-ad-text-secondary">
+        <p className="text-sm leading-5 text-ad-text-secondary">
           Tags guide note generation and source connections for this chapter.
           Use concise topic tags when this selection differs from the source as
           a whole.
@@ -90,9 +90,7 @@ export function ChapterTagEditor({
             </TagPill>
           ))
         ) : (
-          <span className="font-mono text-[11px] text-ad-text-muted">
-            No tags
-          </span>
+          <span className="font-mono text-xs text-ad-text-muted">No tags</span>
         )}
       </div>
     </div>

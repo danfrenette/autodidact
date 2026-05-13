@@ -9,7 +9,7 @@ export function TabButton({ label, isActive, onClick }: TabButtonProps) {
     <button
       type="button"
       onClick={onClick}
-      className={`relative pb-3 font-sans text-[13px] font-medium transition-colors ${
+      className={`relative pb-3 font-sans text-sm font-medium transition-colors ${
         isActive
           ? 'text-ad-text-heading'
           : 'text-ad-text-muted hover:text-ad-text-secondary'
@@ -17,7 +17,7 @@ export function TabButton({ label, isActive, onClick }: TabButtonProps) {
     >
       {label}
       {isActive && (
-        <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-ad-accent" />
+        <span className="absolute right-0 bottom-0 left-0 h-0.5 bg-ad-accent" />
       )}
     </button>
   )

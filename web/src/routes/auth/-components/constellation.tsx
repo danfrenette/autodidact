@@ -64,7 +64,7 @@ const EDGES: Edge[] = [
 
 export function ConstellationField() {
   return (
-    <div className="relative w-full max-w-[640px]">
+    <div className="relative w-full max-w-2xl">
       <svg
         viewBox="0 0 560 440"
         className="h-auto w-full"

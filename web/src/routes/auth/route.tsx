@@ -27,13 +27,13 @@ function AuthPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-ad-base px-4">
         <div className="w-full max-w-md rounded border border-ad-border bg-ad-surface p-8">
-          <p className="mb-2 font-mono text-[10px] uppercase tracking-wider text-ad-text-muted">
+          <p className="mb-2 font-mono text-xs uppercase tracking-wider text-ad-text-muted">
             OPERATOR AUTHENTICATED
           </p>
           <h1 className="font-serif text-2xl font-extrabold uppercase tracking-tight text-ad-text-heading">
             Session Active
           </h1>
-          <p className="mt-3 text-[14px] text-ad-text-secondary">
+          <p className="mt-3 text-sm text-ad-text-secondary">
             Signed in as {session.user.email}
           </p>
           <div className="mt-6 flex gap-3">
@@ -97,10 +97,10 @@ function AuthPage() {
 
         <div className="relative z-10 flex flex-1 flex-col">
           <div className="mb-auto pt-8 lg:pt-16">
-            <h1 className="font-serif text-[40px] font-extrabold uppercase leading-none tracking-tight text-ad-text-heading lg:text-[52px]">
+            <h1 className="font-serif text-4xl font-extrabold uppercase leading-none tracking-tight text-ad-text-heading lg:text-5xl">
               Autodidact
             </h1>
-            <p className="mt-4 max-w-[360px] text-[15px] leading-relaxed text-ad-text-muted">
+            <p className="mt-4 max-w-sm text-base leading-relaxed text-ad-text-muted">
               Turn scattered sources into structured knowledge. Books, courses,
               videos, podcasts — connected and retained.
             </p>
@@ -110,7 +110,7 @@ function AuthPage() {
             <ConstellationField />
           </div>
 
-          <div className="mb-8 mt-auto w-full max-w-[600px] space-y-3 lg:mb-0">
+          <div className="mb-8 mt-auto w-full max-w-xl space-y-3 lg:mb-0">
             <BootRow label="KNOWLEDGE BASE" status="STANDBY" />
             <BootRow label="RETENTION ENGINE" status="STANDBY" />
             <BootRow label="ANALYSIS PIPELINE" status="STANDBY" />
@@ -120,15 +120,15 @@ function AuthPage() {
         </div>
       </div>
 
-      <div className="relative flex items-center justify-center border-t border-ad-border bg-ad-surface p-6 lg:w-[680px] lg:border-l lg:border-t-0">
-        <div className="w-full max-w-[380px]">
+      <div className="relative flex items-center justify-center border-t border-ad-border bg-ad-surface p-6 lg:w-2xl lg:border-l lg:border-t-0">
+        <div className="w-full max-w-sm">
           <AuthTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
           <div className="mt-8">
-            <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-ad-text-muted">
+            <p className="font-mono text-xs uppercase tracking-widest text-ad-text-muted">
               OPERATOR AUTHENTICATION
             </p>
-            <p className="mt-2 text-[14px] leading-relaxed text-ad-text-secondary">
+            <p className="mt-2 text-sm leading-relaxed text-ad-text-secondary">
               {description}
             </p>
           </div>
@@ -156,7 +156,7 @@ function AuthPage() {
             />
           </div>
 
-          <p className="mt-8 text-center text-[12px] text-ad-text-muted">
+          <p className="mt-8 text-center text-xs text-ad-text-muted">
             By continuing, you agree to the{' '}
             <span className="text-ad-text-secondary hover:text-ad-text-heading">
               Terms of Service
