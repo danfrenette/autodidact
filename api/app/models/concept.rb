@@ -2,6 +2,7 @@
 
 class Concept < ApplicationRecord
   belongs_to :source_selection
+  has_many :citations, as: :citable, dependent: :destroy
 
   enum :classification, {
     core: "core",

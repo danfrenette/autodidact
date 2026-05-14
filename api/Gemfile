@@ -8,6 +8,7 @@ gem "bootsnap", require: false
 gem "image_processing", "~> 1.2"
 gem "kamal", require: false
 gem "pg", "~> 1.1"
+gem "neighbor"
 gem "puma", ">= 5.0"
 gem "solid_cable"
 gem "solid_cache"

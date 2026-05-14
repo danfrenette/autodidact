@@ -5,6 +5,9 @@ json.sourceId source_selection.source_id
 json.kind source_selection.kind
 json.subtype source_selection.subtype
 json.status source_selection.status
+json.pipelineStage source_selection.pipeline_stage
+json.errorMessage source_selection.error_message
+json.errorDetails source_selection.error_details
 json.title source_selection.title
 json.label source_selection.label
 json.position source_selection.position

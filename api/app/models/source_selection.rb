@@ -2,7 +2,10 @@
 
 class SourceSelection < ApplicationRecord
   belongs_to :source
+  has_one :source_selection_content, dependent: :destroy
   has_many :concepts, dependent: :destroy
+  has_many :questions, dependent: :destroy
+  has_many :quotes, dependent: :destroy
   has_many :taggings, as: :taggable, dependent: :destroy
   has_many :tags, through: :taggings
 

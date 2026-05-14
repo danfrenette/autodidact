@@ -10,10 +10,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_08_150006) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_14_000005) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
+  enable_extension "vector"
 
   create_table "active_storage_attachments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "blob_id", null: false
@@ -43,6 +44,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_08_150006) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "citations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "citable_id", null: false
+    t.string "citable_type", null: false
+    t.datetime "created_at", null: false
+    t.integer "position", null: false
+    t.string "role", default: "supporting", null: false
+    t.uuid "source_chunk_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["citable_type", "citable_id", "position"], name: "index_citations_on_citable_type_and_citable_id_and_position", unique: true
+    t.index ["citable_type", "citable_id"], name: "index_citations_on_citable"
+    t.index ["source_chunk_id"], name: "index_citations_on_source_chunk_id"
+  end
+
   create_table "concepts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "classification", default: "supporting", null: false
     t.datetime "created_at", null: false
@@ -56,12 +70,64 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_08_150006) do
     t.index ["source_selection_id"], name: "index_concepts_on_source_selection_id"
   end
 
+  create_table "questions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.text "answer", null: false
+    t.datetime "created_at", null: false
+    t.integer "position", null: false
+    t.uuid "source_selection_id", null: false
+    t.text "text", null: false
+    t.integer "tier", null: false
+    t.string "tier_name", null: false
+    t.datetime "updated_at", null: false
+    t.index ["source_selection_id", "position"], name: "index_questions_on_source_selection_id_and_position", unique: true
+    t.index ["source_selection_id", "tier"], name: "index_questions_on_source_selection_id_and_tier"
+    t.index ["source_selection_id"], name: "index_questions_on_source_selection_id"
+  end
+
+  create_table "quotes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "note"
+    t.integer "position", null: false
+    t.uuid "source_selection_id", null: false
+    t.text "text", null: false
+    t.datetime "updated_at", null: false
+    t.index ["source_selection_id", "position"], name: "index_quotes_on_source_selection_id_and_position", unique: true
+    t.index ["source_selection_id"], name: "index_quotes_on_source_selection_id"
+  end
+
+  create_table "source_chunks", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.integer "byte_length", null: false
+    t.integer "byte_offset", null: false
+    t.string "chunk_id", null: false
+    t.integer "chunk_index", null: false
+    t.text "content", null: false
+    t.datetime "created_at", null: false
+    t.vector "embedding", limit: 1536
+    t.uuid "source_selection_content_id", null: false
+    t.integer "token_count", null: false
+    t.datetime "updated_at", null: false
+    t.index ["chunk_id"], name: "index_source_chunks_on_chunk_id"
+    t.index ["source_selection_content_id", "chunk_index"], name: "idx_on_source_selection_content_id_chunk_index_b55b24cd60", unique: true
+    t.index ["source_selection_content_id"], name: "index_source_chunks_on_source_selection_content_id"
+  end
+
+  create_table "source_selection_contents", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.jsonb "locator_spans", default: [], null: false
+    t.text "raw_text", null: false
+    t.uuid "source_selection_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["source_selection_id"], name: "index_source_selection_contents_on_source_selection_id", unique: true
+  end
+
   create_table "source_selections", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.jsonb "error_details", default: {}, null: false
     t.text "error_message"
     t.string "kind", default: "chapter", null: false
     t.string "label", null: false
     t.jsonb "locator", default: {}, null: false
+    t.string "pipeline_stage"
     t.jsonb "position", default: {}, null: false
     t.uuid "source_id", null: false
     t.string "status", default: "pending", null: false
@@ -117,7 +183,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_08_150006) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "citations", "source_chunks"
   add_foreign_key "concepts", "source_selections"
+  add_foreign_key "questions", "source_selections"
+  add_foreign_key "quotes", "source_selections"
+  add_foreign_key "source_chunks", "source_selection_contents"
+  add_foreign_key "source_selection_contents", "source_selections"
   add_foreign_key "source_selections", "sources"
   add_foreign_key "taggings", "tags"
 end
