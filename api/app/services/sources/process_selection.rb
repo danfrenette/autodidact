@@ -20,23 +20,23 @@ module Sources
     def call
       transition_to_processing
 
-      content = run_stage(:convert) { extract_content }
-      return content if content.failure?
+      content = extract_content
+      return failed_result if failed?
 
-      chunks = run_stage(:chunk) { chunk_content(content.content) }
-      return chunks if chunks.failure?
+      chunks = chunk_content(content)
+      return failed_result if failed?
 
-      embedded_chunks = run_stage(:chunk) { embed_chunks(chunks.chunks) }
-      return embedded_chunks if embedded_chunks.failure?
+      embedded_chunks = embed_chunks(chunks)
+      return failed_result if failed?
 
-      related_chunks = run_stage(:retrieve) { retrieve_related_chunks(embedded_chunks.chunks) }
-      return related_chunks if related_chunks.failure?
+      related_chunks = retrieve_related_chunks(embedded_chunks)
+      return failed_result if failed?
 
-      analysis = run_stage(:analyze) { analyze_content(embedded_chunks.chunks, related_chunks.chunks) }
-      return analysis if analysis.failure?
+      analysis = analyze_content(embedded_chunks, related_chunks)
+      return failed_result if failed?
 
-      written = run_stage(:write) { write_results(analysis.analysis, embedded_chunks.chunks) }
-      return written if written.failure?
+      write_results(analysis, embedded_chunks)
+      return failed_result if failed?
 
       mark_complete
       refresh_source_status
@@ -45,7 +45,7 @@ module Sources
 
     private
 
-    attr_reader :source_selection
+    attr_reader :source_selection, :failed_result
 
     def source
       source_selection.source
@@ -60,43 +60,70 @@ module Sources
       )
     end
 
-    def run_stage(stage)
-      source_selection.update!(pipeline_stage: STAGES.fetch(stage))
-      result = yield
-
-      return fail_processing(stage, result.error_message) if result.failure?
-
-      result
-    end
-
     def extract_content
-      Sources::ExtractSelectionContent.call(source_selection: source_selection)
+      transition_to_stage(:convert)
+      result = Sources::ExtractSelectionContent.call(source_selection: source_selection)
+
+      fail_processing(:convert, result.error_message) if result.failure?
+
+      result.content unless failed?
     end
 
     def chunk_content(content)
-      Sources::ChunkContent.call(source_selection_content: content)
+      transition_to_stage(:chunk)
+      result = Sources::ChunkContent.call(source_selection_content: content)
+
+      fail_processing(:chunk, result.error_message) if result.failure?
+
+      result.chunks unless failed?
     end
 
     def embed_chunks(chunks)
-      Sources::EmbedChunks.call(source_chunks: chunks)
+      transition_to_stage(:chunk)
+      result = Sources::EmbedChunks.call(source_chunks: chunks)
+
+      fail_processing(:chunk, result.error_message) if result.failure?
+
+      result.chunks unless failed?
     end
 
     def retrieve_related_chunks(chunks)
-      Sources::RetrieveRelatedChunks.call(source_selection: source_selection, source_chunks: chunks)
+      transition_to_stage(:retrieve)
+      result = Sources::RetrieveRelatedChunks.call(source_selection: source_selection, source_chunks: chunks)
+
+      fail_processing(:retrieve, result.error_message) if result.failure?
+
+      result.chunks unless failed?
     end
 
     def analyze_content(chunks, related_chunks)
-      Sources::AnalyzeContent.call(source_chunks: chunks, related_chunks: related_chunks)
+      transition_to_stage(:analyze)
+      result = Sources::AnalyzeContent.call(source_chunks: chunks, related_chunks: related_chunks)
+
+      fail_processing(:analyze, result.error_message) if result.failure?
+
+      result.analysis unless failed?
     end
 
     def write_results(analysis, chunks)
-      Sources::WriteAnalysisResults.call(source_selection: source_selection, analysis: analysis, source_chunks: chunks)
+      transition_to_stage(:write)
+      result = Sources::WriteAnalysisResults.call(source_selection: source_selection, analysis: analysis, source_chunks: chunks)
+
+      fail_processing(:write, result.error_message) if result.failure?
+    end
+
+    def transition_to_stage(stage)
+      source_selection.update!(pipeline_stage: STAGES.fetch(stage))
     end
 
     def fail_processing(stage, message)
       mark_failed(stage, message)
       refresh_source_status
-      failure(error_message: message)
+      @failed_result = failure(error_message: message)
+    end
+
+    def failed?
+      failed_result.present?
     end
 
     def mark_complete
