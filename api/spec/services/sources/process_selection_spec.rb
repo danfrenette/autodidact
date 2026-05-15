@@ -10,7 +10,10 @@ RSpec.describe Sources::ProcessSelection, type: :service do
   describe ".call" do
     it "marks the selection complete when distillation succeeds" do
       selection = create(:source_selection, :processing, source: successful_processing_source)
-      allow_successful_distillation(selection)
+      content = instance_double(SourceSelectionContent)
+      chunks = [instance_double(SourceChunk)]
+      analysis = {concepts: [], questions: [], quotes: []}
+      allow_successful_pipeline(selection, content: content, chunks: chunks, analysis: analysis)
 
       result = described_class.call(source_selection: selection)
 
@@ -22,7 +25,7 @@ RSpec.describe Sources::ProcessSelection, type: :service do
 
     it "returns failure, marks the selection failed, and refreshes source status when distillation fails" do
       selection = create(:source_selection, :processing, source: failed_processing_source)
-      allow_failed_distillation(selection, RuntimeError.new("Distillation failed"))
+      allow_failed_extraction("Distillation failed")
 
       result = described_class.call(source_selection: selection)
 
@@ -30,29 +33,34 @@ RSpec.describe Sources::ProcessSelection, type: :service do
       expect(result.error_message).to eq("Distillation failed")
       expect(selection.reload.status).to eq("failed")
       expect(selection.error_message).to eq("Distillation failed")
+      expect(selection.error_details).to eq("stage" => "CONVERT", "message" => "Distillation failed")
       expect(failed_processing_source.reload.status).to eq("failed")
     end
   end
 
-  def allow_successful_distillation(selection)
-    allow_selection_file(selection)
-    allow(Substrate::Distill).to receive(:call).and_return(double(failure?: false))
+  def allow_successful_pipeline(selection, content:, chunks:, analysis:)
+    allow(Sources::ExtractSelectionContent).to receive(:call)
+      .with(source_selection: selection)
+      .and_return(double(failure?: false, content: content))
+    allow(Sources::ChunkContent).to receive(:call)
+      .with(source_selection_content: content)
+      .and_return(double(failure?: false, chunks: chunks))
+    allow(Sources::EmbedChunks).to receive(:call)
+      .with(source_chunks: chunks)
+      .and_return(double(failure?: false, chunks: chunks))
+    allow(Sources::RetrieveRelatedChunks).to receive(:call)
+      .with(source_selection: selection, source_chunks: chunks)
+      .and_return(double(failure?: false, chunks: []))
+    allow(Sources::AnalyzeContent).to receive(:call)
+      .with(source_chunks: chunks, related_chunks: [])
+      .and_return(double(failure?: false, analysis: analysis))
+    allow(Sources::WriteAnalysisResults).to receive(:call)
+      .with(source_selection: selection, analysis: analysis, source_chunks: chunks)
+      .and_return(double(failure?: false))
   end
 
-  def allow_failed_distillation(selection, error)
-    allow_selection_file(selection)
-    allow(Substrate::Distill).to receive(:call).and_return(double(failure?: true, error: error))
-  end
-
-  def allow_selection_file(selection)
-    source = selection.source
-    asset = double(open: nil)
-    pdf = instance_double(Substrate::Sources::Pdf, select_pages: "selected pages")
-    file = instance_double(File, path: "/tmp/source.pdf")
-
-    allow(selection).to receive(:source).and_return(source)
-    allow(source).to receive(:asset).and_return(asset)
-    allow(asset).to receive(:open).and_yield(file)
-    allow(Substrate::Sources::Pdf).to receive(:new).with(file.path).and_return(pdf)
+  def allow_failed_extraction(message)
+    allow(Sources::ExtractSelectionContent).to receive(:call)
+      .and_return(double(failure?: true, error_message: message))
   end
 end
