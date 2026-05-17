@@ -54,4 +54,7 @@ Rails.application.configure do
   config.active_job.queue_adapter = :test
   config.x.analysis.embedding_provider = :mock
   config.x.analysis.generation_provider = :mock
+  config.active_record.encryption.primary_key = "test-primary-key-32-bytes-long!!"
+  config.active_record.encryption.deterministic_key = "test-deterministic-key-32-bytes"
+  config.active_record.encryption.key_derivation_salt = "test-encryption-salt"
 end

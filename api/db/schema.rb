@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_14_000005) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_16_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -68,6 +68,32 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_14_000005) do
     t.index ["classification"], name: "index_concepts_on_classification"
     t.index ["source_selection_id", "name"], name: "index_concepts_on_source_selection_id_and_name", unique: true
     t.index ["source_selection_id"], name: "index_concepts_on_source_selection_id"
+  end
+
+  create_table "provider_credentials", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.text "api_key"
+    t.datetime "created_at", null: false
+    t.string "credential_kind", default: "user_key", null: false
+    t.string "key_fingerprint"
+    t.text "last_error_message"
+    t.datetime "last_verified_at"
+    t.string "provider", null: false
+    t.string "status", default: "disconnected", null: false
+    t.datetime "updated_at", null: false
+    t.string "user_id", null: false
+    t.index ["status"], name: "index_provider_credentials_on_status"
+    t.index ["user_id", "provider"], name: "index_provider_credentials_on_user_id_and_provider", unique: true
+  end
+
+  create_table "provider_role_settings", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "model", null: false
+    t.uuid "provider_credential_id", null: false
+    t.string "role", null: false
+    t.datetime "updated_at", null: false
+    t.string "user_id", null: false
+    t.index ["provider_credential_id"], name: "index_provider_role_settings_on_provider_credential_id"
+    t.index ["user_id", "role"], name: "index_provider_role_settings_on_user_id_and_role", unique: true
   end
 
   create_table "questions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -185,6 +211,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_14_000005) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "citations", "source_chunks"
   add_foreign_key "concepts", "source_selections"
+  add_foreign_key "provider_role_settings", "provider_credentials"
   add_foreign_key "questions", "source_selections"
   add_foreign_key "quotes", "source_selections"
   add_foreign_key "source_chunks", "source_selection_contents"

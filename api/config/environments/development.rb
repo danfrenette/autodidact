@@ -57,6 +57,9 @@ Rails.application.configure do
 
   config.x.analysis.embedding_provider = :mock
   config.x.analysis.generation_provider = :mock
+  config.active_record.encryption.primary_key = "development-primary-key-32-bytes!"
+  config.active_record.encryption.deterministic_key = "development-deterministic-key!"
+  config.active_record.encryption.key_derivation_salt = "development-encryption-salt"
 
   # Highlight code that triggered redirect in logs.
   config.action_dispatch.verbose_redirect_logs = true

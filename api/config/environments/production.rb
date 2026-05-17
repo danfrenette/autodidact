@@ -50,6 +50,23 @@ Rails.application.configure do
   config.active_job.queue_adapter = :solid_queue
   config.solid_queue.connects_to = {database: {writing: :queue}}
 
+  active_record_encryption = Rails.application.credentials.active_record_encryption || {}
+  config.active_record.encryption.primary_key = ENV["ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY"].presence || active_record_encryption[:primary_key]
+  config.active_record.encryption.deterministic_key = ENV["ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY"].presence || active_record_encryption[:deterministic_key]
+  config.active_record.encryption.key_derivation_salt = ENV["ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT"].presence || active_record_encryption[:key_derivation_salt]
+
+  config.after_initialize do
+    missing_encryption_keys = {
+      ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY: config.active_record.encryption.primary_key,
+      ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY: config.active_record.encryption.deterministic_key,
+      ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT: config.active_record.encryption.key_derivation_salt
+    }.select { |_key, value| value.blank? }.keys
+
+    if missing_encryption_keys.any?
+      raise "Missing Active Record encryption config: #{missing_encryption_keys.join(", ")}"
+    end
+  end
+
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
   # config.action_mailer.raise_delivery_errors = false

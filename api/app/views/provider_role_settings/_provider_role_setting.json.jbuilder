@@ -1,0 +1,8 @@
+json.id provider_role_setting.id
+json.role provider_role_setting.role
+json.provider provider_role_setting.provider
+json.model provider_role_setting.model
+json.providerCredentialId provider_role_setting.provider_credential_id
+json.credentialStatus provider_role_setting.provider_credential.status
+json.createdAt provider_role_setting.created_at.iso8601
+json.updatedAt provider_role_setting.updated_at.iso8601

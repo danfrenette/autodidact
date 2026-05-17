@@ -1,0 +1,9 @@
+json.id provider_credential.id
+json.provider provider_credential.provider
+json.credentialKind provider_credential.credential_kind
+json.status provider_credential.status
+json.displayKey provider_credential.display_key
+json.lastVerifiedAt provider_credential.last_verified_at&.iso8601
+json.lastErrorMessage provider_credential.last_error_message
+json.createdAt provider_credential.created_at.iso8601
+json.updatedAt provider_credential.updated_at.iso8601
