@@ -28,6 +28,8 @@ module Analysis
         mock_client_for(role_setting)
       when "openai"
         openai_client_for(role_setting)
+      when "google"
+        google_client_for(role_setting)
       else
         raise "Unknown analysis provider for #{role_setting.role}: #{role_setting.provider.inspect}"
       end
@@ -48,6 +50,16 @@ module Analysis
         Analysis::OpenaiEmbeddingClient.new(api_key: role_setting.provider_credential.api_key, model: role_setting.model)
       elsif role_setting.generation?
         Analysis::OpenaiGenerationClient.new(api_key: role_setting.provider_credential.api_key, model: role_setting.model)
+      else
+        raise "Unknown analysis role: #{role_setting.role.inspect}"
+      end
+    end
+
+    def google_client_for(role_setting)
+      if role_setting.embedding?
+        Analysis::GoogleEmbeddingClient.new(api_key: role_setting.provider_credential.api_key, model: role_setting.model)
+      elsif role_setting.generation?
+        Analysis::GoogleGenerationClient.new(api_key: role_setting.provider_credential.api_key, model: role_setting.model)
       else
         raise "Unknown analysis role: #{role_setting.role.inspect}"
       end

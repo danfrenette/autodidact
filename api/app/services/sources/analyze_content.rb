@@ -45,6 +45,8 @@ module Sources
         Analysis::MockGenerationClient.new
       when :openai
         raise "OpenAI generation provider requires user credentials"
+      when :google
+        raise "Google generation provider requires user credentials"
       else
         raise "Unknown analysis generation provider: #{provider.inspect}"
       end

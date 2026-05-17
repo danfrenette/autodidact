@@ -3,7 +3,7 @@
 module Analysis
   class ProviderRegistry
     def self.all
-      definitions = [Providers::Openai.definition]
+      definitions = [Providers::Openai.definition, Providers::Google.definition]
       definitions << Providers::Mock.definition if mock_enabled?
       definitions
     end

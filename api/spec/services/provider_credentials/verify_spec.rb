@@ -16,6 +16,19 @@ RSpec.describe ProviderCredentials::Verify, type: :service do
     expect(result).to be_success
   end
 
+  it "verifies Google credentials with a small embedding request" do
+    client = instance_double(Analysis::GoogleEmbeddingClient)
+
+    allow(Analysis::GoogleEmbeddingClient).to receive(:new)
+      .with(api_key: "google-key", model: "gemini-embedding-001")
+      .and_return(client)
+    allow(client).to receive(:embed).with("verify").and_return([0.1, 0.2])
+
+    result = described_class.call(provider: "google", api_key: "google-key")
+
+    expect(result).to be_success
+  end
+
   it "returns failure for provider errors" do
     client = instance_double(Analysis::OpenaiEmbeddingClient)
 

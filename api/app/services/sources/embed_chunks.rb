@@ -51,6 +51,8 @@ module Sources
         Analysis::MockEmbeddingClient.new
       when :openai
         raise "OpenAI embedding provider requires user credentials"
+      when :google
+        raise "Google embedding provider requires user credentials"
       else
         raise "Unknown analysis embedding provider: #{provider.inspect}"
       end

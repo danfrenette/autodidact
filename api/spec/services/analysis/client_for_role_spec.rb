@@ -53,4 +53,31 @@ RSpec.describe Analysis::ClientForRole, type: :service do
     expect(result).to be_success
     expect(result.client).to eq(client)
   end
+
+  it "returns the Google generation client for a Google generation setting" do
+    credential = instance_double(ProviderCredential, api_key: "google-key")
+    role_setting = instance_double(
+      ProviderRoleSetting,
+      role: "generation",
+      provider: "google",
+      provider_credential: credential,
+      model: "gemini-2.0-flash-lite",
+      embedding?: false,
+      generation?: true
+    )
+    resolve_result = instance_double(ProviderRoleSettings::Resolve::Result, failure?: false, role_setting: role_setting)
+    client = instance_double(Analysis::GoogleGenerationClient)
+
+    allow(ProviderRoleSettings::Resolve).to receive(:call)
+      .with(user: user, role: :generation)
+      .and_return(resolve_result)
+    allow(Analysis::GoogleGenerationClient).to receive(:new)
+      .with(api_key: "google-key", model: "gemini-2.0-flash-lite")
+      .and_return(client)
+
+    result = described_class.call(user: user, role: :generation)
+
+    expect(result).to be_success
+    expect(result.client).to eq(client)
+  end
 end

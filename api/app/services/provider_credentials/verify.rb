@@ -24,6 +24,8 @@ module ProviderCredentials
       case provider.to_s
       when "openai"
         Analysis::OpenaiEmbeddingClient.new(api_key: api_key, model: "text-embedding-3-small").embed("verify")
+      when "google"
+        Analysis::GoogleEmbeddingClient.new(api_key: api_key, model: "gemini-embedding-001").embed("verify")
       else
         raise "Unknown provider: #{provider.inspect}"
       end
