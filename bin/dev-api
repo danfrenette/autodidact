@@ -5,6 +5,8 @@ ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 
 cd "$ROOT_DIR"
 export BUNDLE_GEMFILE="$ROOT_DIR/api/Gemfile"
+export SOLID_QUEUE_IN_PUMA=1
+export SOLID_QUEUE_SUPERVISOR_MODE=async
 
 set -a
 # shellcheck disable=SC1091

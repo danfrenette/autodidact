@@ -15,4 +15,4 @@ cd "$ROOT_DIR"
 printf 'Start the Rails server in a separate terminal with:\n\n'
 printf '  %q/bin/dev-api\n\n' "$ROOT_DIR"
 
-exec bundle exec foreman start -f Procfile -m all=1,api=0 "$@"
+exec bundle exec foreman start -f Procfile -m web=1,api=0 "$@"
