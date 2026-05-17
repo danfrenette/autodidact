@@ -50,6 +50,14 @@ function AddSourceRoute() {
             params: { sourceId: data.data.source.id },
           })
         },
+        onError: (error) => {
+          if (error.message.includes('providers before adding sources')) {
+            void navigate({
+              to: '/settings/providers',
+              search: { notice: 'providers-required' },
+            })
+          }
+        },
       },
     )
   }

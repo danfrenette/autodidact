@@ -6,7 +6,7 @@ const navigationItems = [
   { label: 'Sources', to: '/sources' },
   { label: 'Knowledge Map', disabled: true },
   { label: 'Review', disabled: true },
-  { label: 'Settings', disabled: true },
+  { label: 'Settings', to: '/settings/providers' },
 ] as const
 
 export function AppSidebar() {

@@ -15,6 +15,7 @@ import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
 import { Route as AuthedSourcesIndexRouteImport } from './routes/_authed/sources/index'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api.trpc.$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as AuthedSettingsProvidersRouteImport } from './routes/_authed/settings/providers'
 import { Route as AuthedSourcesNewRouteRouteImport } from './routes/_authed/sources/new/route'
 import { Route as AuthedSourcesSourceIdRouteRouteImport } from './routes/_authed/sources/$sourceId/route'
 import { Route as AuthedSourcesSourceIdIndexRouteImport } from './routes/_authed/sources/$sourceId/index'
@@ -49,6 +50,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthedSettingsProvidersRoute = AuthedSettingsProvidersRouteImport.update({
+  id: '/settings/providers',
+  path: '/settings/providers',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
 const AuthedSourcesNewRouteRoute = AuthedSourcesNewRouteRouteImport.update({
   id: '/sources/new',
   path: '/sources/new',
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteRoute
   '/sources/$sourceId': typeof AuthedSourcesSourceIdRouteRouteWithChildren
   '/sources/new': typeof AuthedSourcesNewRouteRoute
+  '/settings/providers': typeof AuthedSettingsProvidersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/sources/': typeof AuthedSourcesIndexRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteRoute
   '/': typeof AuthedIndexRoute
   '/sources/new': typeof AuthedSourcesNewRouteRoute
+  '/settings/providers': typeof AuthedSettingsProvidersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/sources': typeof AuthedSourcesIndexRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/_authed/': typeof AuthedIndexRoute
   '/_authed/sources/$sourceId': typeof AuthedSourcesSourceIdRouteRouteWithChildren
   '/_authed/sources/new': typeof AuthedSourcesNewRouteRoute
+  '/_authed/settings/providers': typeof AuthedSettingsProvidersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/_authed/sources/': typeof AuthedSourcesIndexRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/sources/$sourceId'
     | '/sources/new'
+    | '/settings/providers'
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/sources/'
@@ -124,6 +134,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/'
     | '/sources/new'
+    | '/settings/providers'
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/sources'
@@ -136,6 +147,7 @@ export interface FileRouteTypes {
     | '/_authed/'
     | '/_authed/sources/$sourceId'
     | '/_authed/sources/new'
+    | '/_authed/settings/providers'
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/_authed/sources/'
@@ -194,6 +206,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authed/settings/providers': {
+      id: '/_authed/settings/providers'
+      path: '/settings/providers'
+      fullPath: '/settings/providers'
+      preLoaderRoute: typeof AuthedSettingsProvidersRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
     '/_authed/sources/new': {
       id: '/_authed/sources/new'
       path: '/sources/new'
@@ -246,6 +265,7 @@ interface AuthedRouteRouteChildren {
   AuthedIndexRoute: typeof AuthedIndexRoute
   AuthedSourcesSourceIdRouteRoute: typeof AuthedSourcesSourceIdRouteRouteWithChildren
   AuthedSourcesNewRouteRoute: typeof AuthedSourcesNewRouteRoute
+  AuthedSettingsProvidersRoute: typeof AuthedSettingsProvidersRoute
   AuthedSourcesIndexRoute: typeof AuthedSourcesIndexRoute
 }
 
@@ -253,6 +273,7 @@ const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedIndexRoute: AuthedIndexRoute,
   AuthedSourcesSourceIdRouteRoute: AuthedSourcesSourceIdRouteRouteWithChildren,
   AuthedSourcesNewRouteRoute: AuthedSourcesNewRouteRoute,
+  AuthedSettingsProvidersRoute: AuthedSettingsProvidersRoute,
   AuthedSourcesIndexRoute: AuthedSourcesIndexRoute,
 }
 

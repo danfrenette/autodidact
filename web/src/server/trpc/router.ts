@@ -1,4 +1,5 @@
 import type { TRPCRouterRecord } from '@trpc/server'
+import { providersRouter } from '#/features/providers/api/providers.trpc'
 import { sourcesRouter } from '#/features/sources/api/sources.trpc'
 import { fetchRailsHealthcheck } from '#/lib/rails-api'
 import { createTRPCRouter, publicProcedure } from './init'
@@ -31,6 +32,7 @@ const appRouter = {
 
 export const trpcRouter = createTRPCRouter({
   app: appRouter,
+  providers: providersRouter,
   sources: sourcesRouter,
 })
 export type TRPCRouter = typeof trpcRouter

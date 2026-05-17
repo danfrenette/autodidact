@@ -47,6 +47,56 @@ function railsErrorMessage(payload: unknown, status: number) {
   return `Rails returned HTTP ${status}`
 }
 
+function railsErrorCode(payload: unknown) {
+  if (
+    payload &&
+    typeof payload === 'object' &&
+    'error' in payload &&
+    payload.error &&
+    typeof payload.error === 'object' &&
+    'code' in payload.error &&
+    typeof payload.error.code === 'string'
+  ) {
+    return payload.error.code
+  }
+
+  return null
+}
+
+function railsErrorDetails(payload: unknown) {
+  if (
+    payload &&
+    typeof payload === 'object' &&
+    'error' in payload &&
+    payload.error &&
+    typeof payload.error === 'object' &&
+    'details' in payload.error
+  ) {
+    return payload.error.details
+  }
+
+  return null
+}
+
+export class RailsApiError extends Error {
+  code: string | null
+  details: unknown
+  status: number
+
+  constructor(
+    message: string,
+    status: number,
+    code: string | null,
+    details: unknown,
+  ) {
+    super(message)
+    this.name = 'RailsApiError'
+    this.status = status
+    this.code = code
+    this.details = details
+  }
+}
+
 async function csrfToken(cookie: string) {
   const response = await axios.request({
     method: 'GET',
@@ -100,8 +150,11 @@ export async function requestRails<T = unknown>(
     return response.data
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      throw new Error(
+      throw new RailsApiError(
         railsErrorMessage(error.response.data, error.response.status),
+        error.response.status,
+        railsErrorCode(error.response.data),
+        railsErrorDetails(error.response.data),
       )
     }
 
