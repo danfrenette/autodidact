@@ -4,9 +4,10 @@ module Sources
   class AnalyzeContent < ApplicationService
     Result = ApplicationResult.define(:analysis, :error_message)
 
-    def initialize(source_chunks:, related_chunks:, provider: default_provider, client: nil)
+    def initialize(source_chunks:, related_chunks:, user: nil, provider: default_provider, client: nil)
       @source_chunks = source_chunks
       @related_chunks = related_chunks
+      @user = user
       @provider = provider
       @client = client
     end
@@ -19,10 +20,19 @@ module Sources
 
     private
 
-    attr_reader :source_chunks, :related_chunks, :provider, :client
+    attr_reader :source_chunks, :related_chunks, :user, :provider, :client
 
     def generation_client
-      @generation_client ||= client || client_for(provider)
+      @generation_client ||= client || client_for_role || client_for(provider)
+    end
+
+    def client_for_role
+      return if user.blank?
+
+      result = Analysis::ClientForRole.call(user: user, role: :generation)
+      raise result.error_message if result.failure?
+
+      result.client
     end
 
     def default_provider
@@ -33,6 +43,8 @@ module Sources
       case provider.to_sym
       when :mock
         Analysis::MockGenerationClient.new
+      when :openai
+        raise "OpenAI generation provider requires user credentials"
       else
         raise "Unknown analysis generation provider: #{provider.inspect}"
       end

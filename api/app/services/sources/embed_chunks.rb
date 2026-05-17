@@ -4,8 +4,9 @@ module Sources
   class EmbedChunks < ApplicationService
     Result = ApplicationResult.define(:chunks, :error_message)
 
-    def initialize(source_chunks:, provider: default_provider, client: nil)
+    def initialize(source_chunks:, user: nil, provider: default_provider, client: nil)
       @source_chunks = source_chunks
+      @user = user
       @provider = provider
       @client = client
     end
@@ -18,7 +19,7 @@ module Sources
 
     private
 
-    attr_reader :source_chunks, :provider, :client
+    attr_reader :source_chunks, :user, :provider, :client
 
     def embed_chunks
       source_chunks.map do |chunk|
@@ -28,7 +29,16 @@ module Sources
     end
 
     def embedding_client
-      @embedding_client ||= client || client_for(provider)
+      @embedding_client ||= client || client_for_role || client_for(provider)
+    end
+
+    def client_for_role
+      return if user.blank?
+
+      result = Analysis::ClientForRole.call(user: user, role: :embedding)
+      raise result.error_message if result.failure?
+
+      result.client
     end
 
     def default_provider
@@ -39,6 +49,8 @@ module Sources
       case provider.to_sym
       when :mock
         Analysis::MockEmbeddingClient.new
+      when :openai
+        raise "OpenAI embedding provider requires user credentials"
       else
         raise "Unknown analysis embedding provider: #{provider.inspect}"
       end

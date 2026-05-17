@@ -2,7 +2,9 @@
 
 module Sources
   class Create < ApplicationService
-    Result = ApplicationResult.define(:source)
+    ProviderAvailabilityError = Class.new(StandardError)
+
+    Result = ApplicationResult.define(:source, :error_code, :error_message, :error_details)
 
     def initialize(user:, source_params:, selection_params: [], tag_names: [])
       @user = user
@@ -12,6 +14,8 @@ module Sources
     end
 
     def call
+      verify_availability!
+
       source = build_source
 
       Source.transaction do
@@ -21,17 +25,38 @@ module Sources
         create_tags(source)
       end
 
-      success(source: source, errors: [])
+      success(source: source, error_code: nil, error_message: nil, error_details: {}, errors: [])
+    rescue ProviderAvailabilityError => e
+      failure(
+        source: nil,
+        error_code: "providers_required",
+        error_message: e.message,
+        error_details: {missing_roles: availability.missing_roles},
+        errors: [e.message]
+      )
     rescue ActiveRecord::RecordInvalid => e
-      failure(source: source, errors: e.record.errors.full_messages)
+      failure(
+        source: source,
+        error_code: "validation_failed",
+        error_message: "Source could not be created",
+        error_details: {errors: e.record.errors.full_messages},
+        errors: e.record.errors.full_messages
+      )
     end
 
     private
 
-    attr_reader :user, :source_params, :selection_params, :tag_names
+    attr_reader :user, :source_params, :selection_params, :tag_names, :availability
 
     def build_source
       Source.new(source_params.merge(user_id: user.id))
+    end
+
+    def verify_availability!
+      @availability = ProviderRoleSettings::Availability.call(user: user)
+      return if availability.available
+
+      raise ProviderAvailabilityError, "Connect #{availability.missing_roles.to_sentence} providers before adding sources"
     end
 
     def create_selections(source)

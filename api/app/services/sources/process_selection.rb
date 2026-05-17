@@ -80,7 +80,7 @@ module Sources
 
     def embed_chunks(chunks)
       transition_to_stage(:chunk)
-      result = Sources::EmbedChunks.call(source_chunks: chunks)
+      result = Sources::EmbedChunks.call(source_chunks: chunks, user: source.user)
 
       fail_processing(:chunk, result.error_message) if result.failure?
 
@@ -98,7 +98,7 @@ module Sources
 
     def analyze_content(chunks, related_chunks)
       transition_to_stage(:analyze)
-      result = Sources::AnalyzeContent.call(source_chunks: chunks, related_chunks: related_chunks)
+      result = Sources::AnalyzeContent.call(source_chunks: chunks, related_chunks: related_chunks, user: source.user)
 
       fail_processing(:analyze, result.error_message) if result.failure?
 

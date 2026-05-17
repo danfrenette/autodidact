@@ -35,9 +35,9 @@ class SourcesController < ApplicationController
       )
     else
       render_error(
-        code: "validation_failed",
-        message: "Source could not be created",
-        details: {errors: result.errors},
+        code: result.error_code,
+        message: result.error_message,
+        details: result.error_details,
         status: :unprocessable_content
       )
     end
