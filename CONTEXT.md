@@ -70,13 +70,45 @@ Citations can reference chunks from the current SourceSelection or from related 
 
 Analysis Policy is the code-level configuration that controls retrieval, prompt construction, response validation, and result writing for SourceSelection analysis.
 
+An Embedding Provider turns Source Chunk text into vector embeddings for retrieval. A Generation Provider turns current and related Source Chunks into structured analysis output. Provider implementations may use chat-style APIs internally, but Autodidact's domain boundary is generation rather than chat because the product needs structured Concepts, Questions, Quotes, and Citations rather than an open-ended conversation.
+
+Provider Credentials are user-owned settings that let Autodidact call external AI providers on the user's behalf. They belong to Autodidact product data, not the authentication domain. Better Auth owns the user record; Autodidact stores provider credentials separately and associates them to the owning user.
+
+Provider Credentials are secrets. After a credential is saved, Autodidact should never display or return the original API key. User-facing settings should show connection status and a masked fingerprint only, with explicit actions to replace or disconnect the credential.
+
+Provider Credentials should be verified before they are considered connected. If verification fails, Autodidact should not persist the invalid credential; it should report the provider error and let the user correct the key.
+
+A Connected Provider is any provider the current user can use for SourceSelection processing. In development, mock providers count as connected providers and should appear in provider/model selection controls. In environments that require user-owned credentials, a user without any connected provider should be redirected from source-creation and processing entry points to provider setup, with a notification explaining that a provider must be connected first.
+
+Source creation and processing require complete provider role settings for both Embedding and Generation. User-facing copy may describe this as connecting AI providers, but the backend availability check should verify that each required processing role has a usable Provider Role Setting.
+
+Provider settings should be accessed through `/_authed/settings/providers` with `/_authed/settings` as the broader settings landing page. Source creation guard redirects to `/settings/providers` with a notification reason such as `?notice=providers-required`.
+
+Processing jobs resolve the provider and model from the user's current Provider Role Settings at execution time. Provider/model choice is not stored on SourceSelections until analysis history or reprocessing provenance becomes an explicit requirement.
+
+Processing jobs fail fast when a required provider role is unavailable. The failure message should be clear, such as `Embedding provider not configured` or `OpenAI API error: ...`, and stored on the SourceSelection so the user can see it and fix their settings.
+
+Embedding and Generation are separate provider roles in the settings experience. A single Provider Credential can satisfy multiple roles when the provider supports them. For example, one OpenAI credential can be used by both the Embedding role and the Generation role, while each role still keeps its own selected model.
+
+Provider capabilities are represented as provider definition value objects, not as behavior-heavy provider classes. Each provider definition has explicit metadata such as id, display name, supported roles, role-specific model lists, and role-specific default models. Provider definitions should live in separate files per provider and be referenced by a central collection. Provider API behavior stays in separate embedding and generation client classes.
+
+Provider Role Settings represent the provider and model a user has chosen for a specific analysis role, such as Embedding or Generation. A role setting connects the user, role, provider, selected model, and any credential needed for that provider. Credentials remain provider-level so a single credential can be used by multiple role settings when the provider supports multiple roles.
+
+Every Provider Role Setting should reference a Provider Credential. Providers that do not require a user-entered secret, such as the development mock provider, should use a sentinel Provider Credential rather than a nullable credential reference. This preserves referential integrity while still allowing mock providers to participate in the same settings and processing flow.
+
+Provider Credentials track a status enum: `connected`, `disconnected`, or `error`. They also store `last_verified_at` and an optional `last_error_message`. The status is updated during verification and disconnection, and role settings should warn when the referenced credential is not `connected`.
+
+API keys are encrypted using Rails `ActiveRecord::Encryption`. Only the encrypted value is stored in the database.
+
+Development may lazily create default mock Provider Role Settings from a mock sentinel credential so developers can use source creation and processing immediately. Real provider credentials should not be auto-created or silently selected; users must add and verify the credential, then save role settings for the roles they want that provider to perform.
+
 For the MVP, analysis policy should live in isolated service objects rather than inline job orchestration or database-configured prompts. Retrieval limits, source diversity caps, prompt wording, JSON schema instructions, and write behavior are expected to change often.
 
 Generated analysis output is not source material. Autodidact should not chunk or embed generated Concepts, Questions, or Quotes for the MVP. Chunking and embedding should stay grounded in converted SourceSelection Content.
 
-The MVP embedding model is fixed rather than user-configurable because pgvector dimensions are schema-level concerns. The prototype uses OpenAI `text-embedding-3-small` with 1536-dimensional vectors, and the production schema should follow that unless a different fixed embedding model is deliberately chosen before implementation.
+Model selection is a user/provider-level setting for the MVP. A connected provider can expose selectable embedding and generation models, and the selected models apply to future processing for that user. SourceSelections do not need to persist model choices until analysis history or reprocessing provenance becomes an explicit requirement.
 
-The MVP analysis model is fixed rather than user-selectable. Model selection can become a processing parameter after the JSON output, citation behavior, and write pipeline are reliable.
+Embedding model choices must stay compatible with the stored vector dimensions. The first OpenAI embedding model should remain `text-embedding-3-small` with 1536-dimensional vectors unless the schema is deliberately changed to support another dimension.
 
 For the MVP, invalid AI JSON should fail the SourceSelection without writing partial Concepts, Questions, Quotes, or Citations. The implementation should leave a clear note at the failure point that repair/retry support can be added later if invalid output becomes common.
 
