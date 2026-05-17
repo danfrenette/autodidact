@@ -13,12 +13,14 @@ type ProviderDefinition = {
 }
 
 type ProviderRoleSectionProps = {
+  errorMessage?: string
   onSave: (role: ProviderRole, provider: string, model: string) => void
   providers: Array<ProviderDefinition>
   roleSettings: Array<ProviderRoleSetting>
 }
 
 export function ProviderRoleSection({
+  errorMessage,
   onSave,
   providers,
   roleSettings,
@@ -59,6 +61,9 @@ export function ProviderRoleSection({
           onSave={onSave}
         />
       </div>
+      {errorMessage ? (
+        <p className="text-sm text-ad-accent">{errorMessage}</p>
+      ) : null}
     </section>
   )
 }

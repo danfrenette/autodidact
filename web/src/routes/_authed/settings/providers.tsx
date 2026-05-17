@@ -1,9 +1,8 @@
 import { createFileRoute, useSearch } from '@tanstack/react-router'
-import { useState } from 'react'
 import { z } from 'zod'
 import {
-  useProviderSettings,
-  useSaveProviderCredential,
+  useProviderRoleSettings,
+  useProviders,
   useSaveProviderRoleSetting,
 } from '#/features/providers/hooks/use-provider-settings'
 import type { ProviderRole } from '#/features/providers/provider.types'
@@ -23,20 +22,9 @@ export const Route = createFileRoute('/_authed/settings/providers')({
 
 function ProviderSettingsRoute() {
   const search = useSearch({ from: '/_authed/settings/providers' })
-  const settings = useProviderSettings()
-  const saveCredential = useSaveProviderCredential()
+  const providersQuery = useProviders()
+  const roleSettingsQuery = useProviderRoleSettings()
   const saveRoleSetting = useSaveProviderRoleSetting()
-  const [apiKey, setApiKey] = useState('')
-  const providers = settings.providers.data?.data.providers ?? []
-  const credentials = settings.credentials.data?.data.credentials ?? []
-  const roleSettings = settings.roleSettings.data?.data.roleSettings ?? []
-  const openaiCredential = credentials.find(
-    (credential) => credential.provider === 'openai',
-  )
-
-  function saveOpenaiCredential() {
-    saveCredential.mutate({ provider: 'openai', apiKey })
-  }
 
   function saveRole(role: ProviderRole, provider: string, model: string) {
     saveRoleSetting.mutate({ role, provider, model })
@@ -53,20 +41,28 @@ function ProviderSettingsRoute() {
 
         <ProviderNotice show={search.notice === 'providers-required'} />
 
-        <ProviderRoleSection
-          providers={providers}
-          roleSettings={roleSettings}
-          onSave={saveRole}
-        />
+        {providersQuery.isPending || roleSettingsQuery.isPending ? (
+          <p className="text-sm text-ad-text-muted">
+            Loading provider settings...
+          </p>
+        ) : null}
 
-        <CredentialVault
-          apiKey={apiKey}
-          credential={openaiCredential}
-          errorMessage={saveCredential.error?.message}
-          isSaving={saveCredential.isPending}
-          onApiKeyChange={setApiKey}
-          onSave={saveOpenaiCredential}
-        />
+        {providersQuery.error || roleSettingsQuery.error ? (
+          <p className="text-sm text-ad-accent">
+            {providersQuery.error?.message ?? roleSettingsQuery.error?.message}
+          </p>
+        ) : null}
+
+        {providersQuery.data && roleSettingsQuery.data ? (
+          <ProviderRoleSection
+            providers={providersQuery.data.data.providers}
+            roleSettings={roleSettingsQuery.data.data.roleSettings}
+            onSave={saveRole}
+            errorMessage={saveRoleSetting.error?.message}
+          />
+        ) : null}
+
+        <CredentialVault />
       </div>
     </div>
   )

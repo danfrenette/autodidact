@@ -1,3 +1,4 @@
+import { Select } from '#/components/ui/select'
 import type {
   ProviderRole,
   ProviderRoleSetting,
@@ -47,54 +48,36 @@ export function RolePanel({
       </div>
 
       <div className="space-y-3">
-        <label className="block space-y-1">
-          <span className="text-xs font-semibold uppercase tracking-widest text-ad-text-secondary">
-            Provider
-          </span>
-          <select
-            value={selectedProvider?.id ?? ''}
-            onChange={(event) => {
-              const provider = providers.find(
-                (item) => item.id === event.target.value,
-              )
-              if (!provider) return
-              onSave(
-                providerRole,
-                provider.id,
-                provider.defaultModelsByRole[providerRole],
-              )
-            }}
-            className="min-h-9 w-full rounded-sm border border-ad-border bg-ad-surface px-3 text-sm text-ad-text-body outline-none transition-colors focus:border-ad-border-hover"
-          >
-            {providers.map((provider) => (
-              <option key={provider.id} value={provider.id}>
-                {provider.displayName}
-              </option>
-            ))}
-          </select>
-        </label>
+        <Select
+          label="Provider"
+          value={selectedProvider?.id ?? ''}
+          options={providers.map((provider) => ({
+            label: provider.displayName,
+            value: provider.id,
+          }))}
+          onValueChange={(value) => {
+            const provider = providers.find((item) => item.id === value)
+            if (!provider) return
+            onSave(
+              providerRole,
+              provider.id,
+              provider.defaultModelsByRole[providerRole],
+            )
+          }}
+        />
 
-        <label className="block space-y-1">
-          <span className="text-xs font-semibold uppercase tracking-widest text-ad-text-secondary">
-            Model
-          </span>
-          <select
-            value={selectedModel ?? ''}
-            onChange={(event) => {
-              if (!selectedProvider) return
-              onSave(providerRole, selectedProvider.id, event.target.value)
-            }}
-            className="min-h-9 w-full rounded-sm border border-ad-border bg-ad-surface px-3 font-mono text-sm text-ad-text-body outline-none transition-colors focus:border-ad-border-hover"
-          >
-            {(selectedProvider?.modelsByRole[providerRole] ?? []).map(
-              (model) => (
-                <option key={model} value={model}>
-                  {model}
-                </option>
-              ),
-            )}
-          </select>
-        </label>
+        <Select
+          label="Model"
+          mono
+          value={selectedModel ?? ''}
+          options={(selectedProvider?.modelsByRole[providerRole] ?? []).map(
+            (model) => ({ label: model, value: model }),
+          )}
+          onValueChange={(value) => {
+            if (!selectedProvider) return
+            onSave(providerRole, selectedProvider.id, value)
+          }}
+        />
       </div>
 
       <p className="text-xs leading-5 text-ad-text-secondary">{description}</p>
