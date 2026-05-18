@@ -13,7 +13,7 @@ module Analysis
 
       JSON.parse(json_content(content), symbolize_names: true)
     rescue JSON::ParserError => e
-      raise ProviderError, "Provider returned invalid JSON: #{e.message}"
+      raise Providers::Google::Error.invalid_response("Provider returned invalid JSON: #{e.message}")
     end
 
     private
@@ -22,11 +22,11 @@ module Analysis
 
     def generate(prompt)
       content = post("#{model_path}:generateContent", generate_body(prompt)).dig("candidates", 0, "content", "parts", 0, "text")
-      raise ProviderError, "Provider returned empty content" if content.blank?
+      raise Providers::Google::Error.invalid_response("Provider returned empty content") if content.blank?
 
       content
     rescue Faraday::Error => e
-      raise ProviderError, e.message
+      raise Providers::Google::Error.unavailable(e.message)
     end
 
     def generate_body(prompt)
@@ -46,14 +46,13 @@ module Analysis
         request.body = JSON.generate(body)
       end
 
-      raise ProviderError, google_error_message(response) unless response.success?
+      raise google_error(response) unless response.success?
 
       response_body(response)
     end
 
-    def google_error_message(response)
-      body = response_body(response)
-      body.dig("error", "message") || "Google API returned HTTP #{response.status}"
+    def google_error(response)
+      Providers::Google::Error.from_response(status: response.status, body: response_body(response))
     end
 
     def response_body(response)

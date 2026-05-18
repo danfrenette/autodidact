@@ -2,6 +2,8 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import type { Question, Quote } from '#/features/sources/analysis.schemas'
 import { useSelectionAnalysis } from '#/features/sources/hooks/use-selection-analysis'
+import type { SourceSelection } from '#/features/sources/source.types'
+import { selectionStatus } from '#/features/sources/source-status'
 import { TagPill } from '../../../new/-components/tag-pill'
 import { ConceptCard } from './-components/concept-card'
 import { TabButton } from './-components/tab-button'
@@ -53,7 +55,7 @@ function ChapterAnalysisPage() {
     )
   }
 
-  const isComplete = selection.status === 'complete'
+  const status = selectionStatus(selection)
   return (
     <div className="flex flex-col gap-8 py-8 px-10">
       <div className="flex flex-col gap-4">
@@ -90,13 +92,11 @@ function ChapterAnalysisPage() {
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5 whitespace-nowrap">
+            <span className={`size-1.5 rounded-full ${status.dotClassName}`} />
             <span
-              className={`size-1.5 rounded-full ${isComplete ? 'bg-ad-text-secondary' : 'bg-ad-accent'}`}
-            />
-            <span
-              className={`font-sans text-xs font-medium uppercase tracking-widest ${isComplete ? 'text-ad-text-secondary' : 'text-ad-accent'}`}
+              className={`font-sans text-xs font-medium uppercase tracking-widest ${status.textClassName}`}
             >
-              {isComplete ? 'Complete' : 'Processing'}
+              {status.label}
             </span>
           </div>
         </div>
@@ -118,6 +118,8 @@ function ChapterAnalysisPage() {
         ) : null}
       </div>
 
+      {status.isFailed ? <FailurePanel selection={selection} /> : null}
+
       <div className="flex items-center gap-6 border-b border-ad-border pb-0">
         <TabButton
           label="Concepts"
@@ -137,28 +139,54 @@ function ChapterAnalysisPage() {
       </div>
 
       <div className="flex flex-col gap-0">
-        {activeTab === 'concepts' && (
-          <div className="flex flex-col">
-            {concepts.length === 0 ? (
-              <div className="py-12 text-center text-ad-text-muted">
-                No concepts found for this chapter.
+        {status.isFailed
+          ? null
+          : activeTab === 'concepts' && (
+              <div className="flex flex-col">
+                {concepts.length === 0 ? (
+                  <div className="py-12 text-center text-ad-text-muted">
+                    No concepts found for this chapter.
+                  </div>
+                ) : (
+                  concepts.map((concept, index) => (
+                    <ConceptCard
+                      key={concept.id}
+                      concept={concept}
+                      isLast={index === concepts.length - 1}
+                    />
+                  ))
+                )}
               </div>
-            ) : (
-              concepts.map((concept, index) => (
-                <ConceptCard
-                  key={concept.id}
-                  concept={concept}
-                  isLast={index === concepts.length - 1}
-                />
-              ))
             )}
-          </div>
-        )}
 
-        {activeTab === 'quotes' && <QuoteList quotes={quotes} />}
+        {status.isFailed
+          ? null
+          : activeTab === 'quotes' && <QuoteList quotes={quotes} />}
 
-        {activeTab === 'questions' && <QuestionList questions={questions} />}
+        {status.isFailed
+          ? null
+          : activeTab === 'questions' && <QuestionList questions={questions} />}
       </div>
+    </div>
+  )
+}
+
+function FailurePanel({ selection }: { selection: SourceSelection }) {
+  return (
+    <div className="rounded-sm border border-ad-accent/40 bg-ad-accent/10 px-4 py-4">
+      <p className="font-sans text-xs font-medium uppercase tracking-widest text-ad-accent">
+        Processing failed
+      </p>
+      <p className="mt-2 text-sm leading-6 text-ad-text-secondary">
+        {selection.errorMessage ??
+          'The analysis pipeline failed for this chapter.'}
+      </p>
+      <Link
+        to="/settings/providers"
+        className="mt-4 inline-flex min-h-9 items-center justify-center rounded-sm bg-ad-accent px-4 text-xs font-medium uppercase tracking-widest text-ad-text-heading transition-colors hover:bg-ad-accent-hover"
+      >
+        Switch providers
+      </Link>
     </div>
   )
 }

@@ -26,6 +26,7 @@ RSpec.describe Source, type: :model do
       selections = [
         build_stubbed(:source_selection, status: "complete"),
         build_stubbed(:source_selection, status: "complete"),
+        build_stubbed(:source_selection, status: "failed"),
         build_stubbed(:source_selection, status: "pending"),
         build_stubbed(:source_selection, status: "processing")
       ]
@@ -33,7 +34,7 @@ RSpec.describe Source, type: :model do
 
       stats = source.progress_stats
 
-      expect(stats).to eq(selection_count: 4, completed_count: 2, percentage: 50)
+      expect(stats).to eq(selection_count: 5, completed_count: 3, failed_count: 1, percentage: 60)
     end
 
     it "returns 100% when all selections are complete" do
@@ -43,7 +44,7 @@ RSpec.describe Source, type: :model do
 
       stats = source.progress_stats
 
-      expect(stats).to eq(selection_count: 3, completed_count: 3, percentage: 100)
+      expect(stats).to eq(selection_count: 3, completed_count: 3, failed_count: 0, percentage: 100)
     end
 
     it "returns 0% when no selections are complete" do
@@ -56,7 +57,7 @@ RSpec.describe Source, type: :model do
 
       stats = source.progress_stats
 
-      expect(stats).to eq(selection_count: 3, completed_count: 0, percentage: 0)
+      expect(stats).to eq(selection_count: 3, completed_count: 0, failed_count: 0, percentage: 0)
     end
   end
 end

@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useSource } from '#/features/sources/hooks/use-source'
 import { formatSourceTitle } from '#/features/sources/source.format'
+import { selectionStatus, sourceStatus } from '#/features/sources/source-status'
 
 export const Route = createFileRoute('/_authed/sources/$sourceId/')({
   component: SourceDetailPage,
@@ -33,7 +34,7 @@ function SourceDetailPage() {
     )
   }
 
-  const isProcessing = source.status === 'processing'
+  const status = sourceStatus(source)
   const selections = source.selections ?? []
 
   return (
@@ -67,16 +68,12 @@ function SourceDetailPage() {
           <div className="flex shrink-0 items-center gap-3 whitespace-nowrap">
             <div className="flex shrink-0 items-center gap-1.5">
               <span
-                className={`size-1.5 rounded-full ${
-                  isProcessing ? 'bg-ad-accent' : 'bg-ad-text-secondary'
-                }`}
+                className={`size-1.5 rounded-full ${status.dotClassName}`}
               />
               <span
-                className={`font-sans text-xs font-medium uppercase tracking-widest ${
-                  isProcessing ? 'text-ad-accent' : 'text-ad-text-secondary'
-                }`}
+                className={`font-sans text-xs font-medium uppercase tracking-widest ${status.textClassName}`}
               >
-                {isProcessing ? 'Processing' : 'Complete'}
+                {status.label}
               </span>
             </div>
             <span className="font-mono text-xs text-ad-text-secondary">
@@ -93,6 +90,13 @@ function SourceDetailPage() {
         </div>
       </div>
 
+      {status.isFailed ? (
+        <div className="rounded-sm border border-ad-accent/40 bg-ad-accent/10 px-4 py-3 text-sm text-ad-text-secondary">
+          Processing failed for one or more chapters. Open a failed chapter for
+          details, then update or switch providers before retrying.
+        </div>
+      ) : null}
+
       <div className="flex flex-col gap-4">
         <h2 className="font-sans text-xs font-medium uppercase tracking-widest text-ad-text-secondary">
           Chapters
@@ -100,8 +104,7 @@ function SourceDetailPage() {
 
         <div className="flex flex-col gap-0.5">
           {selections.map((selection) => {
-            const isComplete = selection.status === 'complete'
-            const isActive = selection.status === 'processing'
+            const status = selectionStatus(selection)
 
             return (
               <Link
@@ -109,7 +112,7 @@ function SourceDetailPage() {
                 to="/sources/$sourceId/selections/$selectionId"
                 params={{ sourceId, selectionId: selection.id }}
                 className={`flex items-center gap-4 rounded-sm px-4 py-3 transition-colors ${
-                  isActive
+                  status.isFailed || !status.isComplete
                     ? 'border border-ad-accent bg-ad-surface-elevated'
                     : 'bg-ad-surface-elevated hover:bg-ad-surface'
                 }`}
@@ -124,12 +127,12 @@ function SourceDetailPage() {
 
                 <div className="flex items-center gap-1.5">
                   <span
-                    className={`size-1.5 rounded-full ${isComplete ? 'bg-ad-text-secondary' : 'bg-ad-accent'}`}
+                    className={`size-1.5 rounded-full ${status.dotClassName}`}
                   />
                   <span
-                    className={`font-sans text-xs font-medium uppercase tracking-wider ${isComplete ? 'text-ad-text-muted' : 'text-ad-accent'}`}
+                    className={`font-sans text-xs font-medium uppercase tracking-wider ${status.textClassName}`}
                   >
-                    {isComplete ? 'Complete' : 'Processing'}
+                    {status.label}
                   </span>
                 </div>
               </Link>

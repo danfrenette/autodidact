@@ -24,4 +24,12 @@ RSpec.describe SourceSelection, type: :model do
     it { should define_enum_for(:kind).with_values(chapter: "chapter").backed_by_column_of_type(:string) }
     it { should define_enum_for(:status).with_values(pending: "pending", confirmed: "confirmed", queued: "queued", processing: "processing", complete: "complete", failed: "failed").backed_by_column_of_type(:string) }
   end
+
+  describe "#terminal?" do
+    it "treats complete and failed selections as terminal" do
+      expect(build(:source_selection, status: "complete")).to be_terminal
+      expect(build(:source_selection, status: "failed")).to be_terminal
+      expect(build(:source_selection, status: "processing")).not_to be_terminal
+    end
+  end
 end

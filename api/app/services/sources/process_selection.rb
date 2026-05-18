@@ -82,7 +82,7 @@ module Sources
       transition_to_stage(:chunk)
       result = Sources::EmbedChunks.call(source_chunks: chunks, user: source.user)
 
-      fail_processing(:chunk, result.error_message) if result.failure?
+      fail_processing(:chunk, result.error_message, result.error_details) if result.failure?
 
       result.chunks unless failed?
     end
@@ -100,7 +100,7 @@ module Sources
       transition_to_stage(:analyze)
       result = Sources::AnalyzeContent.call(source_chunks: chunks, related_chunks: related_chunks, user: source.user)
 
-      fail_processing(:analyze, result.error_message) if result.failure?
+      fail_processing(:analyze, result.error_message, result.error_details) if result.failure?
 
       result.analysis unless failed?
     end
@@ -116,8 +116,8 @@ module Sources
       source_selection.update!(pipeline_stage: STAGES.fetch(stage))
     end
 
-    def fail_processing(stage, message)
-      mark_failed(stage, message)
+    def fail_processing(stage, message, details = {})
+      mark_failed(stage, message, details)
       refresh_source_status
       @failed_result = failure(error_message: message)
     end
@@ -130,14 +130,14 @@ module Sources
       source_selection.update!(status: :complete, pipeline_stage: nil, error_message: nil, error_details: {})
     end
 
-    def mark_failed(stage, message)
+    def mark_failed(stage, message, details = {})
       source_selection.update!(
         status: :failed,
         error_message: message,
         error_details: {
           stage: STAGES.fetch(stage),
           message: message
-        }
+        }.merge(details.stringify_keys)
       )
     end
 

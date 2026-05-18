@@ -2,7 +2,7 @@
 
 module Sources
   class AnalyzeContent < ApplicationService
-    Result = ApplicationResult.define(:analysis, :error_message)
+    Result = ApplicationResult.define(:analysis, :error_message, :error_details)
 
     def initialize(source_chunks:, related_chunks:, user: nil, provider: default_provider, client: nil)
       @source_chunks = source_chunks
@@ -13,9 +13,12 @@ module Sources
     end
 
     def call
-      success(analysis: generation_client.analyze(source_chunks: source_chunks, related_chunks: related_chunks), error_message: nil)
+      success(analysis: generation_client.analyze(source_chunks: source_chunks, related_chunks: related_chunks), error_message: nil, error_details: {})
+    rescue Analysis::ProviderError => e
+      ProviderCredentials::RecordProviderError.call(user: user, error: e)
+      failure(analysis: nil, error_message: e.message, error_details: e.details)
     rescue => e
-      failure(analysis: nil, error_message: e.message)
+      failure(analysis: nil, error_message: e.message, error_details: {})
     end
 
     private

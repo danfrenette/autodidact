@@ -36,6 +36,25 @@ RSpec.describe Sources::ProcessSelection, type: :service do
       expect(selection.error_details).to eq("stage" => "CONVERT", "message" => "Distillation failed")
       expect(failed_processing_source.reload.status).to eq("failed")
     end
+
+    it "persists provider failure metadata from analysis failures" do
+      selection = create(:source_selection, :processing, source: failed_processing_source)
+      content = instance_double(SourceSelectionContent)
+      chunks = [instance_double(SourceChunk)]
+      allow_successful_pipeline_until_analysis(selection, content: content, chunks: chunks)
+
+      result = described_class.call(source_selection: selection)
+
+      expect(result).to be_failure
+      expect(selection.reload).to be_failed
+      expect(selection.error_message).to eq("Google quota exceeded.")
+      expect(selection.error_details).to include(
+        "stage" => "ANALYZE",
+        "message" => "Google quota exceeded.",
+        "code" => "quota_exceeded",
+        "provider" => "google"
+      )
+    end
   end
 
   def allow_successful_pipeline(selection, content:, chunks:, analysis:)
@@ -62,5 +81,23 @@ RSpec.describe Sources::ProcessSelection, type: :service do
   def allow_failed_extraction(message)
     allow(Sources::ExtractSelectionContent).to receive(:call)
       .and_return(double(failure?: true, error_message: message))
+  end
+
+  def allow_successful_pipeline_until_analysis(selection, content:, chunks:)
+    allow(Sources::ExtractSelectionContent).to receive(:call)
+      .with(source_selection: selection)
+      .and_return(double(failure?: false, content: content))
+    allow(Sources::ChunkContent).to receive(:call)
+      .with(source_selection_content: content)
+      .and_return(double(failure?: false, chunks: chunks))
+    allow(Sources::EmbedChunks).to receive(:call)
+      .with(source_chunks: chunks, user: selection.source.user)
+      .and_return(double(failure?: false, chunks: chunks))
+    allow(Sources::RetrieveRelatedChunks).to receive(:call)
+      .with(source_selection: selection, source_chunks: chunks)
+      .and_return(double(failure?: false, chunks: []))
+    allow(Sources::AnalyzeContent).to receive(:call)
+      .with(source_chunks: chunks, related_chunks: [], user: selection.source.user)
+      .and_return(double(failure?: true, error_message: "Google quota exceeded.", error_details: {code: "quota_exceeded", provider: "google"}))
   end
 end

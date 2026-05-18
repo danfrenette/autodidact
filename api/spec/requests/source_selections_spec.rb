@@ -87,6 +87,7 @@ RSpec.describe "SourceSelections", type: :request do
             "assetAttached" => false,
             "selectionCount" => 1,
             "completedCount" => 1,
+            "failedCount" => 0,
             "progressPercentage" => 100,
             "createdAt" => source.created_at.iso8601,
             "updatedAt" => source.updated_at.iso8601

@@ -164,6 +164,93 @@ RSpec.describe "Sources", type: :request do
       expect(selection.quotes.sole.citations).to be_present
     end
 
+    it "surfaces Google quota failures in the source response" do
+      google_credential = create(:provider_credential, user: current_user, provider: "google", api_key: "google-key")
+      create(
+        :provider_role_setting,
+        user: current_user,
+        provider_credential: google_credential,
+        role: :embedding,
+        model: "gemini-embedding-001"
+      )
+      create(
+        :provider_role_setting,
+        user: current_user,
+        provider_credential: google_credential,
+        role: :generation,
+        model: "gemini-2.0-flash-lite"
+      )
+      embedding_client = instance_double(Analysis::GoogleEmbeddingClient, embed: Array.new(1536, 0.1))
+      generation_client = instance_double(Analysis::GoogleGenerationClient)
+      quota_error = Analysis::ProviderError.new(
+        "Google quota exceeded. Check billing, wait for quota to reset, or choose another generation provider.",
+        code: :quota_exceeded,
+        provider: :google,
+        retry_after: 52.067879746,
+        raw_message: "Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests. Please retry in 52.067879746s."
+      )
+
+      allow(Analysis::GoogleEmbeddingClient).to receive(:new)
+        .with(api_key: "google-key", model: "gemini-embedding-001")
+        .and_return(embedding_client)
+      allow(Analysis::GoogleGenerationClient).to receive(:new)
+        .with(api_key: "google-key", model: "gemini-2.0-flash-lite")
+        .and_return(generation_client)
+      allow(generation_client).to receive(:analyze).and_raise(quota_error)
+
+      source_params = {
+        title: "Google Quota Fixture",
+        kind: "pdf",
+        author: "Test Author",
+        original_filename: "with_toc.pdf",
+        signed_blob_id: pdf_blob.signed_id,
+        tags: ["processing"],
+        selections: [
+          {
+            kind: "chapter",
+            title: "Introduction",
+            label: "01",
+            position: {ordinal: 1},
+            locator: {type: "page_range", start: 1, end: 1},
+            tags: []
+          }
+        ]
+      }
+
+      perform_enqueued_jobs do
+        post sources_path, params: {source: source_params}, as: :json
+      end
+
+      expect(response).to have_http_status(:created)
+
+      source = Source.find(json_response.dig("data", "source", "id"))
+      get source_path(source)
+
+      expect(response).to have_http_status(:ok)
+      expect(json_response.dig("data", "status")).to eq("failed")
+      expect(json_response.dig("data", "selectionCount")).to eq(1)
+      expect(json_response.dig("data", "completedCount")).to eq(1)
+      expect(json_response.dig("data", "failedCount")).to eq(1)
+      expect(json_response.dig("data", "progressPercentage")).to eq(100)
+
+      selection = json_response.dig("data", "selections").sole
+      expect(selection).to include(
+        "status" => "failed",
+        "pipelineStage" => "ANALYZE",
+        "errorMessage" => "Google quota exceeded. Check billing, wait for quota to reset, or choose another generation provider.",
+        "errorDetails" => include(
+          "code" => "quota_exceeded",
+          "provider" => "google",
+          "retry_after" => 52.067879746,
+          "raw_message" => "Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests. Please retry in 52.067879746s."
+        )
+      )
+      expect(google_credential.reload).to be_error
+      expect(google_credential.last_error_message).to eq(
+        "Google quota exceeded. Check billing, wait for quota to reset, or choose another generation provider."
+      )
+    end
+
     it "returns validation errors when source params are invalid" do
       source_params = {
         title: "",

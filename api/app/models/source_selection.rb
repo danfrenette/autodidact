@@ -29,4 +29,8 @@ class SourceSelection < ApplicationRecord
   validates :label, presence: true
   validates :position, presence: true
   validates :locator, presence: true
+
+  def terminal?
+    complete? || failed?
+  end
 end

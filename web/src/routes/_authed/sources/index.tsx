@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useSources } from '#/features/sources/hooks/use-sources'
+import { sourceStatus } from '#/features/sources/source-status'
 
 export const Route = createFileRoute('/_authed/sources/')({
   component: SourcesDashboardPage,
@@ -64,52 +65,55 @@ function SourcesDashboardPage() {
             </Link>
           </div>
         ) : (
-          sources.map((source, index) => (
-            <Link
-              key={source.id}
-              to="/sources/$sourceId"
-              params={{ sourceId: source.id }}
-              className={`flex items-center gap-4 rounded-sm px-4 py-3.5 transition-colors hover:bg-ad-surface-pressed ${
-                index % 2 === 0 ? 'bg-ad-surface-elevated' : ''
-              }`}
-            >
-              <div
-                className={`shrink-0 size-1.5 rounded-full ${
-                  source.completedCount === source.selectionCount
-                    ? 'bg-ad-text-muted'
-                    : 'bg-ad-accent'
+          sources.map((source, index) => {
+            const status = sourceStatus(source)
+
+            return (
+              <Link
+                key={source.id}
+                to="/sources/$sourceId"
+                params={{ sourceId: source.id }}
+                className={`flex items-center gap-4 rounded-sm px-4 py-3.5 transition-colors hover:bg-ad-surface-pressed ${
+                  index % 2 === 0 ? 'bg-ad-surface-elevated' : ''
                 }`}
-              />
-
-              <div className="flex flex-col gap-0.5 grow shrink basis-0">
-                <span className="font-sans text-sm font-medium text-ad-text-heading">
-                  {source.title}
-                </span>
-                <span className="font-sans text-xs text-ad-text-secondary">
-                  {source.kind === 'pdf' ? 'Book' : source.kind}
-                </span>
-              </div>
-
-              <span className="w-15 shrink-0 font-mono text-xs uppercase tracking-widest text-ad-text-muted">
-                {source.kind === 'pdf' ? 'BOOK' : source.kind.toUpperCase()}
-              </span>
-
-              <span className="w-20 shrink-0 text-right font-mono text-xs text-ad-text-secondary">
-                Ch. {source.completedCount} / {source.selectionCount}
-              </span>
-
-              <div className="h-1 w-30 shrink-0 rounded-sm bg-ad-border">
+              >
                 <div
-                  className="h-full rounded-sm bg-ad-accent"
-                  style={{ width: `${source.progressPercentage}%` }}
+                  className={`shrink-0 size-1.5 rounded-full ${status.dotClassName}`}
                 />
-              </div>
 
-              <span className="w-9 shrink-0 text-right font-mono text-xs text-ad-text-muted">
-                {source.progressPercentage}%
-              </span>
-            </Link>
-          ))
+                <div className="flex flex-col gap-0.5 grow shrink basis-0">
+                  <span className="font-sans text-sm font-medium text-ad-text-heading">
+                    {source.title}
+                  </span>
+                  <span className="font-sans text-xs text-ad-text-secondary">
+                    {status.detail ??
+                      (source.kind === 'pdf' ? 'Book' : source.kind)}
+                  </span>
+                </div>
+
+                <span className="w-15 shrink-0 font-mono text-xs uppercase tracking-widest text-ad-text-muted">
+                  {source.kind === 'pdf' ? 'BOOK' : source.kind.toUpperCase()}
+                </span>
+
+                <span className="w-20 shrink-0 text-right font-mono text-xs text-ad-text-secondary">
+                  {status.isFailed
+                    ? status.label.toUpperCase()
+                    : `Ch. ${source.completedCount} / ${source.selectionCount}`}
+                </span>
+
+                <div className="h-1 w-30 shrink-0 rounded-sm bg-ad-border">
+                  <div
+                    className="h-full rounded-sm bg-ad-accent"
+                    style={{ width: `${source.progressPercentage}%` }}
+                  />
+                </div>
+
+                <span className="w-9 shrink-0 text-right font-mono text-xs text-ad-text-muted">
+                  {source.progressPercentage}%
+                </span>
+              </Link>
+            )
+          })
         )}
       </div>
     </div>

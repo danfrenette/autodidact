@@ -38,6 +38,7 @@ export const sourceSchema = z.object({
   assetAttached: z.boolean(),
   selectionCount: z.number(),
   completedCount: z.number(),
+  failedCount: z.number(),
   progressPercentage: z.number(),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -51,6 +52,9 @@ export const sourceSelectionSchema = z.object({
   position: z.object({ ordinal: z.number() }),
   locator: pageRangeLocatorSchema,
   status: z.string(),
+  pipelineStage: z.string().nullable(),
+  errorMessage: z.string().nullable(),
+  errorDetails: z.record(z.string(), z.unknown()),
   tags: z.array(tagSchema).default([]),
 })
 

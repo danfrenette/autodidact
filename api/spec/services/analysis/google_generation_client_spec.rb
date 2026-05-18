@@ -86,4 +86,27 @@ RSpec.describe Analysis::GoogleGenerationClient do
     expect { client.analyze(source_chunks: [source_chunk]) }
       .to raise_error(Analysis::ProviderError, /Provider returned invalid JSON/)
   end
+
+  it "raises a structured provider error for quota responses" do
+    response = instance_double(
+      Faraday::Response,
+      success?: false,
+      body: {
+        "error" => {
+          "status" => "RESOURCE_EXHAUSTED",
+          "message" => "Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests. Please retry in 52.067879746s."
+        }
+      },
+      status: 429
+    )
+    allow(connection).to receive(:post).and_yield(request).and_return(response)
+
+    client = described_class.new(api_key: "google-key", model: "gemini-2.0-flash-lite")
+
+    expect { client.analyze(source_chunks: [source_chunk]) }
+      .to raise_error(Analysis::ProviderError) { |error|
+        expect(error.code).to eq("quota_exceeded")
+        expect(error.retry_after).to eq(52.067879746)
+      }
+  end
 end

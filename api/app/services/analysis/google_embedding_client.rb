@@ -11,11 +11,11 @@ module Analysis
 
     def embed(text)
       values = post("#{model_path}:embedContent", embed_body(text)).dig("embedding", "values")
-      raise ProviderError, "Embedding response was empty" if values.blank?
+      raise Providers::Google::Error.invalid_response("Embedding response was empty") if values.blank?
 
       values
     rescue Faraday::Error => e
-      raise ProviderError, e.message
+      raise Providers::Google::Error.unavailable(e.message)
     end
 
     def embed_batch(texts)
@@ -41,14 +41,13 @@ module Analysis
         request.body = JSON.generate(body)
       end
 
-      raise ProviderError, google_error_message(response) unless response.success?
+      raise google_error(response) unless response.success?
 
       response_body(response)
     end
 
-    def google_error_message(response)
-      body = response_body(response)
-      body.dig("error", "message") || "Google API returned HTTP #{response.status}"
+    def google_error(response)
+      Providers::Google::Error.from_response(status: response.status, body: response_body(response))
     end
 
     def response_body(response)

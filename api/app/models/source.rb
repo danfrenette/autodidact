@@ -29,13 +29,15 @@ class Source < ApplicationRecord
 
   def progress_stats
     total = source_selections.size
-    completed = source_selections.count { |s| s.status == "complete" }
+    completed = source_selections.count(&:terminal?)
+    failed = source_selections.count(&:failed?)
 
     percentage = total.zero? ? 0 : ((completed.to_f / total) * 100).round
 
     {
       selection_count: total,
       completed_count: completed,
+      failed_count: failed,
       percentage: percentage
     }
   end

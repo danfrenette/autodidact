@@ -2,7 +2,7 @@
 
 module Sources
   class EmbedChunks < ApplicationService
-    Result = ApplicationResult.define(:chunks, :error_message)
+    Result = ApplicationResult.define(:chunks, :error_message, :error_details)
 
     def initialize(source_chunks:, user: nil, provider: default_provider, client: nil)
       @source_chunks = source_chunks
@@ -12,9 +12,12 @@ module Sources
     end
 
     def call
-      success(chunks: embed_chunks, error_message: nil)
+      success(chunks: embed_chunks, error_message: nil, error_details: {})
+    rescue Analysis::ProviderError => e
+      ProviderCredentials::RecordProviderError.call(user: user, error: e)
+      failure(chunks: nil, error_message: e.message, error_details: e.details)
     rescue => e
-      failure(chunks: nil, error_message: e.message)
+      failure(chunks: nil, error_message: e.message, error_details: {})
     end
 
     private
