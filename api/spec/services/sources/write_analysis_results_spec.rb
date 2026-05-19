@@ -64,5 +64,30 @@ RSpec.describe Sources::WriteAnalysisResults, type: :service do
       expect(result).to be_success
       expect(selection.concepts.pluck(:name)).to eq(["New Concept"])
     end
+
+    it "defaults unexpected concept classifications to supporting" do
+      selection = create(:source_selection)
+      content = create(:source_selection_content, source_selection: selection)
+      chunk = create(:source_chunk, source_selection_content: content, chunk_id: "chunk-1")
+
+      result = described_class.call(
+        source_selection: selection,
+        source_chunks: [chunk],
+        analysis: {
+          concepts: [
+            {
+              name: "Assertive Programming",
+              classification: "Programming Philosophy",
+              cited_chunk_ids: ["chunk-1"]
+            }
+          ],
+          questions: [],
+          quotes: []
+        }
+      )
+
+      expect(result).to be_success
+      expect(selection.concepts.sole.classification).to eq("supporting")
+    end
   end
 end

@@ -39,7 +39,7 @@ module Sources
           name: attributes.fetch(:name),
           definition: attributes[:definition],
           why_it_matters: attributes[:why_it_matters],
-          classification: attributes.fetch(:classification, "supporting")
+          classification: concept_classification(attributes)
         )
 
         cite(concept, attributes[:cited_chunk_ids], :supporting)
@@ -86,6 +86,13 @@ module Sources
 
     def chunks_by_id
       @chunks_by_id ||= source_chunks.index_by(&:chunk_id)
+    end
+
+    def concept_classification(attributes)
+      classification = attributes.fetch(:classification, "supporting").to_s.downcase
+      return classification if Concept.classifications.key?(classification)
+
+      "supporting"
     end
 
     def concepts

@@ -13,6 +13,7 @@ module Analysis
 
         Return only valid JSON with these top-level keys: concepts, questions, quotes.
         Each concept must include: name, definition, classification, why_it_matters, cited_chunk_ids.
+        Concept classification must be exactly one of: core, supporting, advanced.
         Each question must include: tier, tier_name, text, answer, cited_chunk_ids.
         Each quote must include: text, note, cited_chunk_ids.
 

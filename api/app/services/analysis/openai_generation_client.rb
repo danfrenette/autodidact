@@ -9,8 +9,9 @@ module Analysis
 
     def analyze(source_chunks:, related_chunks: [])
       prompt = Analysis::SourceSelectionPrompt.new(source_chunks: source_chunks, related_chunks: related_chunks).to_s
+      content = chat(prompt)
 
-      JSON.parse(chat(prompt), symbolize_names: true)
+      JSON.parse(json_content(content), symbolize_names: true)
     rescue JSON::ParserError => e
       raise ProviderError, "Provider returned invalid JSON: #{e.message}"
     end
@@ -27,6 +28,10 @@ module Analysis
       content
     rescue Faraday::Error => e
       raise ProviderError, e.message
+    end
+
+    def json_content(content)
+      content.to_s.strip.sub(/\A```(?:json)?\s*/i, "").sub(/\s*```\z/, "")
     end
 
     def client
