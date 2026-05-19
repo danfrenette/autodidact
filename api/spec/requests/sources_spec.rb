@@ -4,17 +4,8 @@ require "rails_helper"
 
 RSpec.describe "Sources", type: :request do
   include ActiveJob::TestHelper
-
-  let_it_be(:current_user, refind: true) { create(:user, id: "user_123") }
-  let_it_be(:other_user, refind: true) { create(:user, id: "user_456") }
-  let(:pdf_fixture_path) { "/Users/dan/code/substrate/spec/fixtures/with_toc.pdf" }
-  let(:pdf_blob) do
-    ActiveStorage::Blob.create_and_upload!(
-      io: File.open(pdf_fixture_path),
-      filename: "with_toc.pdf",
-      content_type: "application/pdf"
-    )
-  end
+  include_context "auth users"
+  include_context "pdf blob"
 
   describe "GET /sources" do
     include_context "source library"

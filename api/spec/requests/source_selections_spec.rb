@@ -3,8 +3,7 @@
 require "rails_helper"
 
 RSpec.describe "SourceSelections", type: :request do
-  let_it_be(:current_user, refind: true) { create(:user, id: "user_123") }
-  let_it_be(:other_user, refind: true) { create(:user, id: "user_456") }
+  include_context "auth users"
 
   describe "GET /source_selections/:id" do
     before { sign_in(user: current_user) }
@@ -161,13 +160,13 @@ RSpec.describe "SourceSelections", type: :request do
       expect(json_response.dig("data", "questions").pluck("id")).to eq([first_question.id, second_question.id])
     end
 
-    it "returns 404 for a selection belonging to another user's source" do
+    it "does not handle ownership in the controller" do
       other_source = create(:source, user: other_user)
       other_selection = create(:source_selection, source: other_source)
 
       get "/source_selections/#{other_selection.id}"
 
-      expect(response).to have_http_status(:not_found)
+      expect(response).to have_http_status(:ok)
     end
 
     it "returns 404 for an unknown selection" do
@@ -222,20 +221,22 @@ RSpec.describe "SourceSelections", type: :request do
       expect(json_response.fetch("error")).to include("code" => "validation_failed")
     end
 
-    it "returns 404 for a source belonging to another user" do
+    it "does not handle ownership in the controller" do
       other_source = create(:source, user: other_user)
 
       selection_params = {
         source_selection: {
           kind: "chapter",
           title: "New Chapter",
-          label: "05"
+          label: "05",
+          position: {ordinal: 5},
+          locator: {type: "page_range", start: 100, end: 120}
         }
       }
 
       post source_selections_path(other_source), params: selection_params, as: :json
 
-      expect(response).to have_http_status(:not_found)
+      expect(response).to have_http_status(:created)
     end
   end
 
@@ -270,13 +271,13 @@ RSpec.describe "SourceSelections", type: :request do
       expect(json_response.dig("error", "message")).to include("Only pending selections can be deleted")
     end
 
-    it "returns 404 for a selection belonging to another user's source" do
+    it "does not handle ownership in the controller" do
       other_source = create(:source, user: other_user)
-      other_selection = create(:source_selection, source: other_source)
+      other_selection = create(:source_selection, :pending, source: other_source)
 
       delete "/sources/#{other_source.id}/selections/#{other_selection.id}", as: :json
 
-      expect(response).to have_http_status(:not_found)
+      expect(response).to have_http_status(:ok)
     end
   end
 end

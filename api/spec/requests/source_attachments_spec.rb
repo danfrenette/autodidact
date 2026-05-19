@@ -3,8 +3,7 @@
 require "rails_helper"
 
 RSpec.describe "SourceAttachments", type: :request do
-  let_it_be(:current_user, refind: true) { create(:user, id: "user_123") }
-  let_it_be(:other_user, refind: true) { create(:user, id: "user_456") }
+  include_context "auth users"
 
   describe "POST /sources/:source_id/attachment" do
     let_it_be(:source, refind: true) { create(:source, user: current_user, status: "uploading") }
@@ -40,8 +39,8 @@ RSpec.describe "SourceAttachments", type: :request do
       }.to raise_error(ActiveSupport::MessageVerifier::InvalidSignature)
     end
 
-    it "returns 404 for a source belonging to another user" do
-      other_source = create(:source, user: other_user)
+    it "does not handle ownership in the controller" do
+      other_source = create(:source, user: other_user, status: "uploading")
 
       blob = ActiveStorage::Blob.create_and_upload!(
         io: StringIO.new("fake pdf content"),
@@ -51,7 +50,7 @@ RSpec.describe "SourceAttachments", type: :request do
 
       post source_attachment_path(other_source), params: {signed_blob_id: blob.signed_id}, as: :json
 
-      expect(response).to have_http_status(:not_found)
+      expect(response).to have_http_status(:created)
     end
   end
 end

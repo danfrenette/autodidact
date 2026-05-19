@@ -33,6 +33,15 @@ RSpec.describe Sources::Lifecycle, type: :service do
       expect(source.reload.status).to eq("processing")
     end
 
+    it "moves a failed source to processing when retrying" do
+      source = create(:source, :failed, user: current_user)
+
+      result = described_class.call(source: source, event: :retry_started)
+
+      expect(result).to be_success
+      expect(source.reload.status).to eq("processing")
+    end
+
     it "derives complete when all selections are complete" do
       source = create(:source, :processing, user: current_user)
       create(:source_selection, :complete, source: source)

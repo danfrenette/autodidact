@@ -10,6 +10,7 @@ module Sources
       created: {"draft" => %w[uploading]},
       asset_attached: {"uploading" => %w[uploaded]},
       processing_started: {"uploaded" => %w[processing]},
+      retry_started: {"failed" => %w[processing]},
       selection_statuses_changed: {
         "uploaded" => %w[uploaded],
         "processing" => %w[processing complete failed],
@@ -46,6 +47,7 @@ module Sources
       when :created then "uploading"
       when :asset_attached then "uploaded"
       when :processing_started then "processing"
+      when :retry_started then "processing"
       when :selection_statuses_changed then status_from_selections
       end
     end

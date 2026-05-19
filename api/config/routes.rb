@@ -10,9 +10,12 @@ Rails.application.routes.draw do
   resource :provider_availability, only: :show
 
   resources :sources, only: [:index, :show, :create, :update] do
-    resource :attachment, only: :create, controller: "source_attachments"
-    resources :selections, only: [:create, :destroy], controller: "source_selections"
-    resource :process, only: :create, controller: "source_processes"
+    scope module: :sources do
+      resource :attachment, only: :create
+      resources :selections, only: [:create, :destroy]
+      resource :process, only: :create
+      resource :retry, only: :create
+    end
   end
 
   resources :source_selections, only: [:show]

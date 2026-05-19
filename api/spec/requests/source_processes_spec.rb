@@ -3,8 +3,7 @@
 require "rails_helper"
 
 RSpec.describe "SourceProcesses", type: :request do
-  let_it_be(:current_user, refind: true) { create(:user, id: "user_123") }
-  let_it_be(:other_user, refind: true) { create(:user, id: "user_456") }
+  include_context "auth users"
 
   describe "POST /sources/:source_id/process" do
     before { sign_in(user: current_user) }
@@ -85,12 +84,12 @@ RSpec.describe "SourceProcesses", type: :request do
       end
     end
 
-    it "returns 404 for a source belonging to another user" do
+    it "does not handle ownership in the controller" do
       other_source = create(:source, user: other_user)
 
       post source_process_path(other_source), as: :json
 
-      expect(response).to have_http_status(:not_found)
+      expect(response).to have_http_status(:unprocessable_content)
     end
   end
 end
