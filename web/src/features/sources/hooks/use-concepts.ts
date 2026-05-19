@@ -1,8 +1,10 @@
-import { useQuery } from '@tanstack/react-query'
-import { useTRPC } from '#/providers/trpc'
+import { useSelectionAnalysis } from './use-selection-analysis'
 
 export function useConcepts(selectionId: string) {
-  const trpc = useTRPC()
+  const query = useSelectionAnalysis(selectionId)
 
-  return useQuery(trpc.sources.getConcepts.queryOptions({ selectionId }))
+  return {
+    ...query,
+    data: query.data?.data.concepts,
+  }
 }

@@ -1,6 +1,16 @@
 # frozen_string_literal: true
 
 class SourceSelectionsController < ApplicationController
+  def show
+    selection = SourceSelection.includes(:tags, :concepts, :quotes, :questions, source: :tags).find(params[:id])
+    return head :not_found unless selection.source.user_id == current_user.id
+
+    render_success(
+      template: "source_selections/show",
+      locals: {source_selection: selection}
+    )
+  end
+
   def create
     source = current_user_sources.find(params[:source_id])
     result = Sources::CreateSelection.call(source: source, params: selection_params)

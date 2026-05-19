@@ -1,12 +1,12 @@
 import { z } from 'zod'
 import { createTRPCRouter, publicProcedure } from '#/server/trpc/init'
-import { conceptsResponseSchema } from '../concept.schemas'
+import { sourceSelectionAnalysisResponseSchema } from '../analysis.schemas'
 import {
   createSourceInputSchema,
   getSourceResponseSchema,
   listSourcesResponseSchema,
 } from '../source.schemas'
-import { getConceptsFromRails } from './concepts.rails.server'
+import { getSourceSelectionAnalysisFromRails } from './source-selection-analysis.rails.server'
 import {
   createSourceInRails,
   getSourceFromRails,
@@ -24,10 +24,10 @@ export const sourcesRouter = createTRPCRouter({
   create: publicProcedure
     .input(createSourceInputSchema)
     .mutation(({ ctx, input }) => createSourceInRails(input, ctx.request)),
-  getConcepts: publicProcedure
+  getSelectionAnalysis: publicProcedure
     .input(z.object({ selectionId: z.string().uuid() }))
-    .output(conceptsResponseSchema)
+    .output(sourceSelectionAnalysisResponseSchema)
     .query(({ ctx, input }) =>
-      getConceptsFromRails(input.selectionId, ctx.request),
+      getSourceSelectionAnalysisFromRails(input.selectionId, ctx.request),
     ),
 })

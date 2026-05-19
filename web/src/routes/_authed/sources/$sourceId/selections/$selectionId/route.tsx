@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState } from 'react'
-import { useConcepts } from '#/features/sources/hooks/use-concepts'
-import { useSource } from '#/features/sources/hooks/use-source'
+import type { Question, Quote } from '#/features/sources/analysis.schemas'
+import { useSelectionAnalysis } from '#/features/sources/hooks/use-selection-analysis'
 import { TagPill } from '../../../new/-components/tag-pill'
 import { ConceptCard } from './-components/concept-card'
 import { TabButton } from './-components/tab-button'
@@ -19,18 +19,19 @@ function ChapterAnalysisPage() {
   const [activeTab, setActiveTab] = useState<Tab>('concepts')
 
   const {
-    data: sourceData,
-    isLoading: sourceLoading,
-    error: sourceError,
-  } = useSource(sourceId)
-  const { data: conceptsData, isLoading: conceptsLoading } =
-    useConcepts(selectionId)
+    data: analysisData,
+    isLoading,
+    error,
+  } = useSelectionAnalysis(selectionId)
 
-  const source = sourceData?.data
-  const selection = source?.selections?.find((s) => s.id === selectionId)
-  const concepts = conceptsData ?? []
+  const analysis = analysisData?.data
+  const source = analysis?.source
+  const selection = analysis?.selection
+  const concepts = analysis?.concepts ?? []
+  const quotes = analysis?.quotes ?? []
+  const questions = analysis?.questions ?? []
 
-  if (sourceLoading || conceptsLoading) {
+  if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center text-ad-text-secondary">
         Loading chapter analysis...
@@ -38,7 +39,7 @@ function ChapterAnalysisPage() {
     )
   }
 
-  if (sourceError || !source || !selection) {
+  if (error || !source || !selection) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-4 text-ad-text-secondary">
         <p>Failed to load chapter</p>
@@ -154,18 +155,78 @@ function ChapterAnalysisPage() {
           </div>
         )}
 
-        {activeTab === 'quotes' && (
-          <div className="py-12 text-center text-ad-text-muted">
-            Quotes feature coming soon.
-          </div>
-        )}
+        {activeTab === 'quotes' && <QuoteList quotes={quotes} />}
 
-        {activeTab === 'questions' && (
-          <div className="py-12 text-center text-ad-text-muted">
-            Questions feature coming soon.
-          </div>
-        )}
+        {activeTab === 'questions' && <QuestionList questions={questions} />}
       </div>
+    </div>
+  )
+}
+
+function QuoteList({ quotes }: { quotes: Quote[] }) {
+  if (quotes.length === 0) {
+    return (
+      <div className="py-12 text-center text-ad-text-muted">
+        No quotes found for this chapter.
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col">
+      {quotes.map((quote, index) => (
+        <div
+          key={quote.id}
+          className={`flex flex-col gap-3 py-6 ${index === quotes.length - 1 ? '' : 'border-b border-ad-border'}`}
+        >
+          <blockquote className="font-serif text-xl leading-relaxed text-ad-text-heading">
+            “{quote.text}”
+          </blockquote>
+          {quote.note && (
+            <p className="font-sans text-sm leading-relaxed text-ad-text-secondary">
+              {quote.note}
+            </p>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function QuestionList({ questions }: { questions: Question[] }) {
+  if (questions.length === 0) {
+    return (
+      <div className="py-12 text-center text-ad-text-muted">
+        No questions found for this chapter.
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col">
+      {questions.map((question, index) => (
+        <div
+          key={question.id}
+          className={`flex flex-col gap-4 py-6 ${index === questions.length - 1 ? '' : 'border-b border-ad-border'}`}
+        >
+          <div className="flex items-center gap-3">
+            <span className="rounded-sm border border-ad-border bg-ad-surface-elevated px-2 py-0.5 font-sans text-xs font-semibold uppercase tracking-widest text-ad-text-secondary">
+              Tier {question.tier}
+            </span>
+            <span className="font-sans text-xs font-semibold uppercase tracking-widest text-ad-text-muted">
+              {question.tierName}
+            </span>
+          </div>
+          <div className="flex flex-col gap-2">
+            <h3 className="font-sans text-lg font-bold uppercase tracking-tight text-ad-text-heading">
+              {question.text}
+            </h3>
+            <p className="font-sans text-sm leading-relaxed text-ad-text-secondary">
+              {question.answer}
+            </p>
+          </div>
+        </div>
+      ))}
     </div>
   )
 }

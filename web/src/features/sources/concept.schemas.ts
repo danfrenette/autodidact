@@ -19,13 +19,3 @@ export const conceptSchema = z.object({
 })
 
 export type Concept = z.infer<typeof conceptSchema>
-
-export const conceptsResponseSchema = z.object({
-  data: z.object({
-    concepts: z.array(conceptSchema),
-  }),
-  error: z.null(),
-  meta: z.record(z.string(), z.unknown()),
-})
-
-export type ConceptsResponse = z.infer<typeof conceptsResponseSchema>
