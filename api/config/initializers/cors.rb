@@ -5,12 +5,18 @@
 
 # Read more: https://github.com/cyu/rack-cors
 
-# Rails.application.config.middleware.insert_before 0, Rack::Cors do
-#   allow do
-#     origins "example.com"
-#
-#     resource "*",
-#       headers: :any,
-#       methods: [:get, :post, :put, :patch, :delete, :options, :head]
-#   end
-# end
+frontend_origins = ENV.fetch(
+  "FRONTEND_ORIGINS",
+  ENV.fetch("FRONTEND_ORIGIN", ENV.fetch("BETTER_AUTH_TRUSTED_ORIGINS", "http://localhost:3000"))
+).split(",").map(&:strip).compact_blank
+
+Rails.application.config.middleware.insert_before 0, Rack::Cors do
+  allow do
+    origins(*frontend_origins)
+
+    resource "*",
+      headers: :any,
+      credentials: true,
+      methods: [:get, :post, :put, :patch, :delete, :options, :head]
+  end
+end

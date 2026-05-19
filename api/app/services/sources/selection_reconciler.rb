@@ -45,8 +45,12 @@ module Sources
 
     def authoritative_section_for(selection)
       authoritative_sections.find do |section|
-        section[:title] == selection.title && locator_start(section[:locator]) == locator_start(selection.locator)
+        locator_start(section[:locator]) == locator_start(selection.locator) && matching_identity?(section, selection)
       end
+    end
+
+    def matching_identity?(section, selection)
+      normalized_title(section[:title]) == normalized_title(selection.title) || section_ordinal(section) == selection_ordinal(selection)
     end
 
     def authoritative_sections
@@ -56,7 +60,19 @@ module Sources
     end
 
     def locator_start(locator)
-      locator.with_indifferent_access[:start]
+      SourceSelection::Locator.load(locator).start_page
+    end
+
+    def section_ordinal(section)
+      SourceSelection::Position.load(section[:position]).ordinal
+    end
+
+    def selection_ordinal(selection)
+      selection.position.ordinal
+    end
+
+    def normalized_title(title)
+      title.to_s.gsub(/[[:space:]]+/, " ").strip
     end
 
     def selection_failure(selection)

@@ -27,6 +27,7 @@ export async function createSourceInRails(
           kind: input.kind,
           author: input.author,
           original_filename: input.originalFilename,
+          signed_blob_id: input.signedBlobId,
           tags: input.tags,
           selections: input.selections,
         },

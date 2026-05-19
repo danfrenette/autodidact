@@ -24,7 +24,8 @@ class SourcesController < ApplicationController
       user: current_user,
       source_params: source_params,
       selection_params: source_selection_params,
-      tag_names: source_tag_params
+      tag_names: source_tag_params,
+      signed_blob_id: signed_blob_id_param
     )
 
     if result.success?
@@ -69,15 +70,31 @@ class SourcesController < ApplicationController
   end
 
   def source_params
-    params.require(:source).permit(:title, :kind, :author, :original_filename)
+    permitted_source_params.slice(:title, :kind, :author, :original_filename)
   end
 
   def source_selection_params
-    params.require(:source).permit(selections: [:kind, :subtype, :title, :label, {position: {}, locator: {}, tags: []}]).fetch(:selections, [])
+    permitted_source_params.fetch(:selections, [])
   end
 
   def source_tag_params
-    params.require(:source).permit(tags: []).fetch(:tags, [])
+    permitted_source_params.fetch(:tags, [])
+  end
+
+  def signed_blob_id_param
+    permitted_source_params.fetch(:signed_blob_id, nil)
+  end
+
+  def permitted_source_params
+    @permitted_source_params ||= params.require(:source).permit(
+      :title,
+      :kind,
+      :author,
+      :original_filename,
+      :signed_blob_id,
+      tags: [],
+      selections: [:kind, :subtype, :title, :label, {position: {}, locator: {}, tags: []}]
+    )
   end
 
   def update_source_params

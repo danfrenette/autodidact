@@ -6,6 +6,7 @@ import type {
 
 export function buildCreateSourceInput(
   document: SourceIntakeDocument,
+  signedBlobId: string,
   selectedChapterIds: string[],
   tags: Tag[],
   chapterTags: Record<string, Tag[]> = {},
@@ -15,6 +16,7 @@ export function buildCreateSourceInput(
     kind: 'pdf' as const,
     author: document.author,
     originalFilename: document.file.name,
+    signedBlobId,
     tags,
     selections: document.chapters
       .filter((chapter) => selectedChapterIds.includes(chapter.id))

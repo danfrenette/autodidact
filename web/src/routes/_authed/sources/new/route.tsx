@@ -1,6 +1,4 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useCreateSource } from '#/features/sources/hooks/use-create-source'
-import { buildCreateSourceInput } from '#/features/sources/source.mappers'
 import { ActionBar } from './-components/action-bar'
 import {
   ChapterSelection,
@@ -14,6 +12,7 @@ import { defaultModelLabel, defaultTags } from './-constants'
 import { useChapterTagMap } from './-hooks/use-chapter-tags'
 import { useConnectionPreview } from './-hooks/use-connection-preview'
 import { usePdfIntake } from './-hooks/use-pdf-intake'
+import { useProcessSource } from './-hooks/use-process-source'
 import { useSourceTags } from './-hooks/use-source-tags'
 
 export const Route = createFileRoute('/_authed/sources/new')({
@@ -23,43 +22,35 @@ export const Route = createFileRoute('/_authed/sources/new')({
 function AddSourceRoute() {
   const navigate = useNavigate()
   const pdfIntake = usePdfIntake()
-  const createSource = useCreateSource()
   const chapterTagMap = useChapterTagMap()
   const { addTag, draftTag, removeTag, setDraftTag, tags } =
     useSourceTags(defaultTags)
   const connections = useConnectionPreview(tags)
   const selectedChapterCount = pdfIntake.selectedChapterIds.length
   const canProcess = Boolean(pdfIntake.document && selectedChapterCount > 0)
-  const createSourceErrorMessage =
-    createSource.error instanceof Error ? createSource.error.message : null
+  const processSource = useProcessSource({
+    chapterTags: chapterTagMap.tagsByChapterId,
+    document: pdfIntake.document,
+    selectedChapterIds: pdfIntake.selectedChapterIds,
+    tags,
+    onSuccess: (data) => {
+      void navigate({
+        to: '/sources/$sourceId',
+        params: { sourceId: data.data.source.id },
+      })
+    },
+    onProvidersRequired: () => {
+      void navigate({
+        to: '/settings/providers',
+        search: { notice: 'providers-required' },
+      })
+    },
+  })
+  const processSourceErrorMessage =
+    processSource.error instanceof Error ? processSource.error.message : null
 
   function createFromSelectedChapters() {
-    if (!pdfIntake.document) return
-
-    createSource.mutate(
-      buildCreateSourceInput(
-        pdfIntake.document,
-        pdfIntake.selectedChapterIds,
-        tags,
-        chapterTagMap.tagsByChapterId,
-      ),
-      {
-        onSuccess: (data) => {
-          void navigate({
-            to: '/sources/$sourceId',
-            params: { sourceId: data.data.source.id },
-          })
-        },
-        onError: (error) => {
-          if (error.message.includes('providers before adding sources')) {
-            void navigate({
-              to: '/settings/providers',
-              search: { notice: 'providers-required' },
-            })
-          }
-        },
-      },
-    )
+    processSource.mutate()
   }
 
   function toggleChapterAndClearTags(chapterId: string) {
@@ -126,8 +117,8 @@ function AddSourceRoute() {
                 : 'Process 0 Chapters'
             }
             canProcess={canProcess}
-            errorMessage={createSourceErrorMessage}
-            isProcessing={createSource.isPending}
+            errorMessage={processSourceErrorMessage}
+            isProcessing={processSource.isPending}
             onProcess={createFromSelectedChapters}
           />
         </div>

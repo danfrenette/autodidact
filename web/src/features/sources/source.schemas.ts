@@ -22,6 +22,7 @@ export const createSourceInputSchema = z.object({
   kind: z.literal('pdf'),
   author: z.string().nullable(),
   originalFilename: z.string().min(1),
+  signedBlobId: z.string().min(1),
   tags: z.array(tagSchema),
   selections: z.array(sourceSelectionInputSchema),
 })

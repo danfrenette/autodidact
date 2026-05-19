@@ -19,6 +19,7 @@ import { Route as AuthedSettingsProvidersRouteImport } from './routes/_authed/se
 import { Route as AuthedSourcesNewRouteRouteImport } from './routes/_authed/sources/new/route'
 import { Route as AuthedSourcesSourceIdRouteRouteImport } from './routes/_authed/sources/$sourceId/route'
 import { Route as AuthedSourcesSourceIdIndexRouteImport } from './routes/_authed/sources/$sourceId/index'
+import { Route as ApiRailsActive_storageDirect_uploadsRouteImport } from './routes/api.rails.active_storage.direct_uploads'
 import { Route as AuthedSourcesSourceIdSelectionsSelectionIdRouteRouteImport } from './routes/_authed/sources/$sourceId/selections/$selectionId/route'
 
 const AuthRouteRoute = AuthRouteRouteImport.update({
@@ -72,6 +73,12 @@ const AuthedSourcesSourceIdIndexRoute =
     path: '/',
     getParentRoute: () => AuthedSourcesSourceIdRouteRoute,
   } as any)
+const ApiRailsActive_storageDirect_uploadsRoute =
+  ApiRailsActive_storageDirect_uploadsRouteImport.update({
+    id: '/api/rails/active_storage/direct_uploads',
+    path: '/api/rails/active_storage/direct_uploads',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthedSourcesSourceIdSelectionsSelectionIdRouteRoute =
   AuthedSourcesSourceIdSelectionsSelectionIdRouteRouteImport.update({
     id: '/selections/$selectionId',
@@ -88,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/sources/': typeof AuthedSourcesIndexRoute
+  '/api/rails/active_storage/direct_uploads': typeof ApiRailsActive_storageDirect_uploadsRoute
   '/sources/$sourceId/': typeof AuthedSourcesSourceIdIndexRoute
   '/sources/$sourceId/selections/$selectionId': typeof AuthedSourcesSourceIdSelectionsSelectionIdRouteRoute
 }
@@ -99,6 +107,7 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/sources': typeof AuthedSourcesIndexRoute
+  '/api/rails/active_storage/direct_uploads': typeof ApiRailsActive_storageDirect_uploadsRoute
   '/sources/$sourceId': typeof AuthedSourcesSourceIdIndexRoute
   '/sources/$sourceId/selections/$selectionId': typeof AuthedSourcesSourceIdSelectionsSelectionIdRouteRoute
 }
@@ -113,6 +122,7 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/_authed/sources/': typeof AuthedSourcesIndexRoute
+  '/api/rails/active_storage/direct_uploads': typeof ApiRailsActive_storageDirect_uploadsRoute
   '/_authed/sources/$sourceId/': typeof AuthedSourcesSourceIdIndexRoute
   '/_authed/sources/$sourceId/selections/$selectionId': typeof AuthedSourcesSourceIdSelectionsSelectionIdRouteRoute
 }
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/sources/'
+    | '/api/rails/active_storage/direct_uploads'
     | '/sources/$sourceId/'
     | '/sources/$sourceId/selections/$selectionId'
   fileRoutesByTo: FileRoutesByTo
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/sources'
+    | '/api/rails/active_storage/direct_uploads'
     | '/sources/$sourceId'
     | '/sources/$sourceId/selections/$selectionId'
   id:
@@ -151,6 +163,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/_authed/sources/'
+    | '/api/rails/active_storage/direct_uploads'
     | '/_authed/sources/$sourceId/'
     | '/_authed/sources/$sourceId/selections/$selectionId'
   fileRoutesById: FileRoutesById
@@ -160,6 +173,7 @@ export interface RootRouteChildren {
   AuthRouteRoute: typeof AuthRouteRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
+  ApiRailsActive_storageDirect_uploadsRoute: typeof ApiRailsActive_storageDirect_uploadsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -234,6 +248,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedSourcesSourceIdIndexRouteImport
       parentRoute: typeof AuthedSourcesSourceIdRouteRoute
     }
+    '/api/rails/active_storage/direct_uploads': {
+      id: '/api/rails/active_storage/direct_uploads'
+      path: '/api/rails/active_storage/direct_uploads'
+      fullPath: '/api/rails/active_storage/direct_uploads'
+      preLoaderRoute: typeof ApiRailsActive_storageDirect_uploadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authed/sources/$sourceId/selections/$selectionId': {
       id: '/_authed/sources/$sourceId/selections/$selectionId'
       path: '/selections/$selectionId'
@@ -286,6 +307,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRouteRoute: AuthRouteRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
+  ApiRailsActive_storageDirect_uploadsRoute:
+    ApiRailsActive_storageDirect_uploadsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

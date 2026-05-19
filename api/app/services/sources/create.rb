@@ -6,11 +6,12 @@ module Sources
 
     Result = ApplicationResult.define(:source, :error_code, :error_message, :error_details)
 
-    def initialize(user:, source_params:, selection_params: [], tag_names: [])
+    def initialize(user:, source_params:, selection_params: [], tag_names: [], signed_blob_id: nil)
       @user = user
       @source_params = source_params
       @selection_params = selection_params
       @tag_names = tag_names
+      @signed_blob_id = signed_blob_id
     end
 
     def call
@@ -23,6 +24,8 @@ module Sources
         Sources::Lifecycle.call(source: source, event: :created)
         create_selections(source)
         create_tags(source)
+        attach_asset(source)
+        process_selections(source)
       end
 
       success(source: source, error_code: nil, error_message: nil, error_details: {}, errors: [])
@@ -46,7 +49,7 @@ module Sources
 
     private
 
-    attr_reader :user, :source_params, :selection_params, :tag_names, :availability
+    attr_reader :user, :source_params, :selection_params, :tag_names, :signed_blob_id, :availability
 
     def build_source
       Source.new(source_params.merge(user_id: user.id))
@@ -70,6 +73,16 @@ module Sources
 
     def create_tags(source)
       Tags::FindOrCreate.call(user: user, taggable: source, tag_names: tag_names)
+    end
+
+    def attach_asset(source)
+      result = Sources::AttachAsset.call(source: source, signed_blob_id: signed_blob_id)
+      raise ActiveRecord::RecordInvalid, source if result.failure?
+    end
+
+    def process_selections(source)
+      result = Sources::ProcessSelections.call(source: source)
+      raise ActiveRecord::RecordInvalid, source if result.failure?
     end
   end
 end

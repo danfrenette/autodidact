@@ -18,6 +18,7 @@ describe('buildCreateSourceInput', () => {
           },
         ],
       },
+      'signed-blob-id',
       ['1-foreword', '3-organization'],
       ['programming', 'software-craft'],
       {
@@ -31,6 +32,7 @@ describe('buildCreateSourceInput', () => {
       kind: 'pdf',
       author: 'Andrew Hunt, David Thomas',
       originalFilename: 'The Pragmatic Programmer.pdf',
+      signedBlobId: 'signed-blob-id',
       tags: ['programming', 'software-craft'],
       selections: [
         {
