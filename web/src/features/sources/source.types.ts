@@ -4,6 +4,7 @@ import type {
   createSourceResponseSchema,
   getSourceResponseSchema,
   listSourcesResponseSchema,
+  processSourceResponseSchema,
   sourceSchema,
   sourceSelectionInputSchema,
   sourceSelectionSchema,
@@ -18,6 +19,7 @@ export type SourceSelection = z.infer<typeof sourceSelectionSchema>
 export type CreateSourceResponse = z.infer<typeof createSourceResponseSchema>
 export type ListSourcesResponse = z.infer<typeof listSourcesResponseSchema>
 export type GetSourceResponse = z.infer<typeof getSourceResponseSchema>
+export type ProcessSourceResponse = z.infer<typeof processSourceResponseSchema>
 
 export type SourceIntakeChapter = {
   id: string

@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { useRetrySource } from '#/features/sources/hooks/use-retry-source'
 import { useSource } from '#/features/sources/hooks/use-source'
 import { formatSourceTitle } from '#/features/sources/source.format'
 import { selectionStatus, sourceStatus } from '#/features/sources/source-status'
@@ -10,6 +11,7 @@ export const Route = createFileRoute('/_authed/sources/$sourceId/')({
 function SourceDetailPage() {
   const { sourceId } = Route.useParams()
   const { data, isLoading, error } = useSource(sourceId)
+  const retrySource = useRetrySource(sourceId)
   const source = data?.data
 
   if (isLoading) {
@@ -91,9 +93,19 @@ function SourceDetailPage() {
       </div>
 
       {status.isFailed ? (
-        <div className="rounded-sm border border-ad-accent/40 bg-ad-accent/10 px-4 py-3 text-sm text-ad-text-secondary">
-          Processing failed for one or more chapters. Open a failed chapter for
-          details, then update or switch providers before retrying.
+        <div className="flex items-center justify-between gap-4 rounded-sm border border-ad-accent/40 bg-ad-accent/10 px-4 py-3 text-sm text-ad-text-secondary">
+          <span>
+            Processing failed for one or more chapters. Update or switch
+            providers, then retry processing.
+          </span>
+          <button
+            type="button"
+            onClick={() => retrySource.mutate()}
+            disabled={retrySource.isPending}
+            className="shrink-0 rounded-sm bg-ad-accent px-4 py-2 font-sans text-xs font-medium uppercase tracking-wider text-ad-text-heading transition-colors hover:bg-ad-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {retrySource.isPending ? 'Retrying...' : 'Retry processing'}
+          </button>
         </div>
       ) : null}
 

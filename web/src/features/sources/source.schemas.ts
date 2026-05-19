@@ -66,6 +66,17 @@ export const createSourceResponseSchema = z.object({
   meta: z.record(z.string(), z.unknown()),
 })
 
+export const processSourceResponseSchema = z.object({
+  data: z.object({
+    source: z.object({
+      id: z.string().uuid(),
+      status: z.string(),
+    }),
+  }),
+  error: z.null(),
+  meta: z.record(z.string(), z.unknown()),
+})
+
 export const listSourcesResponseSchema = z.object({
   data: z.object({
     sources: z.array(sourceSchema),

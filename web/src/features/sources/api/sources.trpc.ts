@@ -11,6 +11,7 @@ import {
   createSourceInRails,
   getSourceFromRails,
   listSourcesFromRails,
+  retrySourceInRails,
 } from './sources.rails.server'
 
 export const sourcesRouter = createTRPCRouter({
@@ -24,6 +25,9 @@ export const sourcesRouter = createTRPCRouter({
   create: publicProcedure
     .input(createSourceInputSchema)
     .mutation(({ ctx, input }) => createSourceInRails(input, ctx.request)),
+  retry: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(({ ctx, input }) => retrySourceInRails(input.id, ctx.request)),
   getSelectionAnalysis: publicProcedure
     .input(z.object({ selectionId: z.string().uuid() }))
     .output(sourceSelectionAnalysisResponseSchema)

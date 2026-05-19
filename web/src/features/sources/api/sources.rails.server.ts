@@ -4,6 +4,7 @@ import {
   createSourceResponseSchema,
   getSourceResponseSchema,
   listSourcesResponseSchema,
+  processSourceResponseSchema,
 } from '../source.schemas'
 
 import type {
@@ -11,6 +12,7 @@ import type {
   CreateSourceResponse,
   GetSourceResponse,
   ListSourcesResponse,
+  ProcessSourceResponse,
 } from '../source.types'
 
 export async function createSourceInRails(
@@ -58,4 +60,21 @@ export async function getSourceFromRails(
   )
 
   return validate(getSourceResponseSchema, payload, `getSource(${sourceId})`)
+}
+
+export async function retrySourceInRails(
+  sourceId: string,
+  request: Request,
+): Promise<ProcessSourceResponse> {
+  const payload = await requestRails(
+    `/sources/${sourceId}/retry`,
+    { method: 'POST' },
+    { request, csrf: true },
+  )
+
+  return validate(
+    processSourceResponseSchema,
+    payload,
+    `retrySource(${sourceId})`,
+  )
 }
