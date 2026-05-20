@@ -10,7 +10,8 @@ module Sources
       chunk: "CHUNK",
       retrieve: "RETRIEVE",
       analyze: "ANALYZE",
-      write: "WRITE"
+      write: "WRITE",
+      process: "PROCESS"
     }.freeze
 
     def initialize(source_selection:)
@@ -35,12 +36,14 @@ module Sources
       analysis = analyze_content(embedded_chunks, related_chunks)
       return failed_result if failed?
 
-      write_results(analysis, embedded_chunks)
+      write_results(analysis, embedded_chunks, related_chunks)
       return failed_result if failed?
 
       mark_complete
       refresh_source_status
       success(error_message: nil)
+    rescue => error
+      fail_processing(Sources::ProcessingFailureBuilder.from_exception(stage: :process, error: error))
     end
 
     private
@@ -64,7 +67,7 @@ module Sources
       transition_to_stage(:convert)
       result = Sources::ExtractSelectionContent.call(source_selection: source_selection)
 
-      fail_processing(:convert, result.error_message) if result.failure?
+      fail_processing(failure_from_result(:convert, result)) if result.failure?
 
       result.content unless failed?
     end
@@ -73,7 +76,7 @@ module Sources
       transition_to_stage(:chunk)
       result = Sources::ChunkContent.call(source_selection_content: content)
 
-      fail_processing(:chunk, result.error_message) if result.failure?
+      fail_processing(failure_from_result(:chunk, result)) if result.failure?
 
       result.chunks unless failed?
     end
@@ -82,7 +85,7 @@ module Sources
       transition_to_stage(:chunk)
       result = Sources::EmbedChunks.call(source_chunks: chunks, user: source.user)
 
-      fail_processing(:chunk, result.error_message, result.error_details) if result.failure?
+      fail_processing(failure_from_result(:chunk, result)) if result.failure?
 
       result.chunks unless failed?
     end
@@ -91,7 +94,7 @@ module Sources
       transition_to_stage(:retrieve)
       result = Sources::RetrieveRelatedChunks.call(source_selection: source_selection, source_chunks: chunks)
 
-      fail_processing(:retrieve, result.error_message) if result.failure?
+      fail_processing(failure_from_result(:retrieve, result)) if result.failure?
 
       result.chunks unless failed?
     end
@@ -100,26 +103,31 @@ module Sources
       transition_to_stage(:analyze)
       result = Sources::AnalyzeContent.call(source_chunks: chunks, related_chunks: related_chunks, user: source.user)
 
-      fail_processing(:analyze, result.error_message, result.error_details) if result.failure?
+      fail_processing(failure_from_result(:analyze, result)) if result.failure?
+      return if failed?
 
-      result.analysis unless failed?
+      result.analysis
     end
 
-    def write_results(analysis, chunks)
+    def write_results(analysis, chunks, related_chunks)
       transition_to_stage(:write)
-      result = Sources::WriteAnalysisResults.call(source_selection: source_selection, analysis: analysis, source_chunks: chunks)
+      result = Sources::WriteAnalysisResults.call(
+        source_selection: source_selection,
+        analysis: analysis,
+        source_chunks: chunks + related_chunks
+      )
 
-      fail_processing(:write, result.error_message) if result.failure?
+      fail_processing(failure_from_result(:write, result)) if result.failure?
     end
 
     def transition_to_stage(stage)
       source_selection.update!(pipeline_stage: STAGES.fetch(stage))
     end
 
-    def fail_processing(stage, message, details = {})
-      mark_failed(stage, message, details)
+    def fail_processing(failure)
+      mark_failed(failure)
       refresh_source_status
-      @failed_result = failure(error_message: message)
+      @failed_result = failure(error_message: failure.message)
     end
 
     def failed?
@@ -130,19 +138,20 @@ module Sources
       source_selection.update!(status: :complete, pipeline_stage: nil, error_message: nil, error_details: {})
     end
 
-    def mark_failed(stage, message, details = {})
-      source_selection.update!(
-        status: :failed,
-        error_message: message,
-        error_details: {
-          stage: STAGES.fetch(stage),
-          message: message
-        }.merge(details.stringify_keys)
-      )
+    def mark_failed(failure)
+      Sources::MarkSelectionFailed.call(source_selection: source_selection, failure: failure)
     end
 
     def refresh_source_status
       Sources::Lifecycle.call(source: source, event: :selection_statuses_changed)
+    end
+
+    def failure_from_result(stage, result)
+      Sources::ProcessingFailureBuilder.from_result(
+        stage: stage,
+        message: result.error_message,
+        details: result.respond_to?(:error_details) ? result.error_details : {}
+      )
     end
   end
 end

@@ -89,5 +89,29 @@ RSpec.describe Sources::WriteAnalysisResults, type: :service do
       expect(result).to be_success
       expect(selection.concepts.sole.classification).to eq("supporting")
     end
+
+    it "resolves generated citation ids that are unique chunk id prefixes" do
+      selection = create(:source_selection)
+      content = create(:source_selection_content, source_selection: selection)
+      chunk = create(:source_chunk, source_selection_content: content, chunk_id: "5e8e16a3cb53db46e6fc6bf948aac6e115c4b8e5c9d42f02319cd63a98db78e5")
+
+      result = described_class.call(
+        source_selection: selection,
+        source_chunks: [chunk],
+        analysis: {
+          concepts: [
+            {
+              name: "Individual Contribution in Engineering",
+              cited_chunk_ids: ["5e8e16a3cb53db46e6fc6bf948aac6e115c4b8e5"]
+            }
+          ],
+          questions: [],
+          quotes: []
+        }
+      )
+
+      expect(result).to be_success
+      expect(selection.concepts.sole.citations.sole.source_chunk).to eq(chunk)
+    end
   end
 end

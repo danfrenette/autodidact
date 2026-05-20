@@ -66,7 +66,11 @@ module Sources
     end
 
     def enqueue_selections(selections)
-      selections.each { |selection| ProcessSourceSelectionJob.perform_later(selection.id) }
+      selection_ids = selections.map(&:id)
+
+      ActiveRecord.after_all_transactions_commit do
+        selection_ids.each { |selection_id| ProcessSourceSelectionJob.perform_later(selection_id) }
+      end
     end
   end
 end

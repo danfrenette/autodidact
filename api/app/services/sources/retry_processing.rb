@@ -51,7 +51,9 @@ module Sources
     end
 
     def enqueue_failed_selections
-      failed_selection_ids.each { |selection_id| ProcessSourceSelectionJob.perform_later(selection_id) }
+      ActiveRecord.after_all_transactions_commit do
+        failed_selection_ids.each { |selection_id| ProcessSourceSelectionJob.perform_later(selection_id) }
+      end
     end
 
     def failed_selection_ids

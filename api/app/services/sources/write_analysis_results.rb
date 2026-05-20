@@ -2,7 +2,7 @@
 
 module Sources
   class WriteAnalysisResults < ApplicationService
-    Result = ApplicationResult.define(:error_message)
+    Result = ApplicationResult.define(:error_message, :error_details)
 
     def initialize(source_selection:, analysis:, source_chunks:)
       @source_selection = source_selection
@@ -18,9 +18,25 @@ module Sources
         write_quotes
       end
 
-      success(error_message: nil)
+      success(error_message: nil, error_details: {})
+    rescue ActiveRecord::RecordInvalid => e
+      failure(
+        error_message: "Generated analysis could not be saved: #{e.record.errors.full_messages.to_sentence}",
+        error_details: {
+          code: "write_failed",
+          error_class: e.class.name,
+          record: e.record.class.name,
+          validation_errors: e.record.errors.full_messages
+        }
+      )
     rescue => e
-      failure(error_message: e.message)
+      failure(
+        error_message: e.message,
+        error_details: {
+          code: e.is_a?(KeyError) ? "invalid_citation_label" : "write_failed",
+          error_class: e.class.name
+        }
+      )
     end
 
     private
@@ -74,7 +90,7 @@ module Sources
 
     def cite(record, chunk_ids, role)
       Array(chunk_ids).each_with_index do |chunk_id, index|
-        chunk = chunks_by_id.fetch(chunk_id)
+        chunk = resolve_chunk(chunk_id)
 
         record.citations.create!(
           source_chunk: chunk,
@@ -86,6 +102,15 @@ module Sources
 
     def chunks_by_id
       @chunks_by_id ||= source_chunks.index_by(&:chunk_id)
+    end
+
+    def resolve_chunk(chunk_id)
+      chunks_by_id.fetch(chunk_id) do
+        matches = chunks_by_id.select { |id, _chunk| id.start_with?(chunk_id.to_s) }
+        return matches.values.sole if matches.one?
+
+        raise KeyError, "key not found: #{chunk_id.inspect}"
+      end
     end
 
     def concept_classification(attributes)
