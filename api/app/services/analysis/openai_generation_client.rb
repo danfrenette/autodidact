@@ -8,10 +8,10 @@ module Analysis
     end
 
     def analyze(source_chunks:, related_chunks: [])
-      prompt = Analysis::SourceSelectionPrompt.new(source_chunks: source_chunks, related_chunks: related_chunks).to_s
-      content = chat(prompt)
+      prompt = Analysis::SourceSelectionPrompt.new(source_chunks: source_chunks, related_chunks: related_chunks)
+      content = chat(prompt.to_s)
 
-      JSON.parse(json_content(content), symbolize_names: true)
+      prompt.resolve_citations(JSON.parse(json_content(content), symbolize_names: true))
     rescue JSON::ParserError => e
       raise ProviderError, "Provider returned invalid JSON: #{e.message}"
     end

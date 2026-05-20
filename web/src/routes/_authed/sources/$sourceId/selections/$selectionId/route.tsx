@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import type { Question, Quote } from '#/features/sources/analysis.schemas'
+import { useRetrySource } from '#/features/sources/hooks/use-retry-source'
 import { useSelectionAnalysis } from '#/features/sources/hooks/use-selection-analysis'
 import type { SourceSelection } from '#/features/sources/source.types'
 import { selectionStatus } from '#/features/sources/source-status'
@@ -19,6 +20,7 @@ type Tab = 'concepts' | 'quotes' | 'questions'
 function ChapterAnalysisPage() {
   const { sourceId, selectionId } = Route.useParams()
   const [activeTab, setActiveTab] = useState<Tab>('concepts')
+  const retrySource = useRetrySource(sourceId)
 
   const {
     data: analysisData,
@@ -118,7 +120,13 @@ function ChapterAnalysisPage() {
         ) : null}
       </div>
 
-      {status.isFailed ? <FailurePanel selection={selection} /> : null}
+      {status.isFailed ? (
+        <FailurePanel
+          selection={selection}
+          onRetry={() => retrySource.mutate()}
+          isRetrying={retrySource.isPending}
+        />
+      ) : null}
 
       <div className="flex items-center gap-6 border-b border-ad-border pb-0">
         <TabButton
@@ -171,7 +179,17 @@ function ChapterAnalysisPage() {
   )
 }
 
-function FailurePanel({ selection }: { selection: SourceSelection }) {
+function FailurePanel({
+  selection,
+  onRetry,
+  isRetrying,
+}: {
+  selection: SourceSelection
+  onRetry: () => void
+  isRetrying: boolean
+}) {
+  const status = selectionStatus(selection)
+
   return (
     <div className="rounded-sm border border-ad-accent/40 bg-ad-accent/10 px-4 py-4">
       <p className="font-sans text-xs font-medium uppercase tracking-widest text-ad-accent">
@@ -181,12 +199,23 @@ function FailurePanel({ selection }: { selection: SourceSelection }) {
         {selection.errorMessage ??
           'The analysis pipeline failed for this chapter.'}
       </p>
-      <Link
-        to="/settings/providers"
-        className="mt-4 inline-flex min-h-9 items-center justify-center rounded-sm bg-ad-accent px-4 text-xs font-medium uppercase tracking-widest text-ad-text-heading transition-colors hover:bg-ad-accent-hover"
-      >
-        Switch providers
-      </Link>
+      {status.action === 'provider_settings' ? (
+        <Link
+          to="/settings/providers"
+          className="mt-4 inline-flex min-h-9 items-center justify-center rounded-sm bg-ad-accent px-4 text-xs font-medium uppercase tracking-widest text-ad-text-heading transition-colors hover:bg-ad-accent-hover"
+        >
+          Switch providers
+        </Link>
+      ) : (
+        <button
+          type="button"
+          onClick={onRetry}
+          disabled={isRetrying}
+          className="mt-4 inline-flex min-h-9 items-center justify-center rounded-sm bg-ad-accent px-4 text-xs font-medium uppercase tracking-widest text-ad-text-heading transition-colors hover:bg-ad-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isRetrying ? 'Retrying...' : 'Retry processing'}
+        </button>
+      )}
     </div>
   )
 }

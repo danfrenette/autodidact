@@ -1,6 +1,7 @@
 import type { Source, SourceSelection } from './source.types'
 
 type StatusPresentation = {
+  action: 'provider_settings' | 'retry' | null
   detail: string | null
   dotClassName: string
   isComplete: boolean
@@ -13,6 +14,7 @@ export function sourceStatus(source: Source): StatusPresentation {
   if (source.status === 'failed' || source.failedCount > 0) {
     return {
       detail: 'Processing failed',
+      action: null,
       dotClassName: 'bg-ad-accent',
       isComplete: true,
       isFailed: true,
@@ -24,6 +26,7 @@ export function sourceStatus(source: Source): StatusPresentation {
   if (source.completedCount === source.selectionCount) {
     return {
       detail: null,
+      action: null,
       dotClassName: 'bg-ad-text-muted',
       isComplete: true,
       isFailed: false,
@@ -34,6 +37,7 @@ export function sourceStatus(source: Source): StatusPresentation {
 
   return {
     detail: null,
+    action: null,
     dotClassName: 'bg-ad-accent',
     isComplete: false,
     isFailed: false,
@@ -47,6 +51,7 @@ export function selectionStatus(
 ): StatusPresentation {
   if (selection.status === 'failed') {
     return {
+      action: failureAction(selection),
       detail: selection.errorMessage,
       dotClassName: 'bg-ad-accent',
       isComplete: true,
@@ -59,6 +64,7 @@ export function selectionStatus(
   if (selection.status === 'complete') {
     return {
       detail: null,
+      action: null,
       dotClassName: 'bg-ad-text-secondary',
       isComplete: true,
       isFailed: false,
@@ -69,10 +75,19 @@ export function selectionStatus(
 
   return {
     detail: null,
+    action: null,
     dotClassName: 'bg-ad-accent',
     isComplete: false,
     isFailed: false,
     label: 'Processing',
     textClassName: 'text-ad-accent',
   }
+}
+
+function failureAction(
+  selection: SourceSelection,
+): StatusPresentation['action'] {
+  const action = selection.errorDetails.action
+
+  return action === 'provider_settings' ? 'provider_settings' : 'retry'
 }

@@ -13,11 +13,19 @@ RSpec.describe Analysis::OpenaiGenerationClient do
   it "returns parsed JSON analysis" do
     allow(openai_client).to receive(:chat)
       .with(parameters: hash_including(model: "gpt-4o-mini"))
-      .and_return("choices" => [{"message" => {"content" => JSON.dump(concepts: [], questions: [], quotes: [])}}])
+      .and_return("choices" => [{"message" => {"content" => JSON.dump(
+        concepts: [{name: "Concept", cited_chunk_ids: ["C1"]}],
+        questions: [],
+        quotes: []
+      )}}])
 
     client = described_class.new(api_key: "sk-test", model: "gpt-4o-mini")
 
-    expect(client.analyze(source_chunks: [source_chunk])).to eq(concepts: [], questions: [], quotes: [])
+    expect(client.analyze(source_chunks: [source_chunk])).to eq(
+      concepts: [{name: "Concept", cited_chunk_ids: ["chunk-1"]}],
+      questions: [],
+      quotes: []
+    )
   end
 
   it "returns parsed JSON analysis from a fenced JSON response" do

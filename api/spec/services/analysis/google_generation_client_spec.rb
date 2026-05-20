@@ -20,7 +20,11 @@ RSpec.describe Analysis::GoogleGenerationClient do
       success?: true,
       body: {
         "candidates" => [
-          {"content" => {"parts" => [{"text" => JSON.dump(concepts: [], questions: [], quotes: [])}]}}
+          {"content" => {"parts" => [{"text" => JSON.dump(
+            concepts: [{name: "Concept", cited_chunk_ids: ["C1"]}],
+            questions: [],
+            quotes: []
+          )}]}}
         ]
       },
       status: 200
@@ -32,7 +36,11 @@ RSpec.describe Analysis::GoogleGenerationClient do
 
     client = described_class.new(api_key: "google-key", model: "gemini-2.0-flash-lite")
 
-    expect(client.analyze(source_chunks: [source_chunk])).to eq(concepts: [], questions: [], quotes: [])
+    expect(client.analyze(source_chunks: [source_chunk])).to eq(
+      concepts: [{name: "Concept", cited_chunk_ids: ["chunk-1"]}],
+      questions: [],
+      quotes: []
+    )
     expect(request.params).to eq("key" => "google-key")
     expect(request.headers).to eq("Content-Type" => "application/json")
     expect(JSON.parse(request.body)).to include(

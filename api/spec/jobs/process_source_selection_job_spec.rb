@@ -24,5 +24,23 @@ RSpec.describe ProcessSourceSelectionJob, type: :job do
 
       expect { described_class.perform_now(selection.id) }.not_to raise_error
     end
+
+    it "marks the selection failed when processing raises after the selection is loaded" do
+      source.update!(status: :processing)
+      selection = create(:source_selection, :processing, source: source)
+      allow(Sources::ProcessSelection).to receive(:call).and_raise(JSON::ParserError, "unexpected token")
+
+      described_class.perform_now(selection.id)
+
+      expect(selection.reload).to be_failed
+      expect(selection.error_message).to eq("Processing job failed: unexpected token")
+      expect(selection.error_details).to include(
+        "stage" => "PROCESS",
+        "code" => "job_failed",
+        "action" => "retry",
+        "error_class" => "JSON::ParserError"
+      )
+      expect(source.reload).to be_failed
+    end
   end
 end
